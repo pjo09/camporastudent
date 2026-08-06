@@ -129,7 +129,7 @@ export function formatCurrency(amount) {
 
 function sidebarHTML(currentPage) {
   const navItems = [
-    { href: "/pages/owner//pages/student/dashboard.html", icon: "fa-house", label: "Dashboard", id: "dashboard" },
+    { href: "/pages/owner/dashboard.html", icon: "fa-house", label: "Dashboard", id: "dashboard" },
     { href: "/pages/owner/properties.html", icon: "fa-building", label: "My Properties", id: "properties" },
     { href: "/pages/owner/add-property.html", icon: "fa-plus", label: "Add Property", id: "add-property" },
     { href: "/pages/owner/bookings.html", icon: "fa-calendar-check", label: "Bookings", id: "bookings" },
@@ -153,7 +153,7 @@ function sidebarHTML(currentPage) {
   return `
 <aside class="v3-sidebar" id="sidebar">
   <div>
-    <a href="/pages/owner//pages/student/dashboard.html" class="v3-sidebar-logo">
+    <a href="/pages/owner/dashboard.html" class="v3-sidebar-logo">
       <img src="./assets/logos/logo.png" class="v3-logo-img" alt="Campora">
       <div class="v3-logo-text"><h2>Campora</h2><p>Owner Dashboard</p></div>
     </a>
@@ -202,7 +202,7 @@ function profileDropdownHTML() {
   return `
 <div class="v3-profile-dropdown" id="profileDropdown" style="display:none">
   <a href="/pages/owner/settings.html" class="v3-dropdown-item"><i class="fa-solid fa-user"></i> Profile Settings</a>
-  <a href="/pages/owner//pages/student/dashboard.html" class="v3-dropdown-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+  <a href="/pages/owner/dashboard.html" class="v3-dropdown-item"><i class="fa-solid fa-house"></i> Dashboard</a>
   <a href="/pages/owner/settings.html" class="v3-dropdown-item"><i class="fa-solid fa-gear"></i> Settings</a>
   <hr style="border-color:rgba(255,255,255,.08);margin:8px 0">
   <button id="profileLogoutBtn" class="v3-dropdown-item" style="color:#ef4444;width:100%;text-align:left;border:none;background:none;font-family:inherit;cursor:pointer"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
@@ -236,7 +236,7 @@ export function initShell(pageTitle = "Dashboard") {
   // Prevent double-init
   if (document.querySelector(".v3-sidebar")) return;
 
-  const currentPage = window.location.pathname.split("/").pop() || "/pages/owner//pages/student/dashboard.html";
+  const currentPage = window.location.pathname.split("/").pop() || "/pages/owner/dashboard.html";
 
   // Inject sidebar
   const sidebarEl = document.createElement("div");

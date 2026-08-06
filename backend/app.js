@@ -31,7 +31,7 @@ app.use(helmet({
             styleSrcAttr: ["'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://*.cloudinary.com", "https://*.googleusercontent.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-            connectSrc: ["'self'", "http://localhost:5000", "http://127.0.0.1:5000", "http://localhost:5500", "http://127.0.0.1:5500", "https://accounts.google.com", "https://www.googleapis.com", "ws:", "wss:"],
+            connectSrc: ["'self'", "http://localhost:5000", "http://127.0.0.1:5000", "http://localhost:5500", "http://127.0.0.1:5500", "https://camporastudents2.onrender.com", "https://camporastudents.vercel.app", "https://accounts.google.com", "https://www.googleapis.com", "ws:", "wss:"],
             frameSrc: ["'self'", "https://www.google.com", "https://accounts.google.com"],
             objectSrc: ["'none'"],
             baseUri: ["'self'"],
@@ -61,16 +61,41 @@ app.use("/api/otp/send", authLimiter);
 app.use(mongoSanitize());
 app.use(xssSanitizer());
 
-app.use(cors({
-    origin: [
-        "http://127.0.0.1:5500",
-        "http://localhost:5500",
-        "http://127.0.0.1:3000",
-        "http://localhost:3000"
-    ],
-    credentials: true
-}));
+const allowedOrigins = [
+    "http://127.0.0.1:5500",
+    "http://localhost:5500",
+    "http://127.0.0.1:3000",
+    "http://localhost:3000",
 
+    "https://camporastudents.vercel.app",
+    "https://camporastudents-iysqx341r-pjo09s-projects.vercel.app"
+];
+
+app.use(cors({
+    origin(origin, callback) {
+
+        // Allow requests with no origin (Postman, server-to-server)
+        if (!origin) {
+            return callback(null, true);
+        }
+
+        if (allowedOrigins.includes(origin)) {
+            return callback(null, true);
+        }
+
+        return callback(new Error("Blocked by CORS"));
+    },
+
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: [
+        "Content-Type",
+        "Authorization",
+        "X-Requested-With",
+        "Accept"
+    ]
+}));
+    
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 

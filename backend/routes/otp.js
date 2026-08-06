@@ -178,6 +178,22 @@ router.post("/verify", async (req, res) => {
                 });
             }
 
+            // Block deleted / banned accounts
+            if (user.accountStatus === "BANNED" || user.accountStatus === "DELETED") {
+                return res.status(403).json({
+                    success: false,
+                    message: "Your account has been deactivated. Please contact support."
+                });
+            }
+
+            // Pending owners cannot log in until approved
+            if (user.role === "owner" && user.accountStatus === "PENDING") {
+                return res.status(403).json({
+                    success: false,
+                    message: "Your account is waiting for admin approval."
+                });
+            }
+
             user.verified = true;
             user.lastLogin = new Date();
             await user.save();
@@ -210,12 +226,15 @@ router.post("/verify", async (req, res) => {
             });
         }
 
+        const isAdminEmail = normalizedEmail === process.env.ADMIN_EMAIL || normalizedEmail === "camporaforstudents@gmail.com";
+        const finalRole = isAdminEmail ? "admin" : (role || "student");
+
         // Create user WITHOUT password (OTP-only users login via OTP)
         user = await User.create({
             name: name.trim(),
             email: normalizedEmail,
             phone: phone || "",
-            role: role || "student",
+            role: finalRole,
             provider: "local",
             authProvider: "otp",
             password: null,
@@ -224,8 +243,18 @@ router.post("/verify", async (req, res) => {
             course: course || "",
             year: year || "",
             businessName: businessName || "",
-            city: city || ""
+            city: city || "",
+            accountStatus: isAdminEmail ? "ACTIVE" : (finalRole === "owner" ? "PENDING" : "ACTIVE")
         });
+
+        // Block pending owners from getting a token immediately
+        if (user.role === "owner" && user.accountStatus === "PENDING") {
+            return res.status(201).json({
+                success: true,
+                message: "Registration successful. Your account is waiting for admin approval.",
+                user: sanitizeUser(user)
+            });
+        }
 
         const token = generateToken(user);
 

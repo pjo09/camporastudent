@@ -92,7 +92,7 @@ function renderNotifications(notifications) {
     payment: "/pages/owner/payments.html",
     maintenance: "/pages/owner/maintenance.html",
     review: "/pages/owner/reviews.html",
-    general: "/pages/owner//pages/student/dashboard.html",
+    general: "/pages/owner/dashboard.html",
   };
 
   DOM.notificationsList.innerHTML = notifications.map((n, idx) => {

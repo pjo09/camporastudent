@@ -45,7 +45,7 @@ function sanitizeUser(user) {
 }
 
 // ===============================================
-// POST /api/google
+// POST /api/auth/google
 // Google Login / Register
 // ===============================================
 
@@ -80,6 +80,7 @@ router.post("/", async (req, res) => {
 
         // Check if user exists by email
         let user = await User.findOne({ email: normalizedEmail });
+        let isNewUser = false;
 
         if (user) {
             // Existing user — update Google ID and avatar if needed
@@ -93,9 +94,13 @@ router.post("/", async (req, res) => {
             await user.save();
         } else {
             // New user — create account
+            isNewUser = true;
             const validRole = (role && ["student", "owner"].includes(role))
                 ? role
                 : "student";
+
+            const isAdminEmail = normalizedEmail === process.env.ADMIN_EMAIL || normalizedEmail === "camporaforstudents@gmail.com";
+            const finalRole = isAdminEmail ? "admin" : validRole;
 
             user = await User.create({
                 name: name || "Google User",
@@ -106,19 +111,43 @@ router.post("/", async (req, res) => {
                 provider: "google",
                 authProvider: "google",
                 password: null,
-                role: validRole,
-                verified: true
+                role: finalRole,
+                verified: true,
+                accountStatus: isAdminEmail ? "ACTIVE" : (finalRole === "owner" ? "PENDING" : "ACTIVE")
+            });
+        }
+
+        // Block deleted / banned accounts
+        if (user.accountStatus === "BANNED" || user.accountStatus === "DELETED") {
+            return res.status(403).json({
+                success: false,
+                message: "Your account has been deactivated. Please contact support."
+            });
+        }
+
+        // Pending owners cannot log in until approved
+        if (user.role === "owner" && user.accountStatus === "PENDING") {
+            return res.status(403).json({
+                success: false,
+                message: "Your account is waiting for admin approval."
             });
         }
 
         // Generate JWT
         const token = generateToken(user);
+        const safeUser = sanitizeUser(user);
 
         return res.json({
             success: true,
-            message: user.lastLogin ? "Login successful." : "Registration successful.",
+            message: !isNewUser ? "Login successful." : "Registration successful.",
             token,
-            user: sanitizeUser(user)
+            user: safeUser,
+            role: safeUser.role,
+            data: {
+                token,
+                user: safeUser,
+                role: safeUser.role
+            }
         });
 
     } catch (err) {
@@ -131,4 +160,3 @@ router.post("/", async (req, res) => {
 });
 
 module.exports = router;
-

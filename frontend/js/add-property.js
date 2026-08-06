@@ -182,7 +182,7 @@ function setupListeners() {
   DOM.form?.addEventListener("submit", handlePublish);
   DOM.saveDraftBtn?.addEventListener("click", saveDraft);
   DOM.cancelBtn?.addEventListener("click", () => {
-    if (confirm("Discard changes and go back?")) window.location.href = "/pages/owner//pages/student/dashboard.html";
+    if (confirm("Discard changes and go back?")) window.location.href = "/pages/owner/dashboard.html";
   });
 
   DOM.prevBtn?.addEventListener("click", () => showStep(state.currentStep - 1));
@@ -191,7 +191,7 @@ function setupListeners() {
   });
 
   DOM.successBtn?.addEventListener("click", () => {
-    window.location.href = "/pages/owner//pages/student/dashboard.html";
+    window.location.href = "/pages/owner/dashboard.html";
   });
 
   // Live validation on blur

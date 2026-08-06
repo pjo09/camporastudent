@@ -161,9 +161,18 @@ router.post("/register", async (req, res) => {
             accountStatus: isAdminEmail ? "ACTIVE" : (role === "owner" ? "PENDING" : "ACTIVE")
         });
 
+        const safeUser = sanitizeUser(user);
+
+        // --- Block pending owners from getting a token immediately ---
+        if (user.role === "owner" && user.accountStatus === "PENDING") {
+            return respondSuccess(res, 201, "Registration successful. Your account is waiting for admin approval.", {
+                user: safeUser,
+                role: safeUser.role
+            });
+        }
+
         // --- Generate JWT ---
         const token = generateToken(user);
-        const safeUser = sanitizeUser(user);
 
         return respondSuccess(res, 201, "Registration successful.", {
             token,
