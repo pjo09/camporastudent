@@ -4260,6 +4260,26 @@ box-shadow:
 0 20px 40px rgba(37,99,235,.35);
 
 }
+.empty-state{
+    text-align:center;
+    padding:60px 30px;
+    background:rgba(255,255,255,.04);
+    border:1px dashed rgba(120,160,255,.22);
+    border-radius:var(--radius-lg);
+    grid-column:1/-1;
+}
+
+.empty-state h3{
+    font-size:26px;
+    margin-bottom:10px;
+    color:var(--text);
+}
+
+.empty-state p{
+    font-size:16px;
+    color:var(--text-muted);
+}
+
 .loading-card{
 
 height:360px;
