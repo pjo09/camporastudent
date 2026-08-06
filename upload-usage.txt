@@ -1,0 +1,1 @@
+c:\project\campora\frontend\js\add-property.js:336:    // ===== STEP 1: Upload new images via /api/upload =====

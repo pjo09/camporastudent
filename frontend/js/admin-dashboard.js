@@ -1,0 +1,985 @@
+// =====================================================
+// CAMPORA ADMIN DASHBOARD
+// Full integration with admin API
+// =====================================================
+
+import { getToken, getUser, protectPageByRole, logout as sessionLogout } from "./session.js";
+import { API } from "./config.js";
+
+const API_BASE = API;
+
+const $ = (id) => document.getElementById(id);
+
+// =====================================================
+// STATE
+// =====================================================
+
+const state = {
+  user: null,
+  token: null,
+  charts: {},
+  usersPage: 1,
+  usersTotal: 1,
+  propPage: 1,
+  propTotal: 1,
+  bookingPage: 1,
+  bookingTotal: 1,
+  currentTab: "overview",
+};
+
+state.user = protectPageByRole(["admin"]);
+state.token = getToken();
+if (!state.user || !state.token) {}
+
+// =====================================================
+// DOM REFS
+// =====================================================
+
+const DOM = {
+  loading: $("adminLoading"),
+  sidebar: $("adminSidebar"),
+  menuBtn: $("adminMenuBtn"),
+  pageTitle: $("adminPageTitle"),
+  name: $("adminName"),
+  avatar: $("adminAvatar"),
+  lastUpdate: $("adminLastUpdate"),
+  refreshBtn: $("adminRefreshBtn"),
+  logoutBtn: $("adminLogoutBtn"),
+  modalOverlay: $("adminModalOverlay"),
+  modalClose: $("adminModalClose"),
+  modalTitle: $("adminModalTitle"),
+  modalBody: $("adminModalBody"),
+
+  overviewStats: $("overviewStats"),
+  activityTable: $("activityTable"),
+  activityCount: $("activityCount"),
+
+  analyticsStats: $("analyticsStats"),
+
+  usersTable: $("usersTable"),
+  usersSearch: $("usersSearch"),
+  usersRoleFilter: $("usersRoleFilter"),
+  usersStatusFilter: $("usersStatusFilter"),
+  usersSearchBtn: $("usersSearchBtn"),
+  usersPrev: $("usersPrev"),
+  usersNext: $("usersNext"),
+  usersPageInfo: $("usersPageInfo"),
+
+  propTable: $("propTable"),
+  propSearch: $("propSearch"),
+  propStatusFilter: $("propStatusFilter"),
+  propSearchBtn: $("propSearchBtn"),
+  propPrev: $("propPrev"),
+  propNext: $("propNext"),
+  propPageInfo: $("propPageInfo"),
+
+  bookingTable: $("bookingTable"),
+  bookingStatusFilter: $("bookingStatusFilter"),
+  bookingPaymentFilter: $("bookingPaymentFilter"),
+  bookingPrev: $("bookingPrev"),
+  bookingNext: $("bookingNext"),
+  bookingPageInfo: $("bookingPageInfo"),
+
+  paymentStats: $("paymentStats"),
+  paymentTable: $("paymentTable"),
+  paymentFilter: $("paymentFilter"),
+
+  reviewTable: $("reviewTable"),
+  reviewStatusFilter: $("reviewStatusFilter"),
+  reviewSearch: $("reviewSearch"),
+
+  reportStats: $("reportStats"),
+  occupancyTable: $("occupancyTable"),
+
+  // Settings
+  setSiteName: $("setSiteName"),
+  setSupportEmail: $("setSupportEmail"),
+  setSupportPhone: $("setSupportPhone"),
+  setCommission: $("setCommission"),
+  setMaintenance: $("setMaintenance"),
+  setRegistration: $("setRegistration"),
+  setPropertyUpload: $("setPropertyUpload"),
+  savePlatformSettings: $("savePlatformSettings"),
+
+  systemStats: $("systemStats"),
+  systemInfoTable: $("systemInfoTable"),
+};
+
+// =====================================================
+// INIT
+// =====================================================
+
+init();
+
+async function init() {
+  renderAdminInfo();
+  setupEventListeners();
+  await loadAllTabs();
+  DOM.loading.style.display = "none";
+  updateLastUpdate();
+}
+
+function renderAdminInfo() {
+  const u = state.user;
+  if (!u) return;
+  DOM.name.textContent = u.name || "Admin";
+  DOM.avatar.textContent = (u.name || "A").charAt(0).toUpperCase();
+}
+
+function setupEventListeners() {
+  // Tab switching
+  document.querySelectorAll(".admin-nav-item[data-tab]").forEach((btn) => {
+    btn.addEventListener("click", () => switchTab(btn.dataset.tab));
+  });
+
+  // Modal
+  DOM.modalClose?.addEventListener("click", () => closeModal());
+  DOM.modalOverlay?.addEventListener("click", (e) => {
+    if (e.target === DOM.modalOverlay) closeModal();
+  });
+
+  // Refresh
+  DOM.refreshBtn?.addEventListener("click", () => { loadAllTabs(); updateLastUpdate(); });
+
+  // Logout
+  DOM.logoutBtn?.addEventListener("click", () => {
+    sessionLogout();
+    window.location.href = "login.html";
+  });
+
+  // Mobile menu
+  DOM.menuBtn?.addEventListener("click", () => {
+    DOM.sidebar?.classList.toggle("open");
+  });
+
+  // Users search
+  DOM.usersSearchBtn?.addEventListener("click", () => { state.usersPage = 1; loadUsers(); });
+  DOM.usersSearch?.addEventListener("keydown", (e) => { if (e.key === "Enter") { state.usersPage = 1; loadUsers(); } });
+  DOM.usersPrev?.addEventListener("click", () => { if (state.usersPage > 1) { state.usersPage--; loadUsers(); } });
+  DOM.usersNext?.addEventListener("click", () => { if (state.usersPage < state.usersTotal) { state.usersPage++; loadUsers(); } });
+
+  // Properties search
+  DOM.propSearchBtn?.addEventListener("click", () => { state.propPage = 1; loadProperties(); });
+  DOM.propPrev?.addEventListener("click", () => { if (state.propPage > 1) { state.propPage--; loadProperties(); } });
+  DOM.propNext?.addEventListener("click", () => { if (state.propPage < state.propTotal) { state.propPage++; loadProperties(); } });
+
+  // Bookings
+  DOM.bookingPrev?.addEventListener("click", () => { if (state.bookingPage > 1) { state.bookingPage--; loadBookings(); } });
+  DOM.bookingNext?.addEventListener("click", () => { if (state.bookingPage < state.bookingTotal) { state.bookingPage++; loadBookings(); } });
+
+  // Settings
+  DOM.savePlatformSettings?.addEventListener("click", saveSettings);
+
+  // Auto-refresh filters
+  [DOM.usersRoleFilter, DOM.usersStatusFilter].forEach((el) => el?.addEventListener("change", () => { state.usersPage = 1; loadUsers(); }));
+  DOM.propStatusFilter?.addEventListener("change", () => { state.propPage = 1; loadProperties(); });
+  [DOM.bookingStatusFilter, DOM.bookingPaymentFilter].forEach((el) => el?.addEventListener("change", () => { state.bookingPage = 1; loadBookings(); }));
+  DOM.paymentFilter?.addEventListener("change", loadPayments);
+  DOM.reviewStatusFilter?.addEventListener("change", loadReviews);
+}
+
+function switchTab(tab) {
+  state.currentTab = tab;
+
+  // Update nav
+  document.querySelectorAll(".admin-nav-item").forEach((btn) => {
+    btn.classList.toggle("active", btn.dataset.tab === tab);
+  });
+
+  // Update content
+  document.querySelectorAll(".admin-tab-content").forEach((el) => {
+    el.classList.remove("active");
+  });
+  const content = $(`tab-${tab}`);
+  if (content) content.classList.add("active");
+
+  // Update title
+  const titles = { overview: "Dashboard Overview", analytics: "Analytics", users: "Users Management", properties: "Properties", bookings: "Bookings", payments: "Payments", reviews: "Reviews", reports: "Reports", settings: "Platform Settings", system: "System" };
+  DOM.pageTitle.textContent = titles[tab] || "Admin";
+
+  // Load tab data
+  loadTabData(tab);
+
+  // Close mobile sidebar
+  DOM.sidebar?.classList.remove("open");
+}
+
+function loadTabData(tab) {
+  switch (tab) {
+    case "overview": loadOverview(); break;
+    case "analytics": loadAnalytics(); break;
+    case "users": loadUsers(); break;
+    case "properties": loadProperties(); break;
+    case "bookings": loadBookings(); break;
+    case "payments": loadPayments(); break;
+    case "reviews": loadReviews(); break;
+    case "reports": loadReports(); break;
+    case "settings": loadSettings(); break;
+    case "system": loadSystem(); break;
+  }
+}
+
+async function loadAllTabs() {
+  await Promise.all([loadOverview(), loadAnalytics(), loadReports(), loadSettings(), loadSystem()]);
+}
+
+function updateLastUpdate() {
+  DOM.lastUpdate.textContent = `Last updated: ${new Date().toLocaleTimeString()}`;
+}
+
+// =====================================================
+// OVERVIEW
+// =====================================================
+
+async function loadOverview() {
+  try {
+    const [dashRes, activityRes] = await Promise.all([
+      fetch(`${API}/admin/dashboard`, { headers: { Authorization: `Bearer ${state.token}` } }),
+      fetch(`${API}/admin/activity`, { headers: { Authorization: `Bearer ${state.token}` } }),
+    ]);
+
+    const dashData = await dashRes.json();
+    const activityData = await activityRes.json();
+
+    if (dashData.success) {
+      const s = dashData.statistics;
+      DOM.overviewStats.innerHTML = `
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(37,99,235,.15);color:#60a5fa"><i class="fa-solid fa-users"></i></div><div class="admin-stat-title">Total Users</div><div class="admin-stat-value">${s.totalUsers || 0}</div><div class="admin-stat-sub">${s.totalStudents || 0} students · ${s.totalOwners || 0} owners</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(124,58,237,.15);color:#a78bfa"><i class="fa-solid fa-building"></i></div><div class="admin-stat-title">Properties</div><div class="admin-stat-value">${s.totalProperties || 0}</div><div class="admin-stat-sub">${s.approvedProperties || 0} approved · ${s.pendingProperties || 0} pending</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(6,182,212,.15);color:#22d3ee"><i class="fa-solid fa-calendar-check"></i></div><div class="admin-stat-title">Bookings</div><div class="admin-stat-value">${s.totalBookings || 0}</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(34,197,94,.15);color:#4ade80"><i class="fa-solid fa-star"></i></div><div class="admin-stat-title">Reviews</div><div class="admin-stat-value">${s.totalReviews || 0}</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(245,158,11,.15);color:#fbbf24"><i class="fa-solid fa-user-graduate"></i></div><div class="admin-stat-title">Students</div><div class="admin-stat-value">${s.totalStudents || 0}</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(239,68,68,.15);color:#f87171"><i class="fa-solid fa-user-tie"></i></div><div class="admin-stat-title">Owners</div><div class="admin-stat-value">${s.totalOwners || 0}</div></div>`;
+
+      // Property status chart
+      createPropertyChart(s.totalProperties || 0, s.approvedProperties || 0, s.pendingProperties || 0, s.rejectedProperties || 0);
+    }
+
+    if (activityData.success) {
+      const users = activityData.users || [];
+      const properties = activityData.properties || [];
+      const bookings = activityData.bookings || [];
+      const allActivity = [
+        ...users.map((u) => ({ type: "user", detail: `${u.name || "User"} joined`, name: u.email || "", time: u.createdAt })),
+        ...properties.map((p) => ({ type: "property", detail: `${p.propertyName || "Property"} added`, name: p.owner?.name || "", time: p.createdAt })),
+        ...bookings.map((b) => ({ type: "booking", detail: `Booking for ${b.propertyName || "property"}`, name: b.userName || "", time: b.createdAt })),
+      ].sort((a, b) => new Date(b.time) - new Date(a.time)).slice(0, 15);
+
+      DOM.activityCount.textContent = `${allActivity.length} recent`;
+      if (allActivity.length === 0) {
+        DOM.activityTable.innerHTML = `<tr><td colspan="4" style="text-align:center;color:#64748b">No recent activity</td></tr>`;
+      } else {
+        DOM.activityTable.innerHTML = allActivity.map((a) => `
+          <tr>
+            <td><span class="admin-status" style="background:${a.type === 'user' ? 'rgba(37,99,235,.12)' : a.type === 'property' ? 'rgba(124,58,237,.12)' : 'rgba(6,182,212,.12)'};color:${a.type === 'user' ? '#60a5fa' : a.type === 'property' ? '#a78bfa' : '#22d3ee'}">${a.type}</span></td>
+            <td>${a.detail}</td>
+            <td>${a.name}</td>
+            <td style="color:#64748b;font-size:13px">${timeAgo(a.time)}</td>
+          </tr>`).join("");
+      }
+    }
+  } catch (err) {
+    console.error("Overview error:", err);
+  }
+}
+
+// =====================================================
+// ANALYTICS
+// =====================================================
+
+async function loadAnalytics() {
+  try {
+    const [analyticsRes, revenueRes, bookingGrowthRes] = await Promise.all([
+      fetch(`${API}/admin/analytics`, { headers: { Authorization: `Bearer ${state.token}` } }),
+      fetch(`${API}/admin/payments/revenue`, { headers: { Authorization: `Bearer ${state.token}` } }),
+      fetch(`${API}/admin/reports/booking-growth`, { headers: { Authorization: `Bearer ${state.token}` } }),
+    ]);
+
+    const analyticsData = await analyticsRes.json();
+    const revenueData = await revenueRes.json();
+    const bookingGrowthData = await bookingGrowthRes.json();
+
+    if (analyticsData.success) {
+      const a = analyticsData.analytics;
+      DOM.analyticsStats.innerHTML = `
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(37,99,235,.15);color:#60a5fa"><i class="fa-solid fa-eye"></i></div><div class="admin-stat-title">Total Views</div><div class="admin-stat-value">${(a.totalViews || 0).toLocaleString()}</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(124,58,237,.15);color:#a78bfa"><i class="fa-solid fa-indian-rupee-sign"></i></div><div class="admin-stat-title">Average Rent</div><div class="admin-stat-value">₹${(a.averageRent || 0).toLocaleString()}</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(6,182,212,.15);color:#22d3ee"><i class="fa-solid fa-bed"></i></div><div class="admin-stat-title">Available Beds</div><div class="admin-stat-value">${(a.availableBeds || 0).toLocaleString()}</div></div>`;
+    }
+
+    if (revenueData.success) {
+      const r = revenueData.revenue || {};
+      createRevenueChart(r.totalRevenue || 0, r.averageRevenue || 0);
+    }
+
+    if (bookingGrowthData.success) {
+      const growth = bookingGrowthData.growth || [];
+      createBookingTrendChart(growth);
+    }
+  } catch (err) {
+    console.error("Analytics error:", err);
+  }
+}
+
+// =====================================================
+// USERS
+// =====================================================
+
+async function loadUsers() {
+  try {
+    const params = new URLSearchParams();
+    params.set("page", state.usersPage);
+    params.set("limit", "15");
+    if (DOM.usersRoleFilter?.value) params.set("role", DOM.usersRoleFilter.value);
+    if (DOM.usersStatusFilter?.value) params.set("status", DOM.usersStatusFilter.value);
+    if (DOM.usersSearch?.value.trim()) params.set("search", DOM.usersSearch.value.trim());
+
+    const res = await fetch(`${API}/admin/users?${params}`, { headers: { Authorization: `Bearer ${state.token}` } });
+    const data = await res.json();
+
+    if (data.success) {
+      const users = data.users || [];
+      state.usersTotal = data.totalPages || 1;
+      DOM.usersPageInfo.textContent = `Page ${data.currentPage || 1} of ${data.totalPages || 1}`;
+      DOM.usersPrev.disabled = (data.currentPage || 1) <= 1;
+      DOM.usersNext.disabled = (data.currentPage || 1) >= (data.totalPages || 1);
+
+      if (users.length === 0) {
+        DOM.usersTable.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#64748b">No users found</td></tr>`;
+        return;
+      }
+
+      DOM.usersTable.innerHTML = users.map((u) => `
+        <tr>
+          <td><div class="admin-avatar admin-avatar-sm">${(u.name || "?").charAt(0).toUpperCase()}</div></td>
+          <td><strong>${u.name || "Unknown"}</strong></td>
+          <td style="color:#94a3b8">${u.email || ""}</td>
+          <td><span class="admin-status" style="background:${u.role === 'admin' ? 'rgba(239,68,68,.12)' : u.role === 'owner' ? 'rgba(124,58,237,.12)' : 'rgba(37,99,235,.12)'};color:${u.role === 'admin' ? '#ef4444' : u.role === 'owner' ? '#a78bfa' : '#60a5fa'}">${u.role || "student"}</span></td>
+          <td><span class="admin-status ${u.status || 'active'}">${u.status || "active"}</span></td>
+          <td style="color:#64748b;font-size:13px">${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : ""}</td>
+          <td>
+            <div class="action-group">
+              <button class="admin-btn admin-btn-sm admin-btn-primary" onclick="window.viewUser('${u._id}')">View</button>
+              ${u.status !== "suspended" ? `<button class="admin-btn admin-btn-sm admin-btn-danger" onclick="window.suspendUser('${u._id}')">Suspend</button>` : `<button class="admin-btn admin-btn-sm admin-btn-success" onclick="window.activateUser('${u._id}')">Activate</button>`}
+              ${u.role === "owner" && !u.verified ? `<button class="admin-btn admin-btn-sm admin-btn-success" onclick="window.verifyOwner('${u._id}')">Verify</button>` : ""}
+            </div>
+          </td>
+        </tr>`).join("");
+    }
+  } catch (err) {
+    console.error("Users load error:", err);
+    DOM.usersTable.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#ef4444">Failed to load users</td></tr>`;
+  }
+}
+
+// =====================================================
+// PROPERTIES
+// =====================================================
+
+async function loadProperties() {
+  try {
+    const params = new URLSearchParams();
+    params.set("page", state.propPage);
+    params.set("limit", "15");
+    if (DOM.propStatusFilter?.value) params.set("status", DOM.propStatusFilter.value);
+    if (DOM.propSearch?.value.trim()) params.set("search", DOM.propSearch.value.trim());
+
+    const res = await fetch(`${API}/admin/properties?${params}`, { headers: { Authorization: `Bearer ${state.token}` } });
+    const data = await res.json();
+
+    if (data.success) {
+      const props = data.properties || [];
+      state.propTotal = data.totalPages || 1;
+      DOM.propPageInfo.textContent = `Page ${data.currentPage || 1} of ${data.totalPages || 1}`;
+      DOM.propPrev.disabled = (data.currentPage || 1) <= 1;
+      DOM.propNext.disabled = (data.currentPage || 1) >= (data.totalPages || 1);
+
+      if (props.length === 0) {
+        DOM.propTable.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#64748b">No properties found</td></tr>`;
+        return;
+      }
+
+      DOM.propTable.innerHTML = props.map((p) => `
+        <tr>
+          <td><strong>${p.propertyName || "Untitled"}</strong></td>
+          <td style="color:#94a3b8">${p.owner?.name || "Unknown"}</td>
+          <td>${p.city || ""}</td>
+          <td>₹${(p.rent || 0).toLocaleString()}</td>
+          <td><span class="admin-status" style="background:rgba(37,99,235,.12);color:#60a5fa">${p.propertyType || "-"}</span></td>
+          <td><span class="admin-status ${p.status || 'pending'}">${p.status || "pending"}</span></td>
+          <td>
+            <div class="action-group">
+              <button class="admin-btn admin-btn-sm admin-btn-primary" onclick="window.location.href='property-details.html?id=${p._id}'">View</button>
+              ${p.status === "pending" ? `<button class="admin-btn admin-btn-sm admin-btn-success" onclick="window.approveProperty('${p._id}')">Approve</button>` : ""}
+              ${p.status !== "rejected" ? `<button class="admin-btn admin-btn-sm admin-btn-danger" onclick="window.rejectProperty('${p._id}')">Reject</button>` : ""}
+              ${!p.featured ? `<button class="admin-btn admin-btn-sm admin-btn-warning" onclick="window.featureProperty('${p._id}')">Feature</button>` : ""}
+            </div>
+          </td>
+        </tr>`).join("");
+    }
+  } catch (err) {
+    console.error("Properties load error:", err);
+    DOM.propTable.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#ef4444">Failed to load properties</td></tr>`;
+  }
+}
+
+// =====================================================
+// BOOKINGS
+// =====================================================
+
+async function loadBookings() {
+  try {
+    const params = new URLSearchParams();
+    params.set("page", state.bookingPage);
+    params.set("limit", "15");
+    if (DOM.bookingStatusFilter?.value) params.set("status", DOM.bookingStatusFilter.value);
+    if (DOM.bookingPaymentFilter?.value) params.set("paymentStatus", DOM.bookingPaymentFilter.value);
+
+    const res = await fetch(`${API}/admin/bookings?${params}`, { headers: { Authorization: `Bearer ${state.token}` } });
+    const data = await res.json();
+
+    if (data.success) {
+      const bookings = data.bookings || [];
+      state.bookingTotal = data.totalPages || 1;
+      DOM.bookingPageInfo.textContent = `Page ${data.currentPage || 1} of ${data.totalPages || 1}`;
+      DOM.bookingPrev.disabled = (data.currentPage || 1) <= 1;
+      DOM.bookingNext.disabled = (data.currentPage || 1) >= (data.totalPages || 1);
+
+      if (bookings.length === 0) {
+        DOM.bookingTable.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#64748b">No bookings found</td></tr>`;
+        return;
+      }
+
+      DOM.bookingTable.innerHTML = bookings.map((b) => {
+        const status = b.bookingStatus || "pending";
+        const payment = b.paymentStatus || "pending";
+        return `
+        <tr>
+          <td>${b.userId?.name || b.userName || "Unknown"}</td>
+          <td>${b.propertyId?.propertyName || b.propertyName || "Property"}</td>
+          <td>₹${(b.price || 0).toLocaleString()}</td>
+          <td><span class="admin-status ${['confirmed','checked-in'].includes(status) ? 'approved' : status === 'cancelled' ? 'suspended' : 'pending'}">${status}</span></td>
+          <td><span class="admin-status ${payment === 'paid' ? 'approved' : payment === 'failed' ? 'suspended' : 'pending'}">${payment}</span></td>
+          <td style="color:#64748b;font-size:13px">${b.createdAt ? new Date(b.createdAt).toLocaleDateString() : ""}</td>
+          <td>
+            <div class="action-group">
+              ${status === "pending" ? `<button class="admin-btn admin-btn-sm admin-btn-success" onclick="window.confirmBooking('${b._id}')">Confirm</button>` : ""}
+              ${status !== "cancelled" ? `<button class="admin-btn admin-btn-sm admin-btn-danger" onclick="window.cancelBooking('${b._id}')">Cancel</button>` : ""}
+              ${payment !== "paid" ? `<button class="admin-btn admin-btn-sm admin-btn-primary" onclick="window.markPaid('${b._id}')">Mark Paid</button>` : ""}
+            </div>
+          </td>
+        </tr>`}).join("");
+    }
+  } catch (err) {
+    console.error("Bookings load error:", err);
+    DOM.bookingTable.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#ef4444">Failed to load bookings</td></tr>`;
+  }
+}
+
+// =====================================================
+// PAYMENTS
+// =====================================================
+
+async function loadPayments() {
+  try {
+    const [statsRes, paymentsRes] = await Promise.all([
+      fetch(`${API}/admin/payments/statistics`, { headers: { Authorization: `Bearer ${state.token}` } }),
+      fetch(`${API}/admin/payments?limit=20${DOM.paymentFilter?.value ? `&status=${DOM.paymentFilter.value}` : ""}`, { headers: { Authorization: `Bearer ${state.token}` } }),
+    ]);
+
+    const statsData = await statsRes.json();
+    const paymentsData = await paymentsRes.json();
+
+    if (statsData.success) {
+      const s = statsData.statistics || {};
+      DOM.paymentStats.innerHTML = `
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(34,197,94,.15);color:#4ade80"><i class="fa-solid fa-check"></i></div><div class="admin-stat-title">Paid</div><div class="admin-stat-value">${s.paid || 0}</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(245,158,11,.15);color:#fbbf24"><i class="fa-solid fa-clock"></i></div><div class="admin-stat-title">Pending</div><div class="admin-stat-value">${s.pending || 0}</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(239,68,68,.15);color:#f87171"><i class="fa-solid fa-times"></i></div><div class="admin-stat-title">Failed</div><div class="admin-stat-value">${s.failed || 0}</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(124,58,237,.15);color:#a78bfa"><i class="fa-solid fa-rotate-left"></i></div><div class="admin-stat-title">Refunded</div><div class="admin-stat-value">${s.refunded || 0}</div></div>`;
+    }
+
+    if (paymentsData.success) {
+      const payments = paymentsData.payments || [];
+      if (payments.length === 0) {
+        DOM.paymentTable.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#64748b">No payments found</td></tr>`;
+        return;
+      }
+      DOM.paymentTable.innerHTML = payments.map((p) => `
+        <tr>
+          <td>${p.userId?.name || "Unknown"}</td>
+          <td>${p.propertyId?.propertyName || "Property"}</td>
+          <td>₹${(p.price || 0).toLocaleString()}</td>
+          <td><span class="admin-status ${p.paymentStatus === 'paid' ? 'approved' : p.paymentStatus === 'failed' ? 'suspended' : 'pending'}">${p.paymentStatus || "pending"}</span></td>
+          <td style="color:#94a3b8">${p.paymentMethod || "-"}</td>
+          <td style="color:#64748b;font-size:13px">${p.paymentDate ? new Date(p.paymentDate).toLocaleDateString() : ""}</td>
+          <td>${p.paymentStatus !== "paid" ? `<button class="admin-btn admin-btn-sm admin-btn-primary" onclick="window.markPaymentPaid('${p._id}')">Mark Paid</button>` : ""}</td>
+        </tr>`).join("");
+    }
+  } catch (err) {
+    console.error("Payments error:", err);
+  }
+}
+
+// =====================================================
+// REVIEWS
+// =====================================================
+
+async function loadReviews() {
+  try {
+    const params = new URLSearchParams();
+    if (DOM.reviewStatusFilter?.value) params.set("status", DOM.reviewStatusFilter.value);
+    if (DOM.reviewSearch?.value.trim()) params.set("search", DOM.reviewSearch.value.trim());
+
+    const res = await fetch(`${API}/admin/reviews?${params}`, { headers: { Authorization: `Bearer ${state.token}` } });
+    const data = await res.json();
+
+    if (data.success) {
+      const reviews = data.reviews || [];
+      if (reviews.length === 0) {
+        DOM.reviewTable.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#64748b">No reviews found</td></tr>`;
+        return;
+      }
+      DOM.reviewTable.innerHTML = reviews.map((r) => `
+        <tr>
+          <td>${r.user?.name || "Student"}</td>
+          <td>${r.property?.propertyName || "Property"}</td>
+          <td style="color:#facc15">${"⭐".repeat(r.rating || 0)}</td>
+          <td style="color:#94a3b8;max-width:200px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${r.comment || ""}</td>
+          <td><span class="admin-status ${r.status === 'approved' ? 'approved' : 'pending'}">${r.status || "approved"}</span></td>
+          <td style="color:#64748b;font-size:13px">${r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ""}</td>
+          <td>
+            <div class="action-group">
+              ${r.status !== "approved" ? `<button class="admin-btn admin-btn-sm admin-btn-success" onclick="window.approveReview('${r._id}')">Approve</button>` : ""}
+              ${r.status !== "hidden" ? `<button class="admin-btn admin-btn-sm admin-btn-danger" onclick="window.hideReview('${r._id}')">Hide</button>` : ""}
+              <button class="admin-btn admin-btn-sm admin-btn-danger" onclick="window.deleteReview('${r._id}')">Delete</button>
+            </div>
+          </td>
+        </tr>`).join("");
+    }
+  } catch (err) {
+    console.error("Reviews error:", err);
+  }
+}
+
+// =====================================================
+// REPORTS
+// =====================================================
+
+async function loadReports() {
+  try {
+    const [cityRes, collegeRes, occupancyRes, overviewRes] = await Promise.all([
+      fetch(`${API}/admin/reports/cities`, { headers: { Authorization: `Bearer ${state.token}` } }),
+      fetch(`${API}/admin/reports/colleges`, { headers: { Authorization: `Bearer ${state.token}` } }),
+      fetch(`${API}/admin/properties/occupancy`, { headers: { Authorization: `Bearer ${state.token}` } }),
+      fetch(`${API}/admin/reports/overview`, { headers: { Authorization: `Bearer ${state.token}` } }),
+    ]);
+
+    const cityData = await cityRes.json();
+    const collegeData = await collegeRes.json();
+    const occupancyData = await occupancyRes.json();
+    const overviewData = await overviewRes.json();
+
+    if (cityData.success) createCityChart(cityData.cities || []);
+    if (collegeData.success) createCollegeChart(collegeData.colleges || []);
+
+    if (overviewData.success) {
+      const o = overviewData.overview || {};
+      DOM.reportStats.innerHTML = `
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(37,99,235,.15);color:#60a5fa"><i class="fa-solid fa-users"></i></div><div class="admin-stat-title">Users</div><div class="admin-stat-value">${o.users || 0}</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(124,58,237,.15);color:#a78bfa"><i class="fa-solid fa-building"></i></div><div class="admin-stat-title">Properties</div><div class="admin-stat-value">${o.properties || 0}</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(6,182,212,.15);color:#22d3ee"><i class="fa-solid fa-calendar-check"></i></div><div class="admin-stat-title">Bookings</div><div class="admin-stat-value">${o.bookings || 0}</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(34,197,94,.15);color:#4ade80"><i class="fa-solid fa-star"></i></div><div class="admin-stat-title">Reviews</div><div class="admin-stat-value">${o.reviews || 0}</div></div>`;
+    }
+
+    if (occupancyData.success) {
+      const report = occupancyData.report || [];
+      if (report.length === 0) {
+        DOM.occupancyTable.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#64748b">No properties with beds</td></tr>`;
+      } else {
+        DOM.occupancyTable.innerHTML = report.map((p) => {
+          const rate = p.totalBeds > 0 ? Math.round(((p.totalBeds - p.availableBeds) / p.totalBeds) * 100) : 0;
+          return `<tr><td><strong>${p.propertyName || "Property"}</strong></td><td>${p.city || ""}</td><td>${p.totalBeds || 0}</td><td>${p.availableBeds || 0}</td><td>${p.occupiedBeds || 0}</td><td><span class="admin-status ${rate > 80 ? 'approved' : rate > 40 ? 'pending' : 'suspended'}">${rate}%</span></td></tr>`;
+        }).join("");
+      }
+    }
+  } catch (err) {
+    console.error("Reports error:", err);
+  }
+}
+
+// =====================================================
+// SETTINGS
+// =====================================================
+
+async function loadSettings() {
+  try {
+    const res = await fetch(`${API}/admin/settings`, { headers: { Authorization: `Bearer ${state.token}` } });
+    const data = await res.json();
+    if (data.success) {
+      const s = data.settings || {};
+      if (DOM.setSiteName) DOM.setSiteName.value = s.siteName || "Campora";
+      if (DOM.setSupportEmail) DOM.setSupportEmail.value = s.supportEmail || "";
+      if (DOM.setSupportPhone) DOM.setSupportPhone.value = s.supportPhone || "";
+      if (DOM.setCommission) DOM.setCommission.value = s.commissionPercentage || 0;
+      if (DOM.setMaintenance) DOM.setMaintenance.checked = s.maintenanceMode || false;
+      if (DOM.setRegistration) DOM.setRegistration.checked = s.allowRegistration !== false;
+      if (DOM.setPropertyUpload) DOM.setPropertyUpload.checked = s.allowPropertyUpload !== false;
+    }
+  } catch (err) {
+    console.error("Settings load error:", err);
+  }
+}
+
+async function saveSettings() {
+  try {
+    const body = {
+      siteName: DOM.setSiteName?.value || "Campora",
+      supportEmail: DOM.setSupportEmail?.value || "",
+      supportPhone: DOM.setSupportPhone?.value || "",
+      commissionPercentage: Number(DOM.setCommission?.value) || 0,
+      maintenanceMode: DOM.setMaintenance?.checked || false,
+      allowRegistration: DOM.setRegistration?.checked !== false,
+      allowPropertyUpload: DOM.setPropertyUpload?.checked !== false,
+    };
+
+    const res = await fetch(`${API}/admin/settings`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${state.token}` },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast("Settings saved successfully!", "success");
+    }
+  } catch (err) {
+    showToast("Failed to save settings", "error");
+  }
+}
+
+// =====================================================
+// SYSTEM
+// =====================================================
+
+async function loadSystem() {
+  try {
+    const [healthRes, dbRes, serverRes] = await Promise.all([
+      fetch(`${API}/admin/system/health`, { headers: { Authorization: `Bearer ${state.token}` } }),
+      fetch(`${API}/admin/system/database`, { headers: { Authorization: `Bearer ${state.token}` } }),
+      fetch(`${API}/admin/system/server`, { headers: { Authorization: `Bearer ${state.token}` } }),
+    ]);
+
+    const healthData = await healthRes.json();
+    const dbData = await dbRes.json();
+    const serverData = await serverRes.json();
+
+    if (healthData.success) {
+      const h = healthData;
+      const mem = h.memory || {};
+      DOM.systemStats.innerHTML = `
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(37,99,235,.15);color:#60a5fa"><i class="fa-solid fa-server"></i></div><div class="admin-stat-title">Server</div><div class="admin-stat-value" style="font-size:20px">${h.server || "Running"}</div><div class="admin-stat-sub">Node ${h.node || ""}</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(124,58,237,.15);color:#a78bfa"><i class="fa-solid fa-clock"></i></div><div class="admin-stat-title">Uptime</div><div class="admin-stat-value" style="font-size:20px">${Math.floor((h.uptime || 0) / 3600)}h ${Math.floor(((h.uptime || 0) % 3600) / 60)}m</div></div>
+        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(6,182,212,.15);color:#22d3ee"><i class="fa-solid fa-microchip"></i></div><div class="admin-stat-title">Memory (RSS)</div><div class="admin-stat-value" style="font-size:20px">${mem.rss ? Math.round(mem.rss / 1024 / 1024) + " MB" : "N/A"}</div></div>`;
+    }
+
+    if (serverData.success) {
+      const s = serverData;
+      DOM.systemInfoTable.innerHTML = `
+        <tr><td style="color:#94a3b8">Platform</td><td>${s.platform || "N/A"}</td></tr>
+        <tr><td style="color:#94a3b8">Architecture</td><td>${s.architecture || "N/A"}</td></tr>
+        <tr><td style="color:#94a3b8">Node Version</td><td>${s.nodeVersion || "N/A"}</td></tr>
+        <tr><td style="color:#94a3b8">Environment</td><td>${s.environment || "development"}</td></tr>
+        <tr><td style="color:#94a3b8">PID</td><td>${s.pid || "N/A"}</td></tr>`;
+    }
+
+    if (dbData.success) {
+      const db = dbData;
+      const row = document.createElement("tr");
+      row.innerHTML = `<td style="color:#94a3b8">Database</td><td>${db.name || "campora"} (${db.host || "local"}) ${db.database === 1 ? "✅" : "❌"}</td>`;
+      DOM.systemInfoTable.appendChild(row);
+    }
+  } catch (err) {
+    console.error("System load error:", err);
+  }
+}
+
+// =====================================================
+// CHARTS
+// =====================================================
+
+function createPropertyChart(total, approved, pending, rejected) {
+  const ctx = document.getElementById("propertyChart")?.getContext("2d");
+  if (!ctx) return;
+  if (state.charts.property) state.charts.property.destroy();
+  state.charts.property = new Chart(ctx, {
+    type: "doughnut",
+    data: {
+      labels: ["Approved", "Pending", "Rejected"],
+      datasets: [{ data: [approved, pending, rejected], backgroundColor: ["#22c55e", "#f59e0b", "#ef4444"], borderWidth: 0 }],
+    },
+    options: { responsive: true, maintainAspectRatio: true, plugins: { legend: { position: "bottom", labels: { color: "#94a3b8" } } } },
+  });
+}
+
+function createRevenueChart(total, avg) {
+  const ctx = document.getElementById("revenueChart")?.getContext("2d");
+  if (!ctx) return;
+  if (state.charts.revenue) state.charts.revenue.destroy();
+  state.charts.revenue = new Chart(ctx, {
+    type: "bar",
+    data: {
+      labels: ["Total Revenue", "Average"],
+      datasets: [{ data: [total, avg], backgroundColor: ["#2563eb", "#7c3aed"], borderRadius: 8 }],
+    },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { ticks: { color: "#94a3b8", callback: (v) => "₹" + v.toLocaleString() } } } },
+  });
+}
+
+function createBookingTrendChart(growth) {
+  const ctx = document.getElementById("bookingTrendChart")?.getContext("2d");
+  if (!ctx) return;
+  if (state.charts.bookingTrend) state.charts.bookingTrend.destroy();
+
+  const labels = growth.map((g) => {
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+    return `${months[(g._id?.month || 1) - 1]} ${g._id?.year || ""}`;
+  }).slice(-12);
+  const data = growth.map((g) => g.bookings || 0).slice(-12);
+
+  state.charts.bookingTrend = new Chart(ctx, {
+    type: "line",
+    data: { labels, datasets: [{ data, borderColor: "#2563eb", backgroundColor: "rgba(37,99,235,.1)", fill: true, tension: .4, pointRadius: 4 }] },
+    options: { responsive: true, plugins: { legend: { display: false } }, scales: { y: { beginAtZero: true, ticks: { color: "#94a3b8" } }, x: { ticks: { color: "#94a3b8" } } } },
+  });
+}
+
+function createCityChart(cities) {
+  const ctx = document.getElementById("cityChart")?.getContext("2d");
+  if (!ctx) return;
+  if (state.charts.city) state.charts.city.destroy();
+
+  const top = cities.slice(0, 8);
+  state.charts.city = new Chart(ctx, {
+    type: "bar",
+    data: { labels: top.map((c) => c._id || "Unknown"), datasets: [{ data: top.map((c) => c.totalProperties || 0), backgroundColor: ["#2563eb", "#7c3aed", "#06b6d4", "#22c55e", "#f59e0b", "#ef4444", "#a855f7", "#14b8a6"], borderRadius: 6 }] },
+    options: { responsive: true, indexAxis: "y", plugins: { legend: { display: false } }, scales: { x: { ticks: { color: "#94a3b8" } }, y: { ticks: { color: "#94a3b8" } } } },
+  });
+}
+
+function createCollegeChart(colleges) {
+  const ctx = document.getElementById("collegeChart")?.getContext("2d");
+  if (!ctx) return;
+  if (state.charts.college) state.charts.college.destroy();
+
+  const top = colleges.slice(0, 8);
+  state.charts.college = new Chart(ctx, {
+    type: "bar",
+    data: { labels: top.map((c) => c._id || "Unknown"), datasets: [{ data: top.map((c) => c.totalProperties || 0), backgroundColor: "#7c3aed", borderRadius: 6 }] },
+    options: { responsive: true, indexAxis: "y", plugins: { legend: { display: false } }, scales: { x: { ticks: { color: "#94a3b8" } }, y: { ticks: { color: "#94a3b8" } } } },
+  });
+}
+
+// =====================================================
+// MODAL
+// =====================================================
+
+function openModal(title, body) {
+  DOM.modalTitle.textContent = title;
+  DOM.modalBody.innerHTML = body;
+  DOM.modalOverlay.classList.add("active");
+  document.body.style.overflow = "hidden";
+}
+
+function closeModal() {
+  DOM.modalOverlay.classList.remove("active");
+  document.body.style.overflow = "";
+}
+
+// =====================================================
+// GLOBAL ADMIN ACTIONS
+// =====================================================
+
+// Users
+window.viewUser = async (id) => {
+  try {
+    const res = await fetch(`${API}/admin/users/${id}`, { headers: { Authorization: `Bearer ${state.token}` } });
+    const data = await res.json();
+    if (data.success) {
+      const u = data.user || {};
+      openModal(`User: ${u.name || "Unknown"}`, `
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div><strong>Name:</strong><br>${u.name || "N/A"}</div>
+          <div><strong>Email:</strong><br>${u.email || "N/A"}</div>
+          <div><strong>Role:</strong><br>${u.role || "N/A"}</div>
+          <div><strong>Phone:</strong><br>${u.phone || "N/A"}</div>
+          <div><strong>College:</strong><br>${u.college || "N/A"}</div>
+          <div><strong>Status:</strong><br>${u.status || "active"}</div>
+          <div><strong>Joined:</strong><br>${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : "N/A"}</div>
+          <div><strong>Last Login:</strong><br>${u.lastLogin ? new Date(u.lastLogin).toLocaleDateString() : "N/A"}</div>
+        </div>
+        ${u.verified ? '<p style="margin-top:16px;color:#22c55e">✅ Verified Owner</p>' : ""}`);
+    }
+  } catch (err) { console.error(err); }
+};
+
+window.suspendUser = async (id) => {
+  if (!confirm("Suspend this user?")) return;
+  try {
+    await fetch(`${API}/admin/users/${id}/suspend`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    showToast("User suspended", "info"); loadUsers();
+  } catch (err) { showToast("Failed", "error"); }
+};
+
+window.activateUser = async (id) => {
+  try {
+    await fetch(`${API}/admin/users/${id}/activate`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    showToast("User activated", "success"); loadUsers();
+  } catch (err) { showToast("Failed", "error"); }
+};
+
+window.verifyOwner = async (id) => {
+  try {
+    await fetch(`${API}/admin/owners/${id}/verify`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    showToast("Owner verified!", "success"); loadUsers();
+  } catch (err) { showToast("Failed", "error"); }
+};
+
+// Properties
+window.approveProperty = async (id) => {
+  try {
+    await fetch(`${API}/admin/properties/${id}/approve`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    showToast("Property approved!", "success"); loadProperties();
+  } catch (err) { showToast("Failed", "error"); }
+};
+
+window.rejectProperty = async (id) => {
+  if (!confirm("Reject this property?")) return;
+  try {
+    await fetch(`${API}/admin/properties/${id}/reject`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    showToast("Property rejected", "info"); loadProperties();
+  } catch (err) { showToast("Failed", "error"); }
+};
+
+window.featureProperty = async (id) => {
+  try {
+    await fetch(`${API}/admin/properties/${id}/feature`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    showToast("Property featured!", "success"); loadProperties();
+  } catch (err) { showToast("Failed", "error"); }
+};
+
+// Bookings
+window.confirmBooking = async (id) => {
+  try {
+    await fetch(`${API}/admin/bookings/${id}/confirm`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    showToast("Booking confirmed!", "success"); loadBookings();
+  } catch (err) { showToast("Failed", "error"); }
+};
+
+window.cancelBooking = async (id) => {
+  if (!confirm("Cancel this booking?")) return;
+  try {
+    await fetch(`${API}/admin/bookings/${id}/cancel`, { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${state.token}` }, body: JSON.stringify({ reason: "Cancelled by admin" }) });
+    showToast("Booking cancelled", "info"); loadBookings();
+  } catch (err) { showToast("Failed", "error"); }
+};
+
+window.markPaid = async (id) => {
+  try {
+    await fetch(`${API}/admin/bookings/${id}/payment`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    showToast("Payment marked as received", "success"); loadBookings();
+  } catch (err) { showToast("Failed", "error"); }
+};
+
+window.markPaymentPaid = async (id) => {
+  try {
+    await fetch(`${API}/admin/payments/${id}/paid`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    showToast("Payment marked as paid", "success"); loadPayments();
+  } catch (err) { showToast("Failed", "error"); }
+};
+
+// Reviews
+window.approveReview = async (id) => {
+  try {
+    await fetch(`${API}/admin/reviews/${id}/approve`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    showToast("Review approved", "success"); loadReviews();
+  } catch (err) { showToast("Failed", "error"); }
+};
+
+window.hideReview = async (id) => {
+  try {
+    await fetch(`${API}/admin/reviews/${id}/hide`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    showToast("Review hidden", "info"); loadReviews();
+  } catch (err) { showToast("Failed", "error"); }
+};
+
+window.deleteReview = async (id) => {
+  if (!confirm("Delete this review?")) return;
+  try {
+    await fetch(`${API}/admin/reviews/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${state.token}` } });
+    showToast("Review deleted", "info"); loadReviews();
+  } catch (err) { showToast("Failed", "error"); }
+};
+
+// =====================================================
+// TOAST
+// =====================================================
+
+function showToast(msg, type = "info", dur = 3000) {
+  const tc = document.getElementById("toastContainer");
+  if (!tc) return;
+  const icons = { success: "fa-circle-check", error: "fa-circle-exclamation", info: "fa-circle-info" };
+  const t = document.createElement("div");
+  t.className = `toast toast-${type}`;
+  t.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i> ${msg}`;
+  tc.appendChild(t);
+  setTimeout(() => { t.classList.add("toast-leaving"); setTimeout(() => t.remove(), 300); }, dur);
+}
+
+// =====================================================
+// TIME AGO
+// =====================================================
+
+function timeAgo(dateInput) {
+  if (!dateInput) return "";
+  const now = new Date();
+  const date = new Date(dateInput);
+  const diffSec = Math.floor((now - date) / 1000);
+  if (diffSec < 60) return "Just now";
+  const diffMin = Math.floor(diffSec / 60);
+  if (diffMin < 60) return `${diffMin}m ago`;
+  const diffHr = Math.floor(diffMin / 60);
+  if (diffHr < 24) return `${diffHr}h ago`;
+  const diffDay = Math.floor(diffHr / 24);
+  if (diffDay < 7) return `${diffDay}d ago`;
+  return date.toLocaleDateString();
+}
+
+// =====================================================
+// RESPONSIVE SIDEBAR
+// =====================================================
+
+// Close sidebar on escape
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") DOM.sidebar?.classList.remove("open");
+});
+
+// Show mobile menu button on small screens
+function checkMobile() {
+  if (window.innerWidth <= 1024) {
+    DOM.menuBtn.style.display = "flex";
+  } else {
+    DOM.menuBtn.style.display = "none";
+    DOM.sidebar?.classList.remove("open");
+  }
+}
+
+checkMobile();
+window.addEventListener("resize", checkMobile);
+
+// =====================================================
+// EXPOSE TOAST
+// =====================================================
+
+window.showToast = showToast;
+
+console.log("✅ Campora Admin Dashboard Loaded");

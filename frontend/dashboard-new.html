@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Campora • Student Dashboard</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="./css/theme.css">
+
+<link rel="stylesheet" href="./css/dashboard-new.css">
+
+<script src="https://kit.fontawesome.com/a2e0e6ad65.js" crossorigin="anonymous"></script>
+
+</head>
+
+<body>
+
+<div class="dashboard">
+
+<!-- Sidebar -->
+
+<aside class="sidebar">
+
+<div class="logo">
+
+<img src="./images/logo.png" alt="Campora">
+
+<div>
+
+<h2>Campora</h2>
+
+<p>Student Dashboard</p>
+
+</div>
+
+</div>
+
+<nav class="menu">
+<a href="dashboard-new.html"><i class="fa-solid fa-house"></i> Dashboard</a>
+<a href="properties.html"><i class="fa-solid fa-magnifying-glass"></i> Explore</a>
+<a href="saved-properties.html"><i class="fa-solid fa-heart"></i> Saved</a>
+<a href="bookings.html"><i class="fa-solid fa-calendar-check"></i> Bookings</a>
+<a href="messages.html"><i class="fa-solid fa-comments"></i> Messages</a>
+<a href="nearby.html"><i class="fa-solid fa-map-location-dot"></i> Nearby</a>
+<a href="nearby.html"><i class="fa-solid fa-building-columns"></i> Universities</a>
+<a href="notifications.html"><i class="fa-solid fa-bell"></i> Notifications</a>
+<a href="payment.html"><i class="fa-solid fa-credit-card"></i> Payments</a>
+<a href="profile.html"><i class="fa-solid fa-user"></i> Profile</a>
+<a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+</nav>
+
+<button class="logout">
+
+<i class="fa-solid fa-right-from-bracket"></i>
+
+Logout
+
+</button>
+
+</aside>
+
+<!-- Main -->
+
+<main class="content">
+
+<header class="topbar">
+
+<h1>Dashboard</h1>
+
+<input placeholder="Search PGs, Universities, Cities...">
+
+<div class="profile">
+
+<img src="./images/logo.png">
+
+<div>
+
+<h3>Piyush Jaiswal</h3>
+
+<p>Student</p>
+
+</div>
+
+</div>
+
+</header>
+
+<section class="hero">
+
+<div>
+
+<span>WELCOME BACK 👋</span>
+
+<h1>Hello, Piyush</h1>
+
+<p>Find verified student accommodation across India.</p>
+
+<button onclick="window.location.href='properties.html'">Explore Properties</button>
+
+</div>
+
+<img src="./images/hero-room.png">
+
+</section>
+
+</main>
+
+</div>
+
+<script type="module" src="./js/dashboard-new.js"></script>
+
+</body>
+
+</html>
+<!-- ======================================
+QUICK ACTIONS
+====================================== -->
+
+<section class="quick-actions">
+
+<div class="action-card" onclick="window.location.href='properties.html'" style="cursor:pointer">
+<i class="fa-solid fa-magnifying-glass"></i>
+<h3>Explore</h3>
+<p>Find verified PGs</p>
+</div>
+
+<div class="action-card" onclick="window.location.href='saved-properties.html'" style="cursor:pointer">
+<i class="fa-solid fa-heart"></i>
+<h3>Wishlist</h3>
+<p>Saved properties</p>
+</div>
+
+<div class="action-card" onclick="window.location.href='bookings.html'" style="cursor:pointer">
+<i class="fa-solid fa-calendar-check"></i>
+<h3>Bookings</h3>
+<p>Manage bookings</p>
+</div>
+
+<div class="action-card" onclick="window.location.href='messages.html'" style="cursor:pointer">
+<i class="fa-solid fa-comments"></i>
+<h3>Messages</h3>
+<p>Chat with owners</p>
+</div>
+
+</section>
+
+<!-- ======================================
+STATISTICS
+====================================== -->
+
+<section class="stats">
+
+<div class="stat-card">
+
+<div class="icon blue">
+<i class="fa-solid fa-heart"></i>
+</div>
+
+<div>
+
+<h2 id="savedCount">0</h2>
+
+<p>Saved Properties</p>
+
+</div>
+
+</div>
+
+<div class="stat-card">
+
+<div class="icon purple">
+<i class="fa-solid fa-calendar-check"></i>
+</div>
+
+<div>
+
+<h2 id="bookingCount">0</h2>
+
+<p>Bookings</p>
+
+</div>
+
+</div>
+
+<div class="stat-card">
+
+<div class="icon cyan">
+<i class="fa-solid fa-eye"></i>
+</div>
+
+<div>
+
+<h2 id="viewedCount">0</h2>
+
+<p>Recently Viewed</p>
+
+</div>
+
+</div>
+
+<div class="stat-card">
+
+<div class="icon green">
+<i class="fa-solid fa-comments"></i>
+</div>
+
+<div>
+
+<h2 id="contactCount">0</h2>
+
+<p>Messages</p>
+
+</div>
+
+</div>
+
+</section>
+<!-- =====================================================
+FEATURED PROPERTIES
+===================================================== -->
+
+<section class="properties-section">
+
+<div class="section-header">
+
+<h2>Featured Properties</h2>
+
+<a href="properties.html">View All</a>
+
+</div>
+
+<div id="propertyGrid" class="property-grid">
+
+<!-- Loaded from Backend -->
+
+</div>
+
+</section>
+<!-- =====================================================
+BOTTOM GRID
+===================================================== -->
+
+<section class="dashboard-bottom">
+
+<!-- BOOKINGS -->
+
+<div class="panel">
+
+<div class="section-header">
+
+<h2>Recent Bookings</h2>
+
+<a href="bookings.html">View All</a>
+
+</div>
+
+<div id="bookingList">
+
+</div>
+
+</div>
+
+<!-- NOTIFICATIONS -->
+
+<div class="panel">
+
+<div class="section-header">
+
+<h2>Notifications</h2>
+
+<a href="notifications.html">View All</a>
+
+</div>
+
+<div id="notificationList">
+
+</div>
+
+</div>
+
+</section>
+
+<!-- =====================================================
+UNIVERSITIES
+===================================================== -->
+
+<section class="universities-section">
+
+<div class="section-header">
+
+<h2>Nearby Universities</h2>
+
+<a href="nearby.html">Explore</a>
+
+</div>
+
+<div id="universityGrid" class="university-grid">
+
+</div>
+
+</section>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>

@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Contact Campora</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="./css/theme.css">
+
+<style>
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Poppins,sans-serif;
+}
+
+body{
+background:#081220;
+color:white;
+}
+
+nav{
+display:flex;
+justify-content:space-between;
+align-items:center;
+padding:20px 8%;
+background:#0f172a;
+}
+
+.logo{
+font-size:30px;
+font-weight:700;
+color:#3b82f6;
+}
+
+nav a{
+color:white;
+text-decoration:none;
+margin-left:20px;
+}
+
+.container{
+width:90%;
+max-width:1100px;
+margin:50px auto;
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:40px;
+}
+
+.card{
+background:#111827;
+padding:35px;
+border-radius:20px;
+}
+
+h1{
+margin-bottom:20px;
+font-size:42px;
+}
+
+p{
+color:#ccc;
+margin-bottom:20px;
+}
+
+input,
+textarea{
+
+width:100%;
+padding:15px;
+margin:12px 0;
+border:none;
+border-radius:10px;
+background:#1f2937;
+color:white;
+font-size:16px;
+
+}
+
+textarea{
+
+height:180px;
+resize:none;
+
+}
+
+button{
+
+width:100%;
+padding:15px;
+border:none;
+border-radius:12px;
+background:#2563eb;
+color:white;
+font-size:18px;
+cursor:pointer;
+
+}
+
+button:hover{
+
+background:#1d4ed8;
+
+}
+
+.info h3{
+
+margin-top:25px;
+
+}
+
+.info p{
+
+margin-top:8px;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<nav>
+
+<div class="logo">
+
+Campora
+
+</div>
+
+<div>
+
+<a href="index.html">Home</a>
+
+<a href="properties.html">Properties</a>
+
+<a href="dashboard.html">Dashboard</a>
+
+</div>
+
+</nav>
+
+<div class="container">
+
+<div class="card">
+
+<h1>Contact Us</h1>
+
+<p>
+
+Need help finding the perfect student accommodation?
+Send us a message and we'll get back to you.
+
+</p>
+
+<form id="contactForm">
+
+<input
+type="text"
+id="name"
+placeholder="Your Name"
+required>
+
+<input
+type="email"
+id="email"
+placeholder="Your Email"
+required>
+
+<textarea
+id="message"
+placeholder="Write your message..."
+required></textarea>
+
+<button type="submit">
+
+Send Message
+
+</button>
+
+</form>
+
+</div>
+
+<div class="card info">
+
+<h2>Campora Support</h2>
+
+<p>We're here to help students find verified accommodation across India.</p>
+
+<h3>Email</h3>
+
+<p>support@campora.in</p>
+
+<h3>Phone</h3>
+
+<p>+91 98765 43210</p>
+
+<h3>Working Hours</h3>
+
+<p>Monday - Saturday<br>9:00 AM - 7:00 PM</p>
+<h3>Address</h3>
+
+<p>
+Campora HQ<br>
+Bengaluru, Karnataka, India
+</p>
+
+</div>
+
+</div>
+
+<footer style="margin-top:60px;background:#0f172a;padding:30px;text-align:center;">
+
+<h2>Campora</h2>
+
+<p style="margin-top:10px;color:#bbb;">
+
+Helping Students Find Their Perfect Home.
+
+</p>
+
+</footer>
+
+<script type="module">
+import { API } from "./config.js";
+
+const API_BASE = `${API}/contact`;
+
+const form = document.getElementById("contactForm");
+
+form.addEventListener("submit", async function (e) {
+  e.preventDefault();
+
+  const name = document.getElementById("name").value.trim();
+  const email = document.getElementById("email").value.trim();
+  const message = document.getElementById("message").value.trim();
+
+  if (!name || !email || !message) {
+    alert("Please complete all fields before sending your message.");
+    return;
+  }
+
+  try {
+    const res = await fetch(API_BASE, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, email, message })
+    });
+
+    const data = await res.json();
+
+    if (res.ok && data.success) {
+      alert("✅ Message Sent Successfully");
+      form.reset();
+    } else {
+      alert(data.message || "Unable to send message.");
+    }
+  } catch (err) {
+    console.error(err);
+    alert("Server Error");
+  }
+});
+</script>
+
+</body>
+
+</html>

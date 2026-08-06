@@ -1,0 +1,27 @@
+# =============================================
+# CAMPORA BACKEND — GITIGNORE
+# =============================================
+
+# --- Environment / Secrets (CRITICAL) ---
+# This file must NEVER be committed. It holds real
+# Mongo URIs, JWT secrets, OAuth IDs, and payment/email keys.
+.env
+.env.local
+.env.*
+!.env.example
+
+# --- Dependencies ---
+node_modules/
+
+# --- Runtime uploads ---
+uploads/
+
+# --- Logs ---
+*.log
+npm-debug.log*
+
+# --- OS / Editor ---
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/

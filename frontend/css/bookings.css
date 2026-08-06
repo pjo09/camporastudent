@@ -1,0 +1,362 @@
+/* =====================================================
+   CAMPORA BOOKINGS CSS
+   PHASE 6B-1
+   Premium Dashboard Styling
+===================================================== */
+
+/* =========================
+BASE RESET
+========================= */
+
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:'Poppins',sans-serif;
+}
+
+/* =========================
+BODY
+========================= */
+
+body{
+background:#0b1220;
+color:#e6f1ff;
+overflow-x:hidden;
+}
+
+/* =========================
+GLOW BACKGROUND
+========================= */
+
+.bg-glow{
+position:fixed;
+width:500px;
+height:500px;
+filter:blur(100px);
+opacity:.25;
+z-index:-1;
+}
+
+.bg-left{
+top:-200px;
+left:-200px;
+background:#2563eb;
+}
+
+.bg-right{
+bottom:-200px;
+right:-200px;
+background:#58a6ff;
+}
+
+/* =========================
+SIDEBAR
+========================= */
+
+.sidebar{
+position:fixed;
+left:0;
+top:0;
+width:260px;
+height:100vh;
+background:rgba(17,25,40,0.85);
+backdrop-filter:blur(15px);
+padding:25px;
+border-right:1px solid rgba(255,255,255,0.06);
+}
+
+.logo{
+margin-bottom:40px;
+}
+
+.logo span{
+font-size:22px;
+font-weight:700;
+color:#58a6ff;
+}
+
+.sidebar nav{
+display:flex;
+flex-direction:column;
+gap:15px;
+}
+
+.sidebar nav a{
+color:#b7c5d9;
+text-decoration:none;
+padding:12px 15px;
+border-radius:10px;
+transition:0.3s;
+font-weight:500;
+}
+
+.sidebar nav a:hover,
+.sidebar nav a.active{
+background:rgba(37,99,235,0.15);
+color:#58a6ff;
+transform:translateX(5px);
+}
+
+/* =========================
+MAIN
+========================= */
+
+.main{
+margin-left:260px;
+padding:30px;
+}
+
+/* =========================
+TOPBAR
+========================= */
+
+.topbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:30px;
+}
+
+.topbar h1{
+font-size:32px;
+font-weight:700;
+}
+
+.topbar p{
+color:#9fb3c8;
+margin-top:5px;
+}
+
+.avatar{
+width:45px;
+height:45px;
+border-radius:50%;
+background:#2563eb;
+display:flex;
+align-items:center;
+justify-content:center;
+font-weight:600;
+box-shadow:0 0 20px rgba(37,99,235,0.5);
+}
+
+/* =========================
+CARDS
+========================= */
+
+.cards{
+display:grid;
+grid-template-columns:repeat(4,1fr);
+gap:20px;
+margin-bottom:30px;
+}
+
+.card{
+background:rgba(17,25,40,0.7);
+padding:20px;
+border-radius:15px;
+border:1px solid rgba(255,255,255,0.06);
+transition:0.3s;
+}
+
+.card:hover{
+transform:translateY(-5px);
+border-color:rgba(88,166,255,0.3);
+}
+
+.card h3{
+color:#9fb3c8;
+font-size:14px;
+margin-bottom:10px;
+}
+
+.card h1{
+font-size:28px;
+margin-bottom:5px;
+}
+
+.card p{
+color:#7a8ca5;
+font-size:13px;
+}
+
+/* =========================
+SEARCH
+========================= */
+
+.search-section{
+margin-bottom:25px;
+}
+
+.search-section input{
+width:100%;
+padding:15px;
+border-radius:12px;
+border:1px solid rgba(255,255,255,0.08);
+background:rgba(17,25,40,0.7);
+color:white;
+outline:none;
+}
+
+/* =========================
+TABLE
+========================= */
+
+.booking-table-wrapper{
+overflow-x:auto;
+background:rgba(17,25,40,0.7);
+border-radius:15px;
+border:1px solid rgba(255,255,255,0.06);
+}
+
+.booking-table{
+width:100%;
+border-collapse:collapse;
+min-width:800px;
+}
+
+.booking-table th,
+.booking-table td{
+padding:15px;
+text-align:left;
+border-bottom:1px solid rgba(255,255,255,0.05);
+}
+
+.booking-table th{
+color:#9fb3c8;
+font-weight:600;
+}
+
+.booking-table td{
+color:#e6f1ff;
+}
+
+.loading-row{
+text-align:center;
+padding:40px;
+color:#58a6ff;
+}
+
+/* =========================
+STATUS TAGS
+========================= */
+
+.status{
+padding:6px 12px;
+border-radius:20px;
+font-size:12px;
+font-weight:600;
+}
+
+.status.confirmed{
+background:rgba(34,197,94,0.15);
+color:#22c55e;
+}
+
+.status.pending{
+background:rgba(245,158,11,0.15);
+color:#f59e0b;
+}
+
+.status.cancelled{
+background:rgba(239,68,68,0.15);
+color:#ef4444;
+}
+
+/* =========================
+MODAL
+========================= */
+
+.modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,0.7);
+display:none;
+align-items:center;
+justify-content:center;
+}
+
+.modal-content{
+background:#111928;
+padding:25px;
+border-radius:15px;
+width:400px;
+}
+
+.close{
+float:right;
+cursor:pointer;
+font-size:20px;
+}
+
+/* =========================
+LOADING
+========================= */
+
+.loading-screen{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:#0b1220;
+display:none;
+align-items:center;
+justify-content:center;
+flex-direction:column;
+color:#58a6ff;
+}
+
+.loader{
+width:40px;
+height:40px;
+border:4px solid rgba(255,255,255,0.1);
+border-top-color:#58a6ff;
+border-radius:50%;
+animation:spin 1s linear infinite;
+margin-bottom:10px;
+}
+
+@keyframes spin{
+to{transform:rotate(360deg);}
+}
+
+/* =========================
+RESPONSIVE
+========================= */
+
+@media(max-width:900px){
+
+.sidebar{
+width:200px;
+}
+
+.main{
+margin-left:200px;
+}
+
+.cards{
+grid-template-columns:repeat(2,1fr);
+}
+
+}
+
+@media(max-width:600px){
+
+.sidebar{
+display:none;
+}
+
+.main{
+margin-left:0;
+padding:20px;
+}
+
+.cards{
+grid-template-columns:1fr;
+}
+
+}

@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Campora | Login</title>
+
+<meta name="description" content="Secure Login to Campora">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="./css/theme.css">
+
+<link rel="stylesheet" href="./css/style.css">
+
+<link rel="stylesheet" href="./css/auth.css">
+
+</head>
+
+<body class="auth-page">
+
+<!-- Swaps a broken logo image for a clean gradient monogram badge -->
+<script>
+function handleLogoError(el){
+    el.onerror = null;
+    var fallback = document.createElement("div");
+    fallback.className = "logo-fallback" +
+        (el.classList.contains("footer-logo-img") ? " logo-fallback-sm" : "");
+    fallback.textContent = "C";
+    el.replaceWith(fallback);
+}
+</script>
+
+<!-- ================= BACKGROUND ================= -->
+
+<div class="background">
+
+<div class="blur blur1"></div>
+
+<div class="blur blur2"></div>
+
+<div class="blur blur3"></div>
+
+</div>
+
+<header class="auth-navbar">
+
+<div class="container nav-container">
+
+<a href="index.html" class="brand">
+
+<img
+src="./images/logo.png"
+alt="Campora"
+class="brand-logo"
+onerror="handleLogoError(this)">
+
+<div>
+
+<h2>Campora</h2>
+
+<p>Find Your Campus Home</p>
+
+</div>
+
+</a>
+
+<div class="nav-actions">
+
+<a href="index.html" class="nav-link">
+
+Home
+
+</a>
+
+<a href="register.html" class="nav-btn">
+
+Create Account
+
+</a>
+
+</div>
+
+</div>
+
+</header>
+
+<!-- ================= MAIN ================= -->
+
+<main class="container">
+
+<!-- ================= LEFT ================= -->
+
+<section class="left-panel">
+
+<div class="badge">
+
+WELCOME BACK
+
+</div>
+
+<h1>
+
+Login to Campora
+
+</h1>
+
+<p class="subtitle">
+
+India's smartest student accommodation platform.
+
+Login using Google, password or OTP.
+
+</p>
+
+<div id="googleButton"></div>
+
+<div class="divider">
+
+<span>
+
+OR
+
+</span>
+
+</div>
+
+<!-- ================= PASSWORD LOGIN ================= -->
+
+<form id="loginForm">
+
+<div class="input-group">
+
+<label>
+
+Email Address
+
+</label>
+
+<input
+
+id="loginEmail"
+
+type="email"
+
+placeholder="Enter your email"
+
+>
+
+</div>
+
+<div class="input-group">
+
+<label>
+
+Password
+
+</label>
+
+<input
+
+id="loginPassword"
+
+type="password"
+
+placeholder="Enter password"
+
+>
+
+</div>
+
+                        <div class="remember-row">
+
+<label>
+
+<input type="checkbox" id="rememberMe">
+
+Remember Me
+
+</label>
+
+<a href="register.html">
+
+Create account
+
+</a>
+
+</div>
+
+<button
+
+type="submit"
+
+class="primary-btn">
+
+Login
+
+</button>
+
+</form>
+
+<!-- ================= OTP LOGIN ================= -->
+
+<div class="divider">
+
+<span>
+
+OTP LOGIN
+
+</span>
+
+</div>
+
+<div class="input-group">
+
+<label>
+
+Email Address (same as above)
+
+</label>
+
+ <input
+
+id="otpEmail"
+
+type="email"
+
+placeholder="Enter your email for OTP"
+
+>
+
+</div>
+
+<button
+
+type="button"
+
+id="sendOtpBtn"
+
+class="primary-btn">
+
+Send OTP
+
+</button>
+
+<!-- ================= OTP SECTION ================= -->
+
+<div
+
+id="otpSection"
+
+style="display:none;">
+
+<div class="input-group">
+
+<label>
+
+Enter OTP
+
+</label>
+
+<input
+
+id="otpInput"
+
+type="text"
+
+maxlength="6"
+
+placeholder="6-digit OTP"
+
+>
+
+</div>
+
+<button
+
+type="button"
+
+id="verifyBtn"
+
+class="success-btn">
+
+Verify OTP
+
+</button>
+
+</div>
+
+<!-- ================= STATUS ================= -->
+
+<div
+
+id="successMessage"
+
+class="success-message">
+
+</div>
+
+<div
+
+id="errorMessage"
+
+class="error-message">
+
+</div>
+
+<p class="bottom-link">
+
+Don't have an account?
+
+<a href="register.html">
+
+Register
+
+</a>
+
+</p>
+
+</section>
+
+<!-- ================= RIGHT PANEL ================= -->
+
+<section class="auth-side">
+
+<div class="feature-card">
+
+<h2>
+
+Welcome to Campora
+
+</h2>
+
+<p>
+
+India's fastest growing student accommodation platform, connecting students with verified PGs, hostels and flats near their college.
+
+</p>
+
+<div class="stats-grid">
+
+<div>
+
+<h3>
+
+50K+
+
+</h3>
+
+<p>
+
+Students
+
+</p>
+
+</div>
+
+<div>
+
+<h3>
+
+8000+
+
+</h3>
+
+<p>
+
+Properties
+
+</p>
+
+</div>
+
+<div>
+
+<h3>
+
+150+
+
+</h3>
+
+<p>
+
+Cities
+
+</p>
+
+</div>
+
+<div>
+
+<h3>
+
+99%
+
+</h3>
+
+<p>
+
+Verified
+
+</p>
+
+</div>
+
+</div>
+
+<div class="feature-list">
+
+<div>✔ Verified PG Owners</div>
+
+<div>✔ Google Login</div>
+
+<div>✔ OTP Login</div>
+
+<div>✔ Secure Booking</div>
+
+<div>✔ Student Dashboard</div>
+
+<div>✔ AI Recommendations</div>
+
+<div>✔ Instant Booking</div>
+
+<div>✔ 24×7 Support</div>
+
+</div>
+
+</div>
+
+</section>
+
+</main>
+
+<!-- ================= FOOTER ================= -->
+
+<footer class="auth-footer">
+
+<div class="footer-content">
+
+<div class="footer-logo">
+
+<img
+src="./images/logo.png"
+alt="Campora"
+class="footer-logo-img"
+onerror="handleLogoError(this)">
+
+<div>
+
+<h3>
+
+Campora
+
+</h3>
+
+<p>
+
+Find Your Campus Home
+
+</p>
+
+</div>
+
+</div>
+
+<p class="footer-text">
+
+© 2026 Campora. All Rights Reserved.
+
+</p>
+
+</div>
+
+</footer>
+
+<!-- ================= GOOGLE IDENTITY ================= -->
+
+<script
+src="https://accounts.google.com/gsi/client"
+async
+defer>
+
+</script>
+
+<!-- ================= SCRIPTS ================= -->
+
+<script type="module" src="./js/session.js"></script>
+
+<script type="module" src="./js/login.js"></script>
+
+</body>
+
+</html>

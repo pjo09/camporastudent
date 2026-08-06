@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campora | Settings</title>
+    <meta name="theme-color" content="#2563eb">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/owner-v3.css">
+    <link rel="icon" href="./images/logo.png" type="image/png">
+</head>
+<body class="v3-body">
+
+<div class="v3-bg" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+</div>
+
+<div id="toastContainer" class="v3-toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<main class="v3-content" id="mainContent" role="main">
+
+        <div class="v3-grid-2">
+            <!-- Profile -->
+            <div class="v3-card">
+                <div class="v3-section-header">
+                    <h2>Profile</h2>
+                </div>
+                <form id="profileForm">
+                    <div class="v3-form-group">
+                        <label for="setName">Full Name</label>
+                        <input type="text" id="setName" required>
+                    </div>
+                    <div class="v3-form-group">
+                        <label for="setPhone">Phone</label>
+                        <input type="tel" id="setPhone">
+                    </div>
+                    <div class="v3-form-group">
+                        <label for="setBusinessName">Business / PG Name</label>
+                        <input type="text" id="setBusinessName" placeholder="e.g. Sunrise Residency">
+                    </div>
+                    <div class="v3-form-group">
+                        <label for="setCity">City</label>
+                        <input type="text" id="setCity">
+                    </div>
+                    <div class="v3-form-group">
+                        <label for="setBio">Bio</label>
+                        <textarea id="setBio" rows="3" placeholder="Tell students about your properties..."></textarea>
+                    </div>
+                    <button type="submit" class="v3-btn v3-btn-primary" style="width:100%"><i class="fa-solid fa-save"></i> Save Profile</button>
+                </form>
+            </div>
+
+            <!-- Security -->
+            <div class="v3-card">
+                <div class="v3-section-header">
+                    <h2>Security</h2>
+                </div>
+                <form id="passwordForm">
+                    <div class="v3-form-group">
+                        <label for="currentPassword">Current Password</label>
+                        <input type="password" id="currentPassword" required>
+                    </div>
+                    <div class="v3-form-group">
+                        <label for="newPassword">New Password</label>
+                        <input type="password" id="newPassword" minlength="6" required>
+                    </div>
+                    <div class="v3-form-group">
+                        <label for="confirmPassword">Confirm New Password</label>
+                        <input type="password" id="confirmPassword" required>
+                    </div>
+                    <button type="submit" class="v3-btn v3-btn-primary" style="width:100%"><i class="fa-solid fa-lock"></i> Change Password</button>
+                </form>
+            </div>
+        </div>
+
+        <!-- Account -->
+        <div class="v3-card" style="border-color:rgba(239,68,68,.3)">
+            <div class="v3-section-header">
+                <h2 style="color:#fca5a5">Danger Zone</h2>
+            </div>
+            <p style="color:var(--v3-muted);margin-bottom:16px">Deleting your account will remove all your properties and data. This action cannot be undone.</p>
+            <button class="v3-btn v3-btn-danger" id="deleteAccountBtn"><i class="fa-solid fa-trash"></i> Delete Account</button>
+        </div>
+
+</main>
+
+<div id="sidebarBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998" hidden></div>
+
+<script type="module">
+import { initShell } from "./js/owner-shell.js";
+initShell("Settings");
+</script>
+<script type="module" src="./js/owner-settings.js"></script>
+</body>
+</html>

@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campora | Reviews</title>
+    <meta name="theme-color" content="#2563eb">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/owner-v3.css">
+    <link rel="icon" href="./images/logo.png" type="image/png">
+</head>
+<body class="v3-body">
+
+<div class="v3-bg" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+</div>
+
+<div id="toastContainer" class="v3-toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<main class="v3-content" id="mainContent" role="main">
+
+        <div class="v3-filter-bar">
+            <div class="v3-filter-group">
+                <button class="v3-filter-btn active" data-filter="all" type="button">All</button>
+                <button class="v3-filter-btn" data-filter="approved" type="button">Live</button>
+                <button class="v3-filter-btn" data-filter="pending" type="button">Pending</button>
+                <button class="v3-filter-btn" data-filter="hidden" type="button">Hidden</button>
+            </div>
+            <div class="v3-search">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" id="reviewSearch" placeholder="Search reviews..." aria-label="Search reviews">
+            </div>
+        </div>
+
+        <div id="reviewsList">
+            <div class="v3-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading reviews...</div>
+        </div>
+
+</main>
+
+<div id="sidebarBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998" hidden></div>
+
+<!-- Reply Modal -->
+<div class="v3-modal-overlay" id="replyModal">
+    <div class="v3-modal">
+        <div class="v3-modal-header">
+            <h3>Reply to Review</h3>
+            <button class="v3-modal-close" id="closeReplyModal" type="button" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="replyModalContent"></div>
+    </div>
+</div>
+
+<script type="module">
+import { initShell } from "./js/owner-shell.js";
+initShell("Reviews");
+</script>
+<script type="module" src="./js/owner-reviews.js"></script>
+</body>
+</html>

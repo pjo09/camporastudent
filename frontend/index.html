@@ -1,0 +1,599 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campora | Find Your Perfect Student Home</title>
+    <meta name="description" content="India's premium student accommodation platform. Find verified PGs, hostels and flats near your university.">
+    <meta name="keywords" content="PG, Hostel, Student Housing, Campora, Accommodation, Student Homes">
+    <meta name="theme-color" content="#040816">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+
+    <!-- Google Auth -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
+
+    <!-- CSS -->
+    <link rel="stylesheet" href="css/index.css">
+</head>
+<body>
+
+    <!-- ===================================================== -->
+    <!-- INTRO -->
+    <!-- ===================================================== -->
+    <div id="introScreen">
+        <div class="intro-bg"></div>
+        <div class="intro-card">
+<img class="intro-logo" src="images/logo.png" alt="Campora Logo">
+            <h1 class="intro-title">Campora</h1>
+            <p class="intro-subtitle">India's Premium Student Accommodation Platform</p>
+            <div class="loading-wrapper">
+                <div id="loadingBar"></div>
+            </div>
+            <div class="loading-text">Setting up your perfect home...</div>
+        </div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- HEADER / NAVBAR -->
+    <!-- ===================================================== -->
+    <header class="header" id="header">
+        <div class="container">
+            <nav class="navbar">
+                <a href="index.html" class="logo">
+                    <img src="images/logo.png" alt="Campora">
+                    <span>Campora</span>
+                </a>
+
+                <div class="nav-links" id="navLinks">
+                    <a href="#home">Home</a>
+                    <a href="#properties">Properties</a>
+                    <a href="#universities">Universities</a>
+                    <a href="#cities">Cities</a>
+                    <a href="#why">Why Campora</a>
+                    <a href="#contact">Contact</a>
+                </div>
+
+                <div class="nav-actions">
+                    <button class="login-btn" id="navLogin" data-open-modal="login">Login</button>
+                    <button class="signup-btn" id="navRegister" data-open-modal="register">Create Account</button>
+                    <a href="dashboard.html" class="login-btn" id="navDashboard" style="display:none">Dashboard</a>
+                    <button class="login-btn" id="navLogout" style="display:none">Logout</button>
+                </div>
+
+                <button class="menu-toggle" id="menuToggle" aria-label="Open menu" aria-expanded="false">
+                    <span></span>
+                    <span></span>
+                    <span></span>
+                </button>
+            </nav>
+        </div>
+    </header>
+
+    <!-- Mobile Menu -->
+    <div class="mobile-menu" id="mobileMenu">
+        <a href="#home">Home</a>
+        <a href="#properties">Properties</a>
+        <a href="#universities">Universities</a>
+        <a href="#cities">Cities</a>
+        <a href="#why">Why Campora</a>
+        <a href="#contact">Contact</a>
+        <button class="signup-btn" data-open-modal="login">Login</button>
+        <button class="signup-btn" data-open-modal="register">Create Account</button>
+    </div>
+
+    <main>
+        <!-- ===================================================== -->
+        <!-- HERO -->
+        <!-- ===================================================== -->
+        <section class="hero" id="home">
+            <div class="bg-orb one"></div>
+            <div class="bg-orb two"></div>
+            <div class="bg-orb three"></div>
+
+            <div class="container">
+                <div class="hero-wrapper">
+                    <div class="hero-left">
+                        <div class="hero-badge">
+                            <i class="fa-solid fa-shield-halved"></i>
+                            Verified Student Homes Across India
+                        </div>
+
+                        <h1 class="hero-title">
+                            Find your perfect<br>
+                            <span>student home</span>
+                        </h1>
+
+                        <p class="hero-description">
+                            Discover verified PGs, hostels and shared apartments near your campus.
+                            Safe, budget-friendly and ready to move in.
+                        </p>
+
+                        <!-- Search -->
+                        <form class="hero-search" id="searchForm">
+                            <div class="search-item">
+                                <label>Location</label>
+                                <input type="text" id="searchLocation" placeholder="City or area">
+                            </div>
+                            <div class="search-item">
+                                <label>University</label>
+                                <input type="text" id="searchUniversity" placeholder="University or college">
+                            </div>
+                            <div class="search-item">
+                                <label>Budget</label>
+                                <select id="searchBudget">
+                                    <option value="">Any budget</option>
+                                    <option value="5000">Under ₹5,000</option>
+                                    <option value="10000">Under ₹10,000</option>
+                                    <option value="15000">Under ₹15,000</option>
+                                    <option value="25000">Under ₹25,000</option>
+                                </select>
+                            </div>
+                            <div class="search-item">
+                                <label>Room Type</label>
+                                <select id="searchType">
+                                    <option value="">Any</option>
+                                    <option value="Single">Single</option>
+                                    <option value="Double">Double</option>
+                                    <option value="Triple">Triple</option>
+                                    <option value="Four Sharing">Four Sharing</option>
+                                </select>
+                            </div>
+                            <button type="submit">
+                                <i class="fa-solid fa-magnifying-glass"></i> Search
+                            </button>
+                        </form>
+
+<!-- Stats (real values loaded from /api/statistics) -->
+                        <div class="hero-stats">
+                            <div class="stat-box">
+                                <h2 class="stat-number" data-count="0">0</h2>
+                                <p>Students Served</p>
+                            </div>
+                            <div class="stat-box">
+                                <h2 class="stat-number" data-count="0">0</h2>
+                                <p>Properties Listed</p>
+                            </div>
+                            <div class="stat-box">
+                                <h2 class="stat-number" data-count="0">0</h2>
+                                <p>Cities Covered</p>
+                            </div>
+                            <div class="stat-box">
+                                <h2 class="stat-number" data-count="0">0</h2>
+                                <p>Bookings Completed</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hero-right">
+                        <img src="images/hero-room.png" alt="Student room" class="hero-image" loading="lazy">
+                        <div class="student-online">
+                            <div class="student-dot"></div>
+                            <div>
+                                <h5>Students online now</h5>
+                                <p>Finding their perfect stay</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="scroll-indicator">
+                <span></span>
+                Scroll to explore
+            </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- FEATURED PROPERTIES -->
+        <!-- ===================================================== -->
+        <section class="featured" id="properties">
+            <div class="container">
+                <div class="featured-header">
+                    <div class="featured-left">
+                        <span>Featured Properties</span>
+                        <h2>Handpicked for you</h2>
+                        <p>Verified and ready-to-move-in student homes, curated by our team.</p>
+                    </div>
+                    <a href="properties.html" class="view-all">
+                        View all <i class="fa-solid fa-arrow-right"></i>
+                    </a>
+                </div>
+                <div class="property-grid" id="featuredProperties"></div>
+            </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- UNIVERSITIES -->
+        <!-- ===================================================== -->
+        <section class="how-it-works" id="universities">
+            <div class="container">
+                <div class="how-header">
+                    <span>Universities</span>
+                    <h2>Popular campuses</h2>
+                    <p>Homes near the most sought-after universities across India.</p>
+                </div>
+                <div class="why-grid" id="universityGrid"></div>
+            </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- POPULAR CITIES -->
+        <!-- ===================================================== -->
+        <section class="featured" id="cities">
+            <div class="container">
+                <div class="featured-header">
+                    <div class="featured-left">
+                        <span>Popular Cities</span>
+                        <h2>Where students live</h2>
+                        <p>Explore accommodation in India's top student hubs.</p>
+                    </div>
+                </div>
+                <div class="property-grid" id="cityGrid"></div>
+            </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- WHY CAMPORA -->
+        <!-- ===================================================== -->
+        <section class="why-campora" id="why">
+            <div class="container">
+                <div class="why-header">
+                    <span>Why Campora</span>
+                    <h2>Built for students</h2>
+                    <p>Everything you need for a safe and comfortable student life.</p>
+                </div>
+                <div class="why-grid">
+                    <div class="why-card">
+                        <div class="why-icon"><i class="fa-solid fa-check-double"></i></div>
+                        <h3>Verified Properties</h3>
+                        <p>Every listing is verified by our team to ensure quality and safety.</p>
+                        <ul>
+                            <li>On-ground verification</li>
+                            <li>Real photos &amp; details</li>
+                            <li>Trusted owners</li>
+                        </ul>
+                    </div>
+                    <div class="why-card">
+                        <div class="why-icon"><i class="fa-solid fa-shield-halved"></i></div>
+                        <h3>Safe Accommodation</h3>
+                        <p>Secure, well-maintained homes with supportive communities.</p>
+                        <ul>
+                            <li>Safe neighbourhoods</li>
+                            <li>24/7 support</li>
+                            <li>Inclusive communities</li>
+                        </ul>
+                    </div>
+                    <div class="why-card">
+                        <div class="why-icon"><i class="fa-solid fa-bolt"></i></div>
+                        <h3>Easy Booking</h3>
+                        <p>Book your room in minutes with a simple, transparent process.</p>
+                        <ul>
+                            <li>No hidden fees</li>
+                            <li>Instant confirmation</li>
+                            <li>Flexible options</li>
+                        </ul>
+                    </div>
+                    <div class="why-card">
+                        <div class="why-icon"><i class="fa-solid fa-users"></i></div>
+                        <h3>Student Community</h3>
+                        <p>Join a thriving community of students across India.</p>
+                        <ul>
+                            <li>Roommate matching</li>
+                            <li>Events &amp; meetups</li>
+                            <li>Peer support</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- TESTIMONIALS -->
+        <!-- ===================================================== -->
+        <section class="testimonials" id="testimonials">
+            <div class="container">
+                <div class="testimonial-header">
+                    <span>Student Stories</span>
+                    <h2>Loved by students</h2>
+                    <p>Real experiences from students who found their home with Campora.</p>
+                </div>
+                <div class="testimonial-slider" id="testimonialGrid"></div>
+            </div>
+        </section>
+
+<!-- ===================================================== -->
+        <!-- BECOME A PARTNER (CTA) -->
+        <!-- ===================================================== -->
+        <section class="cta" id="partner">
+            <div class="container">
+                <div class="cta-box">
+                    <div class="cta-content">
+                        <span class="cta-tag"><i class="fa-solid fa-building"></i> For Owners &amp; Landlords</span>
+                        <h2>List your property with Campora</h2>
+                        <p>Reach thousands of verified students looking for their perfect home. Fill your rooms faster with zero hassle.</p>
+                        <div class="cta-buttons">
+                            <a href="register.html" class="btn btn-primary">Become a Partner</a>
+                            <a href="#contact" class="btn btn-secondary">Talk to us</a>
+                        </div>
+                    </div>
+                    <div class="cta-right">
+                        <div class="cta-card">
+                            <h3>Why list with us?</h3>
+                            <div class="cta-feature"><i class="fa-solid fa-users"></i> Large student audience</div>
+                            <div class="cta-feature"><i class="fa-solid fa-bolt"></i> Fast tenant matching</div>
+                            <div class="cta-feature"><i class="fa-solid fa-shield-halved"></i> Verified tenancy</div>
+                            <div class="cta-feature"><i class="fa-solid fa-chart-line"></i> Rental analytics</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- FAQ -->
+        <!-- ===================================================== -->
+        <section class="faq" id="faq">
+            <div class="container">
+                <div class="faq-header">
+                    <span>FAQ</span>
+                    <h2>Frequently asked questions</h2>
+                    <p>Everything you need to know about living with Campora.</p>
+                </div>
+                <div class="faq-container">
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            How do I book a property? <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Simply search for your ideal property, shortlist your favourites, and click "Book". Our team will connect you with the owner and guide you through the entire process.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            Are the properties verified? <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Yes. Every property on Campora goes through our on-ground verification process to ensure quality, safety, and accurate listing details.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            Can I book for a short duration? <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Many of our properties offer flexible tenancy options. You can filter by your preferred duration or contact the owner directly to discuss terms.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            Are utilities included in the rent? <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>This varies by property. Each listing clearly shows what is included such as electricity, maintenance, and food charges before you book.</p>
+                        </div>
+                    </div>
+                    <div class="faq-item">
+                        <button class="faq-question">
+                            Do you offer any discounts for students? <span class="faq-icon">+</span>
+                        </button>
+                        <div class="faq-answer">
+                            <p>Yes! We regularly offer student discounts, referral rewards, and early-booking offers. Keep an eye on your dashboard for the latest deals.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- CONTACT -->
+        <!-- ===================================================== -->
+        <section class="contact" id="contact">
+            <div class="container">
+                <div class="contact-wrapper">
+                    <div class="contact-left">
+                        <span class="eyebrow">Get in touch</span>
+                        <h2>Questions? We're here to help</h2>
+                        <p>Our team is available to support you at every step of your housing journey.</p>
+                        <div class="contact-info">
+                            <div class="contact-card">
+                                <div class="contact-icon"><i class="fa-solid fa-envelope"></i></div>
+                                <div>
+                                    <h4>Email us</h4>
+                                    <a href="mailto:support@campora.in">support@campora.in</a>
+                                </div>
+                            </div>
+                            <div class="contact-card">
+                                <div class="contact-icon"><i class="fa-solid fa-phone"></i></div>
+                                <div>
+                                    <h4>Call us</h4>
+                                    <a href="tel:+919000000000">+91 90000 00000</a>
+                                </div>
+                            </div>
+                            <div class="contact-card">
+                                <div class="contact-icon"><i class="fa-solid fa-location-dot"></i></div>
+                                <div>
+                                    <h4>Visit us</h4>
+                                    <a>Bengaluru, India</a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="contact-form">
+                        <form id="contactForm">
+                            <input type="text" id="contactName" placeholder="Your Name" required>
+                            <input type="email" id="contactEmail" placeholder="Your Email" required>
+                            <input type="text" id="contactSubject" placeholder="Subject">
+                            <textarea id="contactMessage" placeholder="Your Message" required></textarea>
+                            <button type="submit" class="btn btn-primary">Send Message</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <!-- ===================================================== -->
+    <!-- FOOTER -->
+    <!-- ===================================================== -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <img src="images/logo.png" alt="Campora" class="footer-logo">
+                    <p>India's premium student accommodation platform. Find verified, safe and affordable homes near your campus.</p>
+                    <div class="social-icons">
+                        <a href="#" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
+                        <a href="#" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
+                        <a href="#" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <h4>About</h4>
+                    <div class="footer-links">
+                        <a href="#why">Why Campora</a>
+                        <a href="#properties">Properties</a>
+                        <a href="#universities">Universities</a>
+                        <a href="#cities">Cities</a>
+                    </div>
+                </div>
+                <div>
+                    <h4>Support</h4>
+                    <div class="footer-links">
+                        <a href="#faq">FAQ</a>
+                        <a href="#contact">Contact</a>
+                        <a href="support.html">Help Center</a>
+                    </div>
+                </div>
+                <div>
+                    <h4>Legal</h4>
+                    <div class="footer-links">
+                        <a href="#">Terms of Service</a>
+                        <a href="#">Privacy Policy</a>
+                        <a href="#">Refund Policy</a>
+                    </div>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <span>&copy; <span id="year"></span> Campora. All rights reserved.</span>
+                <div class="footer-bottom-links">
+                    <a href="#">Terms</a>
+                    <a href="#">Privacy</a>
+                </div>
+            </div>
+        </div>
+    </footer>
+
+    <!-- ===================================================== -->
+    <!-- AUTH MODAL -->
+    <!-- ===================================================== -->
+    <div class="auth-modal" id="authModal" aria-hidden="true">
+        <div class="auth-modal-backdrop" data-close-modal></div>
+        <div class="auth-modal-content">
+            <button class="auth-modal-close" data-close-modal aria-label="Close">&times;</button>
+
+            <!-- Tabs -->
+            <div class="auth-tabs">
+                <button class="auth-tab active" data-auth-view="login">Login</button>
+                <button class="auth-tab" data-auth-view="register">Register</button>
+            </div>
+
+            <!-- LOGIN VIEW -->
+            <div class="auth-view" id="authViewLogin">
+                <h3>Welcome back</h3>
+                <p class="auth-sub">Log in to continue your housing journey.</p>
+
+                <div class="auth-role-switch">
+                    <button class="auth-role active" data-auth-role="student">Student</button>
+                    <button class="auth-role" data-auth-role="owner">Owner</button>
+                </div>
+
+                <form id="loginForm">
+                    <div class="auth-field">
+                        <label>Email</label>
+                        <input type="email" id="loginEmail" placeholder="you@example.com" required>
+                    </div>
+                    <div class="auth-field">
+                        <label>Password</label>
+                        <input type="password" id="loginPassword" placeholder="Your password" required>
+                    </div>
+
+                    <div class="auth-row">
+                        <label class="auth-check">
+                            <input type="checkbox" id="loginRemember"> Remember me
+                        </label>
+                        <button type="button" class="auth-link" id="forgotPassword">Forgot password?</button>
+                    </div>
+
+                    <div class="auth-message" id="loginError"></div>
+
+                    <button type="submit" class="btn btn-primary auth-submit">Login</button>
+                </form>
+
+                <div class="auth-divider"><span>or</span></div>
+                <div id="loginGoogleButton" class="auth-google"></div>
+
+                <p class="auth-switch-text">
+                    Don't have an account?
+                    <button type="button" class="auth-link" data-auth-switch="register">Create one</button>
+                </p>
+            </div>
+
+            <!-- REGISTER VIEW -->
+            <div class="auth-view" id="authViewRegister" style="display:none">
+                <h3>Create your account</h3>
+                <p class="auth-sub">Join thousands of students finding their home.</p>
+
+                <div class="auth-role-switch">
+                    <button class="auth-role active" data-auth-role="student">Student</button>
+                    <button class="auth-role" data-auth-role="owner">Owner</button>
+                </div>
+
+                <form id="registerForm">
+                    <div class="auth-field">
+                        <label>Full Name</label>
+                        <input type="text" id="registerName" placeholder="Your name" required>
+                    </div>
+                    <div class="auth-field">
+                        <label>Email</label>
+                        <input type="email" id="registerEmail" placeholder="you@example.com" required>
+                    </div>
+                    <div class="auth-field" id="ownerField" style="display:none">
+                        <label>Business / Property Name</label>
+                        <input type="text" id="registerBusiness" placeholder="Your business name">
+                    </div>
+                    <div class="auth-field">
+                        <label>Password</label>
+                        <input type="password" id="registerPassword" placeholder="Min 6 characters" required>
+                    </div>
+
+                    <div class="auth-message" id="registerError"></div>
+
+                    <button type="submit" class="btn btn-primary auth-submit">Create Account</button>
+                </form>
+
+                <div class="auth-divider"><span>or</span></div>
+                <div id="registerGoogleButton" class="auth-google"></div>
+
+                <p class="auth-switch-text">
+                    Already have an account?
+                    <button type="button" class="auth-link" data-auth-switch="login">Login</button>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ===================================================== -->
+    <!-- JAVASCRIPT -->
+    <!-- ===================================================== -->
+    <script type="module" src="js/script.js"></script>
+</body>
+</html>

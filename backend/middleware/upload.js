@@ -1,0 +1,47 @@
+const multer = require("multer");
+
+const cloudinary = require("../config/cloudinary");
+
+const {
+
+    CloudinaryStorage
+
+} = require("multer-storage-cloudinary");
+
+const storage = new CloudinaryStorage({
+
+    cloudinary,
+
+    params: {
+
+        folder: "campora-properties",
+
+        allowed_formats: [
+
+            "jpg",
+
+            "png",
+
+            "jpeg",
+
+            "webp"
+
+        ]
+
+    }
+
+});
+
+const upload = multer({
+
+    storage,
+
+    limits: {
+
+        fileSize: 10 * 1024 * 1024
+
+    }
+
+});
+
+module.exports = upload;

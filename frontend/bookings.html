@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campora • My Bookings</title>
+<meta name="description" content="Manage your student accommodation bookings.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./css/student-v3.css">
+<script src="https://kit.fontawesome.com/a2e0e6ad65.js" crossorigin="anonymous"></script>
+</head>
+<body class="sv3-body">
+<a class="sv3-skip-link" href="#sv3Main">Skip to content</a>
+<div class="sv3-bg-glow sv3-gl1"></div>
+<div class="sv3-bg-glow sv3-gl2"></div>
+
+<aside class="sv3-sidebar" id="sidebar" aria-label="Student navigation">
+  <div class="sv3-sidebar-header">
+    <img class="sv3-logo" src="./images/logo.png" alt="Campora logo">
+    <div class="sv3-logo-text"><h3>Campora</h3><p>Student Dashboard</p></div>
+  </div>
+  <nav class="sv3-nav">
+    <a href="dashboard.html" class="sv3-nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+    <a href="properties.html" class="sv3-nav-item"><i class="fa-solid fa-magnifying-glass"></i> Explore</a>
+    <a href="saved-properties.html" class="sv3-nav-item"><i class="fa-solid fa-heart"></i> Saved</a>
+    <a href="bookings.html" class="sv3-nav-item active" aria-current="page"><i class="fa-solid fa-calendar-check"></i> My Bookings</a>
+    <a href="payments.html" class="sv3-nav-item"><i class="fa-solid fa-credit-card"></i> Payments</a>
+    <a href="messages.html" class="sv3-nav-item"><i class="fa-solid fa-comments"></i> Messages</a>
+    <a href="notifications.html" class="sv3-nav-item"><i class="fa-solid fa-bell"></i> Notifications <span class="sv3-nav-badge" id="unreadNotifications" style="display:none">0</span></a>
+    <a href="maintenance.html" class="sv3-nav-item"><i class="fa-solid fa-screwdriver-wrench"></i> Maintenance</a>
+    <a href="reviews.html" class="sv3-nav-item"><i class="fa-solid fa-star"></i> Reviews</a>
+    <a href="documents.html" class="sv3-nav-item"><i class="fa-solid fa-folder-open"></i> Documents</a>
+    <a href="analytics.html" class="sv3-nav-item"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+    <a href="support.html" class="sv3-nav-item"><i class="fa-solid fa-headset"></i> Support</a>
+    <a href="profile.html" class="sv3-nav-item"><i class="fa-solid fa-user"></i> Profile</a>
+    <a href="settings.html" class="sv3-nav-item"><i class="fa-solid fa-gear"></i> Settings</a>
+  </nav>
+  <div class="sv3-sidebar-footer"><button class="sv3-logout-btn" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button></div>
+</aside>
+<div class="sv3-sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<main class="sv3-main" id="sv3Main">
+  <header class="sv3-topbar">
+    <div class="sv3-topbar-left">
+      <button class="sv3-menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
+      <div class="sv3-topbar-title"><h1>My Bookings</h1><p>Track your accommodation requests</p></div>
+    </div>
+    <div class="sv3-topbar-right">
+      <button class="sv3-icon-btn" id="notificationBell" aria-label="Notifications"><i class="fa-solid fa-bell"></i></button>
+      <div class="sv3-profile" id="profileBtn" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
+        <div class="sv3-avatar" id="studentInitials">S</div>
+        <div class="sv3-profile-info"><strong id="navbarName">Student</strong><span id="navbarRole">Student</span></div>
+        <i class="fa-solid fa-chevron-down" style="font-size:12px;color:var(--sv3-muted)"></i>
+        <div class="sv3-profile-dropdown" id="profileDropdown">
+          <a href="profile.html"><i class="fa-solid fa-user"></i> My Profile</a>
+          <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+          <a href="support.html"><i class="fa-solid fa-headset"></i> Support</a>
+          <a href="login.html" class="danger" id="dropdownLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div class="sv3-tabs" id="bookingTabs">
+    <button class="sv3-tab active" data-filter="all">All</button>
+    <button class="sv3-tab" data-filter="pending">Pending</button>
+    <button class="sv3-tab" data-filter="confirmed">Confirmed</button>
+    <button class="sv3-tab" data-filter="cancelled">Cancelled</button>
+  </div>
+
+  <div class="sv3-list" id="bookingList">
+    <div class="sv3-skeleton"><div class="sv3-skeleton-line" style="height:80px"></div></div>
+    <div class="sv3-skeleton"><div class="sv3-skeleton-line" style="height:80px"></div></div>
+  </div>
+</main>
+
+<div class="sv3-toast-container" id="toastContainer"></div>
+<script type="module" src="./js/student-bookings.js"></script>
+</body>
+</html>

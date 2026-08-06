@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campora | Maintenance</title>
+    <meta name="theme-color" content="#2563eb">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/owner-v3.css">
+    <link rel="icon" href="./images/logo.png" type="image/png">
+</head>
+<body class="v3-body">
+
+<div class="v3-bg" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+</div>
+
+<div id="toastContainer" class="v3-toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<main class="v3-content" id="mainContent" role="main">
+
+        <!-- Stats -->
+        <div class="v3-stats-grid">
+            <div class="v3-stat-card">
+                <div class="v3-stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i class="fa-solid fa-clock"></i></div>
+                <div class="v3-stat-title">Open</div>
+                <div class="v3-stat-value" id="openCount">0</div>
+            </div>
+            <div class="v3-stat-card">
+                <div class="v3-stat-icon" style="background:linear-gradient(135deg,#3b82f6,#2563eb)"><i class="fa-solid fa-user-cog"></i></div>
+                <div class="v3-stat-title">Assigned</div>
+                <div class="v3-stat-value" id="assignedCount">0</div>
+            </div>
+            <div class="v3-stat-card">
+                <div class="v3-stat-icon" style="background:linear-gradient(135deg,#06b6d4,#0891b2)"><i class="fa-solid fa-spinner"></i></div>
+                <div class="v3-stat-title">In Progress</div>
+                <div class="v3-stat-value" id="inProgressCount">0</div>
+            </div>
+            <div class="v3-stat-card">
+                <div class="v3-stat-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a)"><i class="fa-solid fa-check-circle"></i></div>
+                <div class="v3-stat-title">Resolved</div>
+                <div class="v3-stat-value" id="resolvedCount">0</div>
+            </div>
+            <div class="v3-stat-card">
+                <div class="v3-stat-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626)"><i class="fa-solid fa-triangle-exclamation"></i></div>
+                <div class="v3-stat-title">Urgent</div>
+                <div class="v3-stat-value" id="urgentCount">0</div>
+            </div>
+            <div class="v3-stat-card">
+                <div class="v3-stat-icon" style="background:linear-gradient(135deg,#7c3aed,#a855f7)"><i class="fa-solid fa-ban"></i></div>
+                <div class="v3-stat-title">Rejected</div>
+                <div class="v3-stat-value" id="rejectedCount">0</div>
+            </div>
+        </div>
+
+<!-- Filter Bar -->
+        <div class="v3-filter-bar">
+            <div class="v3-filter-group">
+                <button class="v3-filter-btn active" data-filter="all" type="button">All</button>
+                <button class="v3-filter-btn" data-filter="open" type="button">Open</button>
+                <button class="v3-filter-btn" data-filter="assigned" type="button">Assigned</button>
+                <button class="v3-filter-btn" data-filter="in-progress" type="button">In Progress</button>
+                <button class="v3-filter-btn" data-filter="resolved" type="button">Resolved</button>
+                <button class="v3-filter-btn" data-filter="rejected" type="button">Rejected</button>
+            </div>
+            <div style="display:flex;gap:10px;align-items:center">
+                <div class="v3-search">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="search" id="maintenanceSearch" placeholder="Search requests..." aria-label="Search maintenance">
+                </div>
+                <button class="v3-btn v3-btn-primary" id="newRequestBtn"><i class="fa-solid fa-plus"></i> New Request</button>
+            </div>
+        </div>
+
+        <!-- Requests Table -->
+        <div class="v3-table-wrap">
+            <table class="v3-table">
+                <thead>
+                    <tr>
+                        <th>Request</th>
+                        <th>Property</th>
+                        <th>Category</th>
+                        <th>Priority</th>
+                        <th>Status</th>
+                        <th>Student</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="requestsBody">
+                    <tr><td colspan="8" class="v3-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading requests...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="emptyState" class="v3-empty" style="display:none">
+            <i class="fa-solid fa-screwdriver-wrench"></i>
+            <h3>No Maintenance Requests</h3>
+            <p>Student and owner maintenance requests will appear here.</p>
+        </div>
+
+</main>
+
+<div id="sidebarBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998" hidden></div>
+
+<!-- New Request Modal -->
+<div class="v3-modal-overlay" id="newRequestModal">
+    <div class="v3-modal">
+        <div class="v3-modal-header">
+            <h3>New Maintenance Request</h3>
+            <button class="v3-modal-close" id="closeNewRequestModal" type="button" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="newRequestForm">
+            <div class="v3-form-group">
+                <label for="reqProperty">Property *</label>
+                <select id="reqProperty" required></select>
+            </div>
+            <div class="v3-form-group">
+                <label for="reqTitle">Title *</label>
+                <input type="text" id="reqTitle" placeholder="e.g. Leaking tap in bathroom" required>
+            </div>
+            <div class="v3-form-row">
+                <div class="v3-form-group">
+                    <label for="reqCategory">Category</label>
+                    <select id="reqCategory">
+                        <option>Plumbing</option>
+                        <option>Electrical</option>
+                        <option>Furniture</option>
+                        <option>Appliance</option>
+                        <option>Cleaning</option>
+                        <option>Pest Control</option>
+                        <option>Other</option>
+                    </select>
+                </div>
+                <div class="v3-form-group">
+                    <label for="reqPriority">Priority</label>
+                    <select id="reqPriority">
+                        <option>Low</option>
+                        <option selected>Medium</option>
+                        <option>High</option>
+                        <option>Urgent</option>
+                    </select>
+                </div>
+            </div>
+            <div class="v3-form-group">
+                <label for="reqDesc">Description</label>
+                <textarea id="reqDesc" rows="3" placeholder="Describe the issue..."></textarea>
+            </div>
+            <div class="v3-form-group">
+                <label for="reqAssignedTo">Assigned To</label>
+                <input type="text" id="reqAssignedTo" placeholder="e.g. Technician name">
+            </div>
+            <button type="submit" class="v3-btn v3-btn-primary" style="width:100%"><i class="fa-solid fa-plus"></i> Create Request</button>
+        </form>
+    </div>
+</div>
+
+<!-- Status Modal -->
+<div class="v3-modal-overlay" id="statusModal">
+    <div class="v3-modal">
+        <div class="v3-modal-header">
+            <h3>Update Request</h3>
+            <button class="v3-modal-close" id="closeStatusModal" type="button" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="statusModalContent"></div>
+    </div>
+</div>
+
+<script type="module">
+import { initShell } from "./js/owner-shell.js";
+initShell("Maintenance");
+</script>
+<script type="module" src="./js/owner-maintenance.js"></script>
+</body>
+</html>

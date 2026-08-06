@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campora | Add Property</title>
+    <meta name="description" content="Add a new PG/rental property on Campora.">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/owner-v3.css">
+    <link rel="stylesheet" href="./css/add-property.css">
+    <link rel="icon" href="./images/logo.png" type="image/png">
+</head>
+<body class="v3-body">
+
+<div class="v3-bg" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+</div>
+
+<div id="toastContainer" class="v3-toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<main id="mainContent" class="v3-content" role="main">
+
+    <div style="max-width:920px;margin:0 auto;width:100%">
+
+        <div id="editBanner" class="v3-form-card" style="background:rgba(37,99,235,.12);border-color:rgba(37,99,235,.3);display:none">
+            <p><i class="fa-solid fa-pen-to-square" style="color:var(--v3-info)"></i> <strong>Edit Mode</strong> — You are updating an existing property.</p>
+        </div>
+
+        <!-- Wizard Progress -->
+        <div class="v3-wizard-progress-text">Step <span id="currentStepDisplay">1</span> of 8 — <span id="stepNameDisplay">Basic Information</span> <span class="v3-wizard-pct" id="progressPct">0%</span></div>
+        <div class="v3-wizard-progress" id="wizardProgress" role="tablist" aria-label="Property listing steps">
+            <div class="v3-wizard-step active" data-step="1" role="tab" tabindex="0" aria-selected="true" aria-label="Step 1: Basic Information">
+                <div class="v3-wizard-dot"><span>1</span></div>
+                <div class="v3-wizard-label">Basic Info</div>
+            </div>
+            <div class="v3-wizard-connector" data-connector="1"></div>
+            <div class="v3-wizard-step" data-step="2" role="tab" tabindex="-1" aria-selected="false" aria-label="Step 2: Location">
+                <div class="v3-wizard-dot"><span>2</span></div>
+                <div class="v3-wizard-label">Location</div>
+            </div>
+            <div class="v3-wizard-connector" data-connector="2"></div>
+            <div class="v3-wizard-step" data-step="3" role="tab" tabindex="-1" aria-selected="false" aria-label="Step 3: Rooms & Beds">
+                <div class="v3-wizard-dot"><span>3</span></div>
+                <div class="v3-wizard-label">Rooms &amp; Beds</div>
+            </div>
+            <div class="v3-wizard-connector" data-connector="3"></div>
+            <div class="v3-wizard-step" data-step="4" role="tab" tabindex="-1" aria-selected="false" aria-label="Step 4: Pricing">
+                <div class="v3-wizard-dot"><span>4</span></div>
+                <div class="v3-wizard-label">Pricing</div>
+            </div>
+            <div class="v3-wizard-connector" data-connector="4"></div>
+            <div class="v3-wizard-step" data-step="5" role="tab" tabindex="-1" aria-selected="false" aria-label="Step 5: Amenities">
+                <div class="v3-wizard-dot"><span>5</span></div>
+                <div class="v3-wizard-label">Amenities</div>
+            </div>
+            <div class="v3-wizard-connector" data-connector="5"></div>
+            <div class="v3-wizard-step" data-step="6" role="tab" tabindex="-1" aria-selected="false" aria-label="Step 6: Images">
+                <div class="v3-wizard-dot"><span>6</span></div>
+                <div class="v3-wizard-label">Images</div>
+            </div>
+            <div class="v3-wizard-connector" data-connector="6"></div>
+            <div class="v3-wizard-step" data-step="7" role="tab" tabindex="-1" aria-selected="false" aria-label="Step 7: Rules">
+                <div class="v3-wizard-dot"><span>7</span></div>
+                <div class="v3-wizard-label">Rules</div>
+            </div>
+            <div class="v3-wizard-connector" data-connector="7"></div>
+            <div class="v3-wizard-step" data-step="8" role="tab" tabindex="-1" aria-selected="false" aria-label="Step 8: Preview & Publish">
+                <div class="v3-wizard-dot"><span>8</span></div>
+                <div class="v3-wizard-label">Preview &amp; Publish</div>
+            </div>
+        </div>
+
+        <form id="propertyForm" novalidate>
+            <!-- STEP 1: Basic Information -->
+            <div class="v3-wizard-step-panel active" id="step1" role="tabpanel">
+                <div class="v3-form-card">
+                    <h2><i class="fa-solid fa-info-circle"></i> Basic Information</h2>
+                    <div class="v3-form-grid">
+                        <div class="v3-field" id="fg-propName">
+                            <label for="propName">Property Name *</label>
+                            <input type="text" id="propName" maxlength="100" required aria-required="true" placeholder="e.g. Sai Krishna PG" />
+                            <div class="error-text">Property name is required</div>
+                        </div>
+                        <div class="v3-field" id="fg-propType">
+                            <label for="propType">Property Type *</label>
+                            <select id="propType" required aria-required="true">
+                                <option value="">Select type...</option>
+                                <option value="PG">PG / Paying Guest</option>
+                                <option value="Hostel">Hostel</option>
+                                <option value="Apartment">Apartment</option>
+                                <option value="Flat">Flat / Room</option>
+                                <option value="Coliving">Coliving</option>
+                            </select>
+                            <div class="error-text">Property type is required</div>
+                        </div>
+                    </div>
+                    <div class="v3-field" id="fg-description">
+                        <label for="description">Description *</label>
+                        <textarea id="description" maxlength="2000" required aria-required="true" placeholder="Describe your property in detail..." style="min-height:100px"></textarea>
+                        <div class="char-count"><span id="descCount">0</span>/2000</div>
+                        <div class="error-text">Description must be at least 20 characters</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 2: Location -->
+            <div class="v3-wizard-step-panel" id="step2" role="tabpanel">
+                <div class="v3-form-card">
+                    <h2><i class="fa-solid fa-location-dot"></i> Location</h2>
+                    <div class="v3-field" id="fg-address">
+                        <label for="address">Address *</label>
+                        <input type="text" id="address" required aria-required="true" placeholder="Street, building, landmark..." />
+                        <div class="error-text">Address is required</div>
+                    </div>
+                    <div class="v3-form-grid">
+                        <div class="v3-field" id="fg-city"><label for="city">City *</label><input type="text" id="city" required aria-required="true" placeholder="e.g. Mumbai" /><div class="error-text">City is required</div></div>
+                        <div class="v3-field" id="fg-state"><label for="state">State *</label><input type="text" id="state" required aria-required="true" placeholder="e.g. Maharashtra" /><div class="error-text">State is required</div></div>
+                    </div>
+                    <div class="v3-form-grid">
+                        <div class="v3-field"><label for="college">Nearby University</label><input type="text" id="college" placeholder="e.g. Mumbai University" /><div class="v3-field-hint">Closest university or college</div></div>
+                        <div class="v3-field"><label for="pincode">Pincode</label><input type="text" id="pincode" maxlength="6" placeholder="e.g. 400001" /></div>
+                    </div>
+                    <div class="v3-form-grid">
+                        <div class="v3-field"><label for="latitude">Latitude (optional)</label><input type="number" id="latitude" step="any" placeholder="e.g. 19.0760" /></div>
+                        <div class="v3-field"><label for="longitude">Longitude (optional)</label><input type="number" id="longitude" step="any" placeholder="e.g. 72.8777" /></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 3: Rooms & Beds -->
+            <div class="v3-wizard-step-panel" id="step3" role="tabpanel">
+                <div class="v3-form-card">
+                    <h2><i class="fa-solid fa-bed"></i> Rooms &amp; Beds</h2>
+                    <div class="v3-form-grid">
+                        <div class="v3-field" id="fg-sharing">
+                            <label for="sharing">Room Sharing *</label>
+                            <select id="sharing" required aria-required="true">
+                                <option value="">Select...</option>
+                                <option value="Single">Single Seater</option>
+                                <option value="Double">Double Seater</option>
+                                <option value="Triple">Triple Seater</option>
+                                <option value="Four Sharing">Four Seater</option>
+                            </select>
+                            <div class="error-text">Sharing option is required</div>
+                        </div>
+                        <div class="v3-field" id="fg-gender">
+                            <label for="gender">Gender Preference *</label>
+                            <select id="gender" required aria-required="true">
+                                <option value="">Select...</option>
+                                <option value="Boys">Boys Only</option>
+                                <option value="Girls">Girls Only</option>
+                                <option value="Co-ed">Co-ed / Open</option>
+                                <option value="Unisex">Unisex</option>
+                            </select>
+                            <div class="error-text">Gender preference is required</div>
+                        </div>
+                    </div>
+                    <div class="v3-form-grid">
+                        <div class="v3-field" id="fg-totalBeds"><label for="totalBeds">Total Beds *</label><input type="number" id="totalBeds" min="1" required aria-required="true" placeholder="e.g. 10" /><div class="error-text">Total beds must be at least 1</div></div>
+                        <div class="v3-field" id="fg-availableBeds"><label for="availableBeds">Available Beds *</label><input type="number" id="availableBeds" min="0" required aria-required="true" placeholder="e.g. 5" /><div class="error-text">Available beds is required</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 4: Pricing -->
+            <div class="v3-wizard-step-panel" id="step4" role="tabpanel">
+                <div class="v3-form-card">
+                    <h2><i class="fa-solid fa-indian-rupee-sign"></i> Pricing</h2>
+                    <div class="v3-form-grid">
+                        <div class="v3-field" id="fg-rent"><label for="rent">Monthly Rent (₹) *</label><input type="number" id="rent" min="1" required aria-required="true" placeholder="e.g. 8000" /><div class="error-text">Rent must be greater than ₹0</div></div>
+                        <div class="v3-field" id="fg-deposit"><label for="deposit">Security Deposit (₹) *</label><input type="number" id="deposit" min="0" required aria-required="true" placeholder="e.g. 10000" /><div class="error-text">Deposit is required</div></div>
+                    </div>
+                    <div class="v3-field"><label for="maintenance">Maintenance Charges (₹/month)</label><input type="number" id="maintenance" min="0" placeholder="e.g. 500" /><div class="v3-field-hint">Leave 0 if included in rent</div></div>
+                </div>
+            </div>
+
+            <!-- STEP 5: Amenities -->
+            <div class="v3-wizard-step-panel" id="step5" role="tabpanel">
+                <div class="v3-form-card">
+                    <h2><i class="fa-solid fa-wifi"></i> Amenities</h2>
+                    <div class="v3-checkbox-grid" id="amenitiesGrid">
+                        <label class="v3-checkbox-item"><input type="checkbox" value="WiFi" /> <span>WiFi</span></label>
+                        <label class="v3-checkbox-item"><input type="checkbox" value="AC" /> <span>AC</span></label>
+                        <label class="v3-checkbox-item"><input type="checkbox" value="Laundry" /> <span>Laundry</span></label>
+                        <label class="v3-checkbox-item"><input type="checkbox" value="Meals" /> <span>Meals</span></label>
+                        <label class="v3-checkbox-item"><input type="checkbox" value="Parking" /> <span>Parking</span></label>
+                        <label class="v3-checkbox-item"><input type="checkbox" value="CCTV" /> <span>CCTV</span></label>
+                        <label class="v3-checkbox-item"><input type="checkbox" value="Power Backup" /> <span>Power Backup</span></label>
+                        <label class="v3-checkbox-item"><input type="checkbox" value="Gym" /> <span>Gym</span></label>
+                        <label class="v3-checkbox-item"><input type="checkbox" value="Study Area" /> <span>Study Area</span></label>
+                        <label class="v3-checkbox-item"><input type="checkbox" value="Common Room" /> <span>Common Room</span></label>
+                        <label class="v3-checkbox-item"><input type="checkbox" value="Lift" /> <span>Lift / Elevator</span></label>
+                        <label class="v3-checkbox-item"><input type="checkbox" value="Geyser" /> <span>Geyser</span></label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 6: Images -->
+            <div class="v3-wizard-step-panel" id="step6" role="tabpanel">
+                <div class="v3-form-card">
+                    <h2><i class="fa-solid fa-image"></i> Property Images</h2>
+                    <div class="v3-upload-area" id="imageUploadArea">
+                        <i class="fa-solid fa-cloud-arrow-up"></i>
+                        <p>Drag &amp; drop or click to upload images</p>
+                        <p style="font-size:12px;color:var(--v3-muted)">JPG, PNG, WEBP • Max 10 images • 10MB each</p>
+                        <input type="file" id="imageInput" accept="image/jpeg,image/jpg,image/png,image/webp" multiple />
+                    </div>
+                    <div class="v3-upload-progress" id="uploadProgress">
+                        <div class="v3-progress-bar"><div class="v3-progress-fill" id="progressFill"></div></div>
+                        <div class="v3-progress-text" id="progressText">Uploading...</div>
+                    </div>
+                    <div class="v3-image-preview-grid" id="imagePreviewGrid"></div>
+                    <div id="imageError" class="error-text" style="display:none;margin-top:8px;color:var(--v3-danger);font-size:12px">At least one image is required</div>
+                </div>
+            </div>
+
+            <!-- STEP 7: House Rules -->
+            <div class="v3-wizard-step-panel" id="step7" role="tabpanel">
+                <div class="v3-form-card">
+                    <h2><i class="fa-solid fa-scale-balanced"></i> House Rules</h2>
+                    <div class="v3-checkbox-grid">
+                        <label class="v3-checkbox-item"><input type="checkbox" id="ruleSmoking" /> <span>Smoking Allowed</span></label>
+                        <label class="v3-checkbox-item"><input type="checkbox" id="ruleDrinking" /> <span>Drinking Allowed</span></label>
+                        <label class="v3-checkbox-item"><input type="checkbox" id="rulePets" /> <span>Pets Allowed</span></label>
+                        <label class="v3-checkbox-item"><input type="checkbox" id="ruleVisitors" /> <span>Visitors Allowed</span></label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- STEP 8: Preview & Publish -->
+            <div class="v3-wizard-step-panel" id="step8" role="tabpanel">
+                <div class="v3-form-card">
+                    <h2><i class="fa-solid fa-eye"></i> Preview Property</h2>
+                    <p style="color:var(--v3-muted)">Review your property details before publishing.</p>
+                    <div id="previewContent" style="margin-top:12px"></div>
+                    <div class="v3-actions-row">
+                        <button type="button" class="v3-btn-draft" id="saveDraftBtn"><i class="fa-solid fa-floppy-disk"></i> Save Draft</button>
+                        <button type="submit" class="v3-btn-publish" id="publishBtn"><i class="fa-solid fa-check"></i> Publish</button>
+                        <button type="button" class="v3-btn-cancel" id="cancelBtn"><i class="fa-solid fa-xmark"></i> Cancel</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Wizard Navigation -->
+            <div class="v3-wizard-actions">
+                <button type="button" class="v3-wizard-btn v3-wizard-btn-prev" id="prevBtn" disabled><i class="fa-solid fa-chevron-left"></i> Previous</button>
+                <button type="button" class="v3-wizard-btn v3-wizard-btn-next" id="nextBtn">Next <i class="fa-solid fa-chevron-right"></i></button>
+            </div>
+        </form>
+    </div>
+
+</main>
+
+<!-- Success Overlay -->
+<div class="v3-success-overlay" id="successOverlay">
+    <div class="v3-success-card">
+        <div class="v3-success-icon"><i class="fa-solid fa-check"></i></div>
+        <h2 id="successTitle">Property Published!</h2>
+        <p id="successDesc">Your property is now live on Campora.</p>
+        <button class="v3-btn v3-btn-primary" id="successBtn">Go to Dashboard</button>
+    </div>
+</div>
+
+<div id="sidebarBackdrop" class="v3-sidebar-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998" hidden></div>
+
+<script type="module">
+import { initShell } from "./js/owner-shell.js";
+initShell("Add Property");
+</script>
+<script type="module" src="./js/add-property.js"></script>
+</body>
+</html>

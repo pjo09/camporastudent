@@ -1,0 +1,316 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Campora | Admin Dashboard</title>
+    <meta name="theme-color" content="#2563eb" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.min.css" />
+    <link rel="stylesheet" href="./css/theme.css" />
+    <link rel="stylesheet" href="./css/dashboard-v2.css" />
+    <link rel="icon" href="./images/logo.png" type="image/png" />
+    <style>
+        :root { --sidebar-width: 260px; }
+        .admin-badge { background:linear-gradient(135deg,#dc2626,#ef4444); color:#fff; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:700; margin-left:8px }
+        .admin-layout { margin-left:var(--sidebar-width); min-height:100vh; padding:24px }
+        .admin-sidebar { position:fixed; left:0; top:0; bottom:0; width:var(--sidebar-width); background:rgba(15,23,42,.95); backdrop-filter:blur(20px); border-right:1px solid rgba(255,255,255,.08); display:flex; flex-direction:column; z-index:100; padding:20px 0 }
+        .admin-logo { display:flex; align-items:center; gap:12px; padding:0 20px 28px; border-bottom:1px solid rgba(255,255,255,.06); margin-bottom:16px }
+        .admin-logo img { width:44px; height:44px; object-fit:contain }
+        .admin-logo h2 { font-size:22px; font-weight:800 }
+        .admin-logo span { font-size:12px; color:#94a3b8 }
+        .admin-nav { flex:1; display:flex; flex-direction:column; gap:4px; padding:0 12px; overflow-y:auto }
+        .admin-nav-item { display:flex; align-items:center; gap:14px; padding:13px 16px; border-radius:14px; color:#94a3b8; transition:.25s; cursor:pointer; border:none; background:none; width:100%; text-align:left; font-family:inherit; font-size:14px; font-weight:500 }
+        .admin-nav-item:hover { background:rgba(255,255,255,.06); color:#fff }
+        .admin-nav-item.active { background:linear-gradient(135deg,#2563eb22,#7c3aed22); color:#fff; font-weight:600 }
+        .admin-nav-item i { width:20px; text-align:center; font-size:16px }
+        .admin-nav-item .badge { margin-left:auto }
+        .admin-footer { padding:16px 20px 0; border-top:1px solid rgba(255,255,255,.06); margin:16px 12px 0 }
+
+        .admin-topbar { display:flex; justify-content:space-between; align-items:center; padding:16px 0; margin-bottom:24px; flex-wrap:wrap; gap:16px }
+        .admin-topbar h1 { font-size:28px; font-weight:800 }
+        .admin-topbar-right { display:flex; align-items:center; gap:14px }
+
+        .admin-stats-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:18px; margin-bottom:32px }
+        .admin-stat-card { padding:22px; border-radius:18px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); transition:.3s }
+        .admin-stat-card:hover { transform:translateY(-4px); background:rgba(255,255,255,.07) }
+        .admin-stat-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px; margin-bottom:14px }
+        .admin-stat-title { font-size:13px; color:#94a3b8; margin-bottom:6px }
+        .admin-stat-value { font-size:28px; font-weight:800; margin-bottom:4px }
+        .admin-stat-sub { font-size:12px; color:#22c55e }
+
+        .admin-section { margin-bottom:32px }
+        .admin-section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:12px }
+        .admin-section-header h2 { font-size:22px; font-weight:700 }
+
+        .admin-table-wrap { overflow-x:auto; border-radius:18px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.04) }
+        .admin-table { width:100%; border-collapse:collapse; font-size:14px }
+        .admin-table th { padding:14px 18px; text-align:left; color:#94a3b8; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.5px; border-bottom:1px solid rgba(255,255,255,.06); background:rgba(255,255,255,.02) }
+        .admin-table td { padding:14px 18px; border-bottom:1px solid rgba(255,255,255,.04); vertical-align:middle }
+        .admin-table tr:last-child td { border-bottom:none }
+        .admin-table tr:hover td { background:rgba(255,255,255,.03) }
+
+        .admin-status { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:600 }
+        .admin-status.active { background:rgba(34,197,94,.12); color:#22c55e }
+        .admin-status.pending { background:rgba(245,158,11,.12); color:#f59e0b }
+        .admin-status.suspended { background:rgba(239,68,68,.12); color:#ef4444 }
+        .admin-status.approved { background:rgba(34,197,94,.12); color:#22c55e }
+
+        .admin-btn { padding:8px 16px; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:13px; transition:.2s; font-family:inherit }
+        .admin-btn-primary { background:linear-gradient(135deg,#2563eb,#3b82f6); color:#fff }
+        .admin-btn-danger { background:rgba(239,68,68,.15); color:#ef4444 }
+        .admin-btn-success { background:rgba(34,197,94,.15); color:#22c55e }
+        .admin-btn-warning { background:rgba(245,158,11,.15); color:#f59e0b }
+        .admin-btn-sm { padding:6px 12px; font-size:12px }
+        .admin-btn:hover { transform:translateY(-2px) }
+
+        .admin-charts { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:32px }
+        .chart-card { padding:24px; border-radius:18px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08) }
+        .chart-card h3 { font-size:16px; margin-bottom:16px; color:#94a3b8 }
+        .chart-card canvas { max-height:280px }
+
+        .admin-filter-bar { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:18px }
+        .admin-filter-bar input, .admin-filter-bar select { padding:10px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.06); color:#fff; font-family:inherit; font-size:13px; outline:none }
+        .admin-filter-bar input:focus, .admin-filter-bar select:focus { border-color:#2563eb }
+
+        .admin-avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; background:linear-gradient(135deg,#2563eb,#7c3aed); color:#fff }
+        .admin-avatar-sm { width:28px; height:28px; font-size:11px }
+
+        .admin-tab-content { display:none }
+        .admin-tab-content.active { display:block }
+
+        .admin-pagination { display:flex; justify-content:center; align-items:center; gap:16px; padding:20px 0 }
+        .admin-pagination button { width:36px; height:36px; border:none; border-radius:10px; background:rgba(255,255,255,.06); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.2s }
+        .admin-pagination button:hover { background:rgba(37,99,235,.3) }
+        .admin-pagination button:disabled { opacity:.3; cursor:default }
+        .admin-pagination span { font-size:13px; color:#94a3b8 }
+
+        .admin-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(8px); z-index:5000; display:none; align-items:center; justify-content:center; padding:20px }
+        .admin-modal-overlay.active { display:flex }
+        .admin-modal { background:#0f172a; border:1px solid rgba(255,255,255,.08); border-radius:24px; padding:28px; width:100%; max-width:560px; max-height:80vh; overflow-y:auto; box-shadow:0 40px 80px rgba(0,0,0,.5) }
+        .admin-modal h3 { font-size:20px; margin-bottom:20px }
+        .admin-modal-close { float:right; width:36px; height:36px; border:none; border-radius:10px; background:rgba(255,255,255,.06); color:#fff; cursor:pointer }
+
+        .action-group { display:flex; gap:6px; flex-wrap:wrap }
+
+        @media(max-width:1024px) {
+            .admin-sidebar { transform:translateX(-100%); transition:.3s }
+            .admin-sidebar.open { transform:translateX(0) }
+            .admin-layout { margin-left:0 }
+            .admin-charts { grid-template-columns:1fr }
+            .admin-stats-grid { grid-template-columns:repeat(2,1fr) }
+        }
+        @media(max-width:640px) {
+            .admin-stats-grid { grid-template-columns:1fr }
+            .admin-topbar h1 { font-size:22px }
+        }
+    </style>
+</head>
+<body class="dashboard-page">
+<div class="dashboard-bg"><div class="bg-circle circle1"></div><div class="bg-circle circle2"></div><div class="bg-circle circle3"></div></div>
+<div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<!-- ======================== SIDEBAR ======================== -->
+<aside class="admin-sidebar" id="adminSidebar">
+    <div class="admin-logo">
+        <img src="./images/logo.png" alt="Campora" />
+        <div><h2>Campora</h2><span>Admin Panel</span></div>
+    </div>
+    <nav class="admin-nav" id="adminNav">
+        <button class="admin-nav-item active" data-tab="overview"><i class="fa-solid fa-chart-pie"></i>Overview</button>
+        <button class="admin-nav-item" data-tab="analytics"><i class="fa-solid fa-chart-line"></i>Analytics</button>
+        <button class="admin-nav-item" data-tab="users"><i class="fa-solid fa-users"></i>Users</button>
+        <button class="admin-nav-item" data-tab="properties"><i class="fa-solid fa-building"></i>Properties</button>
+        <button class="admin-nav-item" data-tab="bookings"><i class="fa-solid fa-calendar-check"></i>Bookings</button>
+        <button class="admin-nav-item" data-tab="payments"><i class="fa-solid fa-credit-card"></i>Payments</button>
+        <button class="admin-nav-item" data-tab="reviews"><i class="fa-solid fa-star"></i>Reviews</button>
+        <button class="admin-nav-item" data-tab="reports"><i class="fa-solid fa-file-lines"></i>Reports</button>
+        <button class="admin-nav-item" data-tab="settings"><i class="fa-solid fa-gear"></i>Platform Settings</button>
+        <button class="admin-nav-item" data-tab="system"><i class="fa-solid fa-server"></i>System</button>
+    </nav>
+    <div class="admin-footer">
+        <button class="admin-nav-item" id="adminLogoutBtn" style="color:#ef4444"><i class="fa-solid fa-right-from-bracket"></i>Logout</button>
+    </div>
+</aside>
+
+<!-- ======================== MAIN ======================== -->
+<div class="admin-layout">
+    <header class="admin-topbar">
+        <div style="display:flex;align-items:center;gap:14px">
+            <button id="adminMenuBtn" class="menu-btn" type="button" aria-label="Open menu" style="width:44px;height:44px;border-radius:12px;display:none"><i class="fa-solid fa-bars"></i></button>
+            <h1 id="adminPageTitle">Dashboard Overview</h1>
+            <span class="admin-badge">Admin</span>
+        </div>
+        <div class="admin-topbar-right">
+            <div id="adminLastUpdate" style="font-size:13px;color:#64748b"></div>
+            <button class="icon-btn" id="adminRefreshBtn" type="button" aria-label="Refresh data" style="width:40px;height:40px;font-size:14px"><i class="fa-solid fa-rotate"></i></button>
+            <div class="profile" id="adminProfile" style="padding:6px 10px;cursor:default">
+                <div class="admin-avatar" id="adminAvatar" style="width:36px;height:36px">A</div>
+                <div><h4 id="adminName" style="font-size:14px">Admin</h4></div>
+            </div>
+        </div>
+    </header>
+
+    <!-- ======================== LOADING ======================== -->
+    <div id="adminLoading" style="text-align:center;padding:80px 20px">
+        <i class="fa-solid fa-spinner fa-spin" style="font-size:48px;color:#60a5fa;margin-bottom:20px;display:block"></i>
+        <h3 style="color:#94a3b8">Loading Admin Dashboard...</h3>
+    </div>
+
+    <!-- ======================== OVERVIEW ======================== -->
+    <div id="tab-overview" class="admin-tab-content active">
+        <div class="admin-stats-grid" id="overviewStats"></div>
+        <div class="admin-charts">
+            <div class="chart-card"><h3><i class="fa-solid fa-users"></i> User Growth</h3><canvas id="userGrowthChart"></canvas></div>
+            <div class="chart-card"><h3><i class="fa-solid fa-building"></i> Property Status</h3><canvas id="propertyChart"></canvas></div>
+        </div>
+        <div class="admin-section">
+            <div class="admin-section-header"><h2>Recent Activity</h2><span id="activityCount" style="color:#94a3b8;font-size:14px"></span></div>
+            <div class="admin-table-wrap"><table class="admin-table"><thead><tr><th>Type</th><th>Details</th><th>User</th><th>Time</th></tr></thead><tbody id="activityTable"><tr><td colspan="4" style="text-align:center;color:#64748b">Loading...</td></tr></tbody></table></div>
+        </div>
+    </div>
+
+    <!-- ======================== ANALYTICS ======================== -->
+    <div id="tab-analytics" class="admin-tab-content">
+        <div class="admin-stats-grid" id="analyticsStats"></div>
+        <div class="admin-charts">
+            <div class="chart-card"><h3><i class="fa-solid fa-indian-rupee-sign"></i> Revenue</h3><canvas id="revenueChart"></canvas></div>
+            <div class="chart-card"><h3><i class="fa-solid fa-calendar-check"></i> Booking Trends</h3><canvas id="bookingTrendChart"></canvas></div>
+        </div>
+    </div>
+
+    <!-- ======================== USERS ======================== -->
+    <div id="tab-users" class="admin-tab-content">
+        <div class="admin-filter-bar">
+            <input id="usersSearch" type="search" placeholder="Search by name, email, phone..." style="flex:1;min-width:200px" />
+            <select id="usersRoleFilter"><option value="">All Roles</option><option value="student">Students</option><option value="owner">Owners</option><option value="admin">Admins</option></select>
+            <select id="usersStatusFilter"><option value="">All Status</option><option value="active">Active</option><option value="suspended">Suspended</option></select>
+            <button class="admin-btn admin-btn-primary" id="usersSearchBtn"><i class="fa-solid fa-search"></i> Search</button>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table"><thead><tr><th>Avatar</th><th>Name</th><th>Email</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead><tbody id="usersTable"><tr><td colspan="7" style="text-align:center;color:#64748b">Loading...</td></tr></tbody></table>
+        </div>
+        <div class="admin-pagination" id="usersPagination">
+            <button id="usersPrev"><i class="fa-solid fa-chevron-left"></i></button><span id="usersPageInfo">Page 1 of 1</span><button id="usersNext"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <!-- ======================== PROPERTIES ======================== -->
+    <div id="tab-properties" class="admin-tab-content">
+        <div class="admin-filter-bar">
+            <input id="propSearch" type="search" placeholder="Search by name, city, college..." style="flex:1;min-width:200px" />
+            <select id="propStatusFilter"><option value="">All Status</option><option value="pending">Pending</option><option value="approved">Approved</option><option value="rejected">Rejected</option></select>
+            <button class="admin-btn admin-btn-primary" id="propSearchBtn"><i class="fa-solid fa-search"></i> Search</button>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table"><thead><tr><th>Property</th><th>Owner</th><th>City</th><th>Rent</th><th>Type</th><th>Status</th><th>Actions</th></tr></thead><tbody id="propTable"><tr><td colspan="7" style="text-align:center;color:#64748b">Loading...</td></tr></tbody></table>
+        </div>
+        <div class="admin-pagination" id="propPagination">
+            <button id="propPrev"><i class="fa-solid fa-chevron-left"></i></button><span id="propPageInfo">Page 1 of 1</span><button id="propNext"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <!-- ======================== BOOKINGS ======================== -->
+    <div id="tab-bookings" class="admin-tab-content">
+        <div class="admin-filter-bar">
+            <select id="bookingStatusFilter"><option value="">All Status</option><option value="pending">Pending</option><option value="confirmed">Confirmed</option><option value="checked-in">Checked In</option><option value="cancelled">Cancelled</option></select>
+            <select id="bookingPaymentFilter"><option value="">Payment: All</option><option value="paid">Paid</option><option value="pending">Pending</option></select>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table"><thead><tr><th>Student</th><th>Property</th><th>Price</th><th>Status</th><th>Payment</th><th>Date</th><th>Actions</th></tr></thead><tbody id="bookingTable"><tr><td colspan="7" style="text-align:center;color:#64748b">Loading...</td></tr></tbody></table>
+        </div>
+        <div class="admin-pagination" id="bookingPagination">
+            <button id="bookingPrev"><i class="fa-solid fa-chevron-left"></i></button><span id="bookingPageInfo">Page 1 of 1</span><button id="bookingNext"><i class="fa-solid fa-chevron-right"></i></button>
+        </div>
+    </div>
+
+    <!-- ======================== PAYMENTS ======================== -->
+    <div id="tab-payments" class="admin-tab-content">
+        <div class="admin-stats-grid" id="paymentStats"></div>
+        <div class="admin-filter-bar">
+            <select id="paymentFilter"><option value="">All</option><option value="paid">Paid</option><option value="pending">Pending</option><option value="failed">Failed</option><option value="refunded">Refunded</option></select>
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table"><thead><tr><th>Student</th><th>Property</th><th>Amount</th><th>Status</th><th>Method</th><th>Date</th><th>Actions</th></tr></thead><tbody id="paymentTable"><tr><td colspan="7" style="text-align:center;color:#64748b">Loading...</td></tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- ======================== REVIEWS ======================== -->
+    <div id="tab-reviews" class="admin-tab-content">
+        <div class="admin-filter-bar">
+            <select id="reviewStatusFilter"><option value="">All</option><option value="approved">Approved</option><option value="hidden">Hidden</option><option value="pending">Pending</option></select>
+            <input id="reviewSearch" type="search" placeholder="Search reviews..." style="flex:1;min-width:200px" />
+        </div>
+        <div class="admin-table-wrap">
+            <table class="admin-table"><thead><tr><th>User</th><th>Property</th><th>Rating</th><th>Comment</th><th>Status</th><th>Date</th><th>Actions</th></tr></thead><tbody id="reviewTable"><tr><td colspan="7" style="text-align:center;color:#64748b">Loading...</td></tr></tbody></table>
+        </div>
+    </div>
+
+    <!-- ======================== REPORTS ======================== -->
+    <div id="tab-reports" class="admin-tab-content">
+        <div class="admin-charts">
+            <div class="chart-card"><h3><i class="fa-solid fa-city"></i> Properties by City</h3><canvas id="cityChart"></canvas></div>
+            <div class="chart-card"><h3><i class="fa-solid fa-graduation-cap"></i> Top Colleges</h3><canvas id="collegeChart"></canvas></div>
+        </div>
+        <div class="admin-stats-grid" id="reportStats"></div>
+        <div class="admin-section">
+            <div class="admin-section-header"><h2>Occupancy Report</h2></div>
+            <div class="admin-table-wrap">
+                <table class="admin-table"><thead><tr><th>Property</th><th>City</th><th>Total Beds</th><th>Available</th><th>Occupied</th><th>Rate</th></tr></thead><tbody id="occupancyTable"><tr><td colspan="6" style="text-align:center;color:#64748b">Loading...</td></tr></tbody></table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== PLATFORM SETTINGS ======================== -->
+    <div id="tab-settings" class="admin-tab-content">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:24px">
+            <div class="chart-card">
+                <h3>General</h3>
+                <div style="display:flex;flex-direction:column;gap:14px">
+                    <div><label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px">Site Name</label><input id="setSiteName" class="admin-filter-bar" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:#fff" /></div>
+                    <div><label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px">Support Email</label><input id="setSupportEmail" class="admin-filter-bar" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:#fff" /></div>
+                    <div><label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px">Support Phone</label><input id="setSupportPhone" class="admin-filter-bar" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:#fff" /></div>
+                    <div><label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px">Commission (%)</label><input id="setCommission" type="number" class="admin-filter-bar" style="width:100%;padding:10px 14px;border-radius:10px;border:1px solid rgba(255,255,255,.08);background:rgba(255,255,255,.06);color:#fff" /></div>
+                </div>
+            </div>
+            <div class="chart-card">
+                <h3>Toggles</h3>
+                <div style="display:flex;flex-direction:column;gap:14px">
+                    <div class="setting-item" style="background:rgba(255,255,255,.04);border-radius:12px"><div class="setting-info"><h4 style="font-size:14px">Maintenance Mode</h4><p style="font-size:12px;color:#94a3b8">Disable user access</p></div><label class="toggle-switch"><input type="checkbox" id="setMaintenance" /><span class="toggle-slider"></span></label></div>
+                    <div class="setting-item" style="background:rgba(255,255,255,.04);border-radius:12px"><div class="setting-info"><h4 style="font-size:14px">Allow Registration</h4></div><label class="toggle-switch"><input type="checkbox" id="setRegistration" checked /><span class="toggle-slider"></span></label></div>
+                    <div class="setting-item" style="background:rgba(255,255,255,.04);border-radius:12px"><div class="setting-info"><h4 style="font-size:14px">Allow Property Upload</h4></div><label class="toggle-switch"><input type="checkbox" id="setPropertyUpload" checked /><span class="toggle-slider"></span></label></div>
+                </div>
+                <button id="savePlatformSettings" class="admin-btn admin-btn-primary" style="margin-top:20px;width:100%;padding:12px">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== SYSTEM ======================== -->
+    <div id="tab-system" class="admin-tab-content">
+        <div class="admin-stats-grid" id="systemStats"></div>
+        <div class="admin-section">
+            <div class="admin-section-header"><h2>Server Information</h2></div>
+            <div class="admin-table-wrap">
+                <table class="admin-table"><tbody id="systemInfoTable"></tbody></table>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- ======================== MODAL ======================== -->
+<div class="admin-modal-overlay" id="adminModalOverlay">
+    <div class="admin-modal" id="adminModal">
+        <button class="admin-modal-close" id="adminModalClose"><i class="fa-solid fa-xmark"></i></button>
+        <h3 id="adminModalTitle">Details</h3>
+        <div id="adminModalBody"></div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<script type="module" src="./js/admin-dashboard.js"></script>
+</body>
+</html>
+
