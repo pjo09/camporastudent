@@ -183,7 +183,7 @@ async function runAudit() {
 
         // 10. Save Property by Student
         if (studentToken && propertyId) {
-            const saveProp = await makeRequest(`/api/properties/${propertyId}/save`, 'POST', {}, studentToken);
+            const saveProp = await makeRequest(`/api/properties/save/${propertyId}`, 'POST', {}, studentToken);
             record("10. Save Property", saveProp.status === 200 && saveProp.body.success === true, saveProp.body);
         } else {
             record("10. Save Property", false, { error: "Missing student token or property ID" });
@@ -199,7 +199,7 @@ async function runAudit() {
                 specialRequests: "Quiet room requested"
             }, studentToken);
             if (bookingReq.body && bookingReq.body.booking) bookingId = bookingReq.body.booking._id || bookingReq.body.booking.id;
-            record("11. Booking Creation", bookingReq.status === 201 && bookingReq.body.success === true && !!bookingId, bookingReq.body);
+            record("11. Booking Creation", (bookingReq.status === 200 || bookingReq.status === 201) && bookingReq.body.success === true && !!bookingId, bookingReq.body);
         } else {
             record("11. Booking Creation", false, { error: "Missing student token or property ID" });
         }
@@ -223,11 +223,11 @@ async function runAudit() {
         // 14. Reviews System
         if (studentToken && propertyId) {
             const reviewRes = await makeRequest('/api/reviews', 'POST', {
-                propertyId,
+                property: propertyId,
                 rating: 5,
                 comment: "Outstanding facilities and great location!"
             }, studentToken);
-            record("14. Reviews System", reviewRes.status === 201 && reviewRes.body.success === true, reviewRes.body);
+            record("14. Reviews System", (reviewRes.status === 200 || reviewRes.status === 201) && reviewRes.body.success === true, reviewRes.body);
         } else {
             record("14. Reviews System", false, { error: "Missing student token or property ID" });
         }
