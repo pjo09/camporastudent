@@ -119,7 +119,7 @@ async function loadStats() {
 function renderProfile(u) {
   const name = u.name || "Student";
   const email = u.email || "";
-  const avatar = u.profileImage || u.avatar || "./images/logo.png";
+  const avatar = u.profileImage || u.avatar || "./assets/logos/logo.png";
 
   DOM.avatar.src = avatar;
   DOM.name.textContent = name;

@@ -135,7 +135,7 @@ function renderBookings() {
         </div>
       </div>
       <div style="display:flex;gap:8px;flex-shrink:0">
-        <button class="book-btn" onclick="window.location.href='property-details.html?id=${prop._id || ""}'" style="padding:10px 16px;font-size:13px;margin:0">View</button>
+        <button class="book-btn" onclick="window.location.href='/pages/property/property.html?id=${prop._id || ""}'" style="padding:10px 16px;font-size:13px;margin:0">View</button>
         ${status === "pending" ? `<button class="secondary-btn" onclick="window.cancelBooking('${b._id}')" style="padding:10px 16px;font-size:13px;border:none;border-radius:14px;background:rgba(239,68,68,.15);color:#ef4444;font-weight:700;cursor:pointer">Cancel</button>` : ""}
       </div>`;
     DOM.grid.appendChild(card);

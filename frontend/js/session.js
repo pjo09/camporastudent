@@ -104,13 +104,13 @@ export function logout() {
 export function redirectBasedOnRole(role) {
     switch (role) {
         case "owner":
-            window.location.href = "owner-dashboard.html";
+            window.location.href = "/pages/owner//pages/student/dashboard.html";
             break;
         case "admin":
-            window.location.href = "admin-dashboard.html";
+            window.location.href = "/pages/admin//pages/student/dashboard.html";
             break;
         default:
-            window.location.href = "dashboard.html";
+            window.location.href = "/pages/student/dashboard.html";
     }
 }
 

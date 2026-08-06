@@ -223,7 +223,7 @@ function renderUserInfo() {
   const name = user.name || "Student";
   const email = user.email || "";
   const avatarSrc =
-    user.avatar || user.profileImage || "./images/logo.png";
+    user.avatar || user.profileImage || "./assets/logos/logo.png";
 
   // Topbar
   if (DOM.username) DOM.username.textContent = name;
@@ -558,7 +558,7 @@ function renderProperties(properties) {
     card.setAttribute("role", "article");
     card.innerHTML = `
       <div class="property-image">
-        <img src="${imgSrc}" alt="${name}" loading="lazy" decoding="async" onerror="this.src='./images/property-placeholder.jpg'">
+        <img src="${imgSrc}" alt="${name}" loading="lazy" decoding="async" onerror="this.src='./assets/images/property-placeholder.jpg'">
         ${badge ? `<div class="property-badge ${p.verified ? "verified" : "featured"}">${badge}</div>` : ""}
         <button class="property-save" data-id="${p._id}" aria-label="${p.isSaved ? "Remove from saved" : "Save property"}" onclick="window.toggleSave('${p._id}', this)">
           <i class="fa-${p.isSaved ? "solid" : "regular"} fa-heart"></i>
@@ -620,7 +620,7 @@ window.toggleSave = async function (propertyId, btn) {
 window.viewProperty = function (id) {
   // Track view
   apiFetch(`/student/recent/${id}`, { method: "POST" }).catch(() => {});
-  window.location.href = `property-details.html?id=${id}`;
+  window.location.href = `/pages/property/property.html?id=${id}`;
 };
 
 // ================================================

@@ -126,7 +126,7 @@ function renderList() {
   }
 
   state.filtered.slice(0, 30).forEach((p) => {
-    const img = p.images?.length ? getImageUrl(p.images[0]) : "./images/property-placeholder.jpg";
+    const img = p.images?.length ? getImageUrl(p.images[0]) : "./assets/images/property-placeholder.jpg";
     const name = p.propertyName || p.title || "Property";
     const loc = p.city ? `${p.city}${p.state ? ", " + p.state : ""}` : "";
     const rent = p.rent || p.price || 0;
@@ -135,7 +135,7 @@ function renderList() {
     const card = document.createElement("div");
     card.className = "nearby-card";
     card.innerHTML = `
-      <img src="${img}" class="nearby-card-img" alt="${name}" loading="lazy" onerror="this.src='./images/property-placeholder.jpg'" />
+      <img src="${img}" class="nearby-card-img" alt="${name}" loading="lazy" onerror="this.src='./assets/images/property-placeholder.jpg'" />
       <div class="nearby-card-content">
         <div class="nearby-card-title">${name}</div>
         ${loc ? `<div class="nearby-card-location"><i class="fa-solid fa-location-dot"></i> ${loc}</div>` : ""}
@@ -147,7 +147,7 @@ function renderList() {
         ${p.latitude && p.longitude ? `<div class="nearby-card-distance"><i class="fa-solid fa-location-crosshairs"></i> Has location</div>` : ""}
       </div>`;
     card.addEventListener("click", () => {
-      window.location.href = `property-details.html?id=${p._id}`;
+      window.location.href = `/pages/property/property.html?id=${p._id}`;
     });
     DOM.nearbyList.appendChild(card);
   });
@@ -247,7 +247,7 @@ function updateMapMarkers() {
       .bindPopup(`<b>${p.propertyName || "Property"}</b><br>₹${(p.rent || 0).toLocaleString()}/month`);
 
     marker.on("click", () => {
-      window.location.href = `property-details.html?id=${p._id}`;
+      window.location.href = `/pages/property/property.html?id=${p._id}`;
     });
 
     state.markers.push(marker);

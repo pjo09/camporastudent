@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Campora | Property</title>
+    <meta name="robots" content="noindex">
+    <script>
+        // Legacy ../../properties.html -> modern ../property/property.html
+        // Preserve any ?id= deep link so bookmarks still resolve.
+        (function () {
+            var params = new URLSearchParams(window.location.search);
+            var id = params.get("id");
+            var target = id
+                ? "../property/property.html?id=" + encodeURIComponent(id)
+                : "../../properties.html";
+            window.location.replace(target);
+        })();
+    </script>
+</head>
+<body>
+    <p>Redirecting to the Campora property page…</p>
+    <noscript>
+        <p>
+            <a id="fallbackLink" href="../../properties.html">Continue to Campora Explore</a>
+        </p>
+    </noscript>
+</body>
+</html>
+

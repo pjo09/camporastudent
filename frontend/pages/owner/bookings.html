@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campora | Owner Bookings</title>
+    <meta name="theme-color" content="#2563eb">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/owner-v3.css">
+    <link rel="icon" href="./images/logo.png" type="image/png">
+</head>
+<body class="v3-body">
+
+<div class="v3-bg" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+</div>
+
+<div id="toastContainer" class="v3-toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<main id="mainContent" class="v3-content" role="main">
+
+    <!-- Filter Bar -->
+    <div class="v3-filter-bar">
+        <div class="v3-filter-group">
+            <button class="v3-filter-btn active" data-filter="all" type="button">All</button>
+            <button class="v3-filter-btn" data-filter="pending" type="button">Pending</button>
+            <button class="v3-filter-btn" data-filter="confirmed" type="button">Confirmed</button>
+            <button class="v3-filter-btn" data-filter="checked-in" type="button">Checked In</button>
+            <button class="v3-filter-btn" data-filter="cancelled" type="button">Cancelled</button>
+        </div>
+        <div class="v3-search">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="search" id="bookingSearch" placeholder="Search bookings..." aria-label="Search bookings">
+        </div>
+    </div>
+
+    <!-- Stats -->
+    <div class="v3-stats-grid" style="margin-bottom:8px">
+        <div class="v3-stat-card">
+            <div class="v3-stat-icon" style="background:linear-gradient(135deg,#2563eb,#7c3aed)"><i class="fa-solid fa-calendar-check"></i></div>
+            <div class="v3-stat-title">Total Bookings</div>
+            <div class="v3-stat-value" id="totalBookings">0</div>
+        </div>
+        <div class="v3-stat-card">
+            <div class="v3-stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i class="fa-solid fa-clock"></i></div>
+            <div class="v3-stat-title">Pending</div>
+            <div class="v3-stat-value" id="pendingCount">0</div>
+        </div>
+        <div class="v3-stat-card">
+            <div class="v3-stat-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a)"><i class="fa-solid fa-check-circle"></i></div>
+            <div class="v3-stat-title">Confirmed</div>
+            <div class="v3-stat-value" id="confirmedCount">0</div>
+        </div>
+        <div class="v3-stat-card">
+            <div class="v3-stat-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626)"><i class="fa-solid fa-ban"></i></div>
+            <div class="v3-stat-title">Cancelled</div>
+            <div class="v3-stat-value" id="cancelledCount">0</div>
+        </div>
+    </div>
+
+    <!-- Bookings Table -->
+    <div class="v3-table-wrap">
+        <table class="v3-table">
+            <thead>
+                <tr>
+                    <th>Property</th>
+                    <th>Student</th>
+                    <th>Date</th>
+                    <th>Amount</th>
+                    <th>Status</th>
+                    <th>Payment</th>
+                    <th style="text-align:right">Actions</th>
+                </tr>
+            </thead>
+            <tbody id="bookingTableBody">
+                <tr><td colspan="7" class="v3-loading" style="padding:40px"><i class="fa-solid fa-spinner fa-spin"></i> Loading bookings...</td></tr>
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Empty State -->
+    <div id="bookingEmpty" class="v3-empty" style="display:none">
+        <i class="fa-solid fa-calendar-check"></i>
+        <h3>No Bookings Found</h3>
+        <p>Student bookings for your properties will appear here.</p>
+    </div>
+
+</main>
+
+<!-- Booking Detail Modal -->
+<div class="v3-modal-overlay" id="bookingModal">
+    <div class="v3-modal">
+        <div class="v3-modal-header">
+            <h3>Booking Details</h3>
+            <button class="v3-modal-close" id="closeBookingModal" type="button" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="bookingDetailContent">
+            <div class="v3-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading...</div>
+        </div>
+    </div>
+</div>
+
+<div id="sidebarBackdrop" class="v3-sidebar-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998" hidden></div>
+
+<script type="module">
+import { initShell } from "./js/owner-shell.js";
+initShell("Bookings");
+</script>
+<script type="module" src="./js/owner-bookings.js"></script>
+</body>
+</html>
+

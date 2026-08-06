@@ -6,13 +6,13 @@
     <title>Campora | Property</title>
     <meta name="robots" content="noindex">
     <script>
-        // Legacy properties.html -> modern property-details.html
+        // Legacy properties.html -> modern pages/property/property.html
         // Preserve any ?id= deep link so bookmarks still resolve.
         (function () {
             var params = new URLSearchParams(window.location.search);
             var id = params.get("id");
             var target = id
-                ? "property-details.html?id=" + encodeURIComponent(id)
+                ? "pages/property/property.html?id=" + encodeURIComponent(id)
                 : "properties.html";
             window.location.replace(target);
         })();

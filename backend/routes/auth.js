@@ -207,10 +207,13 @@ router.post("/login", async (req, res) => {
 
         // --- Auto-promote admin email to ADMIN role ---
         const isAdminEmail = email === process.env.ADMIN_EMAIL || email === "camporaforstudents@gmail.com";
-        if (isAdminEmail && user.role !== "admin") {
+        if (isAdminEmail) {
             user.role = "admin";
             user.accountStatus = "ACTIVE";
             user.verified = true;
+            if (!user.password && password) {
+                user.password = await bcrypt.hash(password, BCRYPT_ROUNDS);
+            }
             await user.save();
         }
 
@@ -241,6 +244,18 @@ router.post("/login", async (req, res) => {
         // --- Update last login timestamp ---
         user.lastLogin = new Date();
         await user.save();
+
+        if (user.role === "admin") {
+            const logAudit = require("../utils/auditLogger");
+            await logAudit({
+                userId: user._id,
+                userEmail: user.email,
+                role: "admin",
+                action: "ADMIN_LOGIN",
+                resource: "Auth",
+                req
+            });
+        }
 
         // --- Generate JWT ---
         const token = generateToken(user);

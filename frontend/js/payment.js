@@ -120,7 +120,7 @@ function renderBooking() {
   const imgEl = $("propertyImage");
   if (imgEl) {
     imgEl.src = img;
-    imgEl.onerror = () => { imgEl.src = "/images/property-placeholder.jpg"; };
+    imgEl.onerror = () => { imgEl.src = "/assets/images/property-placeholder.jpg"; };
   }
 
   // Price
@@ -145,7 +145,7 @@ function renderBooking() {
 // =====================================================
 
 function getImageUrl(path) {
-  if (!path) return "/images/property-placeholder.jpg";
+  if (!path) return "/assets/images/property-placeholder.jpg";
   if (path.startsWith("http")) return path;
   return IMAGE_BASE + path.replace(/^\//, "");
 }

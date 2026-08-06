@@ -11,8 +11,24 @@ const upload = require("../middleware/upload");
 // ==========================================
 
 router.get("/", async (req, res) => {
-
     try {
+        const {
+            search,
+            city,
+            state,
+            college,
+            university,
+            propertyType,
+            gender,
+            sharing,
+            minRent,
+            maxRent,
+            minRating,
+            amenities,
+            sort,
+            page = 1,
+            limit = 20
+        } = req.query;
 
         const filter = {
             status: "approved",
@@ -21,32 +37,79 @@ router.get("/", async (req, res) => {
             blacklisted: { $ne: true }
         };
 
-        // Owners/admins can optionally pass ?mine=1 to see their own
-        if (req.query.mine === "1" && req.user && req.user.id) {
-            delete filter.status;
-            delete filter.published;
-            filter.owner = req.user.id;
+        if (city) filter.city = new RegExp(city.trim(), "i");
+        if (state) filter.state = new RegExp(state.trim(), "i");
+
+        const targetUni = college || university;
+        if (targetUni) filter.college = new RegExp(targetUni.trim(), "i");
+
+        if (propertyType) filter.propertyType = propertyType;
+        if (gender) filter.gender = gender;
+        if (sharing) filter.sharing = sharing;
+
+        if (minRent || maxRent) {
+            filter.rent = {};
+            if (minRent) filter.rent.$gte = Number(minRent);
+            if (maxRent) filter.rent.$lte = Number(maxRent);
         }
 
-        const properties = await Property.find(filter).sort({ createdAt: -1 });
+        if (minRating) filter.averageRating = { $gte: Number(minRating) };
+
+        if (amenities) {
+            const list = Array.isArray(amenities) ? amenities : amenities.split(",").map(s => s.trim());
+            filter.amenities = { $all: list };
+        }
+
+        if (search && search.trim()) {
+            const regex = new RegExp(search.trim(), "i");
+            filter.$or = [
+                { propertyName: regex },
+                { city: regex },
+                { college: regex },
+                { address: regex },
+                { description: regex }
+            ];
+        }
+
+        let sortOption = { createdAt: -1 };
+        if (sort === "rent_asc") sortOption = { rent: 1 };
+        if (sort === "rent_desc") sortOption = { rent: -1 };
+        if (sort === "rating") sortOption = { averageRating: -1 };
+        if (sort === "popular") sortOption = { views: -1 };
+
+        const skip = (Math.max(1, Number(page)) - 1) * Number(limit);
+        const limitNum = Math.min(100, Math.max(1, Number(limit)));
+
+        const [properties, totalCount] = await Promise.all([
+            Property.find(filter)
+                .populate("owner", "name email phone businessName rating")
+                .sort(sortOption)
+                .skip(skip)
+                .limit(limitNum),
+            Property.countDocuments(filter)
+        ]);
 
         res.json({
             success: true,
-            total: properties.length,
+            message: "Properties retrieved successfully.",
+            data: {
+                properties,
+                total: totalCount,
+                page: Number(page),
+                totalPages: Math.ceil(totalCount / limitNum)
+            },
+            // Flat keys for backward compatibility
+            total: totalCount,
             properties
         });
 
     } catch (err) {
-
-        console.log(err);
-
+        console.error("Fetch properties error:", err);
         res.status(500).json({
             success: false,
-            message: err.message
+            message: err.message || "Failed to fetch properties."
         });
-
     }
-
 });
 
 
@@ -513,14 +576,38 @@ router.delete("/:id", auth, async (req, res) => {
 
         }
 
+        // Delete local orphaned files if present
+        if (property.images && Array.isArray(property.images)) {
+            const fs = require("fs");
+            const path = require("path");
+            property.images.forEach(img => {
+                if (img.includes("/uploads/")) {
+                    const filename = img.split("/uploads/").pop();
+                    const localPath = path.join(__dirname, "../uploads", filename);
+                    if (fs.existsSync(localPath)) {
+                        try { fs.unlinkSync(localPath); } catch (e) { }
+                    }
+                }
+            });
+        }
+
         await property.deleteOne();
 
+        const logAudit = require("../utils/auditLogger");
+        await logAudit({
+            userId: req.user.id,
+            userEmail: req.user.email || "",
+            role: req.user.role || "owner",
+            action: "PROPERTY_DELETION",
+            resource: "Property",
+            resourceId: property._id.toString(),
+            details: { propertyName: property.propertyName },
+            req
+        });
+
         res.json({
-
             success: true,
-
             message: "Property Deleted Successfully"
-
         });
 
     }

@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campora | Payments</title>
+    <meta name="theme-color" content="#2563eb">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/owner-v3.css">
+    <link rel="icon" href="./images/logo.png" type="image/png">
+</head>
+<body class="v3-body">
+
+<div class="v3-bg" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+</div>
+
+<div id="toastContainer" class="v3-toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<main class="v3-content" id="mainContent" role="main">
+
+        <!-- Stats -->
+        <div class="v3-stats-grid">
+            <div class="v3-stat-card">
+                <div class="v3-stat-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a)"><i class="fa-solid fa-hand-holding-dollar"></i></div>
+                <div class="v3-stat-title">Total Collected</div>
+                <div class="v3-stat-value" id="totalCollected">₹0</div>
+            </div>
+            <div class="v3-stat-card">
+                <div class="v3-stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i class="fa-solid fa-hourglass-half"></i></div>
+                <div class="v3-stat-title">Outstanding</div>
+                <div class="v3-stat-value" id="totalOutstanding">₹0</div>
+            </div>
+            <div class="v3-stat-card">
+                <div class="v3-stat-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626)"><i class="fa-solid fa-clock"></i></div>
+                <div class="v3-stat-title">Overdue</div>
+                <div class="v3-stat-value" id="overdueCount">0</div>
+            </div>
+            <div class="v3-stat-card">
+                <div class="v3-stat-icon" style="background:linear-gradient(135deg,#3b82f6,#2563eb)"><i class="fa-solid fa-receipt"></i></div>
+                <div class="v3-stat-title">Paid Invoices</div>
+                <div class="v3-stat-value" id="paidCount">0</div>
+            </div>
+        </div>
+
+        <!-- Invoices Table -->
+        <div class="v3-section">
+<div class="v3-section-header">
+                <h2>Invoices</h2>
+                <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                    <div class="v3-filter-group">
+                        <button class="v3-filter-btn active" data-filter="all" type="button">All</button>
+                        <button class="v3-filter-btn" data-filter="pending" type="button">Pending</button>
+                        <button class="v3-filter-btn" data-filter="paid" type="button">Paid</button>
+                        <button class="v3-filter-btn" data-filter="overdue" type="button">Overdue</button>
+                        <button class="v3-filter-btn" data-filter="partial" type="button">Partial</button>
+                    </div>
+                    <button class="v3-btn v3-btn-primary" id="newInvoiceBtn"><i class="fa-solid fa-file-invoice"></i> New Invoice</button>
+                </div>
+            </div>
+            <div class="v3-table-wrap">
+                <table class="v3-table">
+                    <thead>
+                        <tr>
+                            <th>Invoice #</th>
+                            <th>Student</th>
+                            <th>Property</th>
+                            <th>Period</th>
+                            <th>Due</th>
+                            <th>Amount</th>
+                            <th>Paid</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="invoicesBody">
+                        <tr><td colspan="9" class="v3-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading invoices...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Transactions -->
+        <div class="v3-section">
+            <div class="v3-section-header">
+                <h2>Recent Transactions</h2>
+            </div>
+            <div class="v3-table-wrap">
+                <table class="v3-table">
+                    <thead>
+                        <tr>
+                            <th>Date</th>
+                            <th>Invoice</th>
+                            <th>Amount</th>
+                            <th>Method</th>
+                            <th>Note</th>
+                        </tr>
+                    </thead>
+                    <tbody id="transactionsBody">
+                        <tr><td colspan="5" class="v3-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading transactions...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+</main>
+
+<div id="sidebarBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998" hidden></div>
+
+<!-- New Invoice Modal -->
+<div class="v3-modal-overlay" id="newInvoiceModal">
+    <div class="v3-modal">
+        <div class="v3-modal-header">
+            <h3>Create Invoice</h3>
+            <button class="v3-modal-close" id="closeNewInvoiceModal" type="button" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="newInvoiceForm">
+            <div class="v3-form-group">
+                <label for="invStudent">Student *</label>
+                <select id="invStudent" required></select>
+            </div>
+            <div class="v3-form-group">
+                <label for="invProperty">Property *</label>
+                <select id="invProperty" required></select>
+            </div>
+            <div class="v3-form-row">
+                <div class="v3-form-group">
+                    <label for="invFrom">Period From *</label>
+                    <input type="date" id="invFrom" required>
+                </div>
+                <div class="v3-form-group">
+                    <label for="invTo">Period To *</label>
+                    <input type="date" id="invTo" required>
+                </div>
+            </div>
+            <div class="v3-form-row">
+                <div class="v3-form-group">
+                    <label for="invDue">Due Date *</label>
+                    <input type="date" id="invDue" required>
+                </div>
+                <div class="v3-form-group">
+                    <label for="invRent">Rent Amount (₹) *</label>
+                    <input type="number" id="invRent" min="0" required>
+                </div>
+            </div>
+            <div class="v3-form-row">
+                <div class="v3-form-group"><label for="invMaintenance">Maintenance</label><input type="number" id="invMaintenance" min="0" value="0"></div>
+                <div class="v3-form-group"><label for="invElectricity">Electricity</label><input type="number" id="invElectricity" min="0" value="0"></div>
+            </div>
+            <div class="v3-form-row">
+                <div class="v3-form-group"><label for="invFood">Food</label><input type="number" id="invFood" min="0" value="0"></div>
+                <div class="v3-form-group"><label for="invOther">Other Charges</label><input type="number" id="invOther" min="0" value="0"></div>
+            </div>
+            <div class="v3-form-group">
+                <label for="invDiscount">Discount</label>
+                <input type="number" id="invDiscount" min="0" value="0">
+            </div>
+            <div class="v3-form-group">
+                <label for="invNotes">Notes</label>
+                <textarea id="invNotes" rows="2" placeholder="Optional notes"></textarea>
+            </div>
+            <button type="submit" class="v3-btn v3-btn-primary" style="width:100%"><i class="fa-solid fa-file-invoice"></i> Create Invoice</button>
+        </form>
+    </div>
+</div>
+
+<!-- Pay Modal -->
+<div class="v3-modal-overlay" id="payModal">
+    <div class="v3-modal">
+        <div class="v3-modal-header">
+            <h3>Record Payment</h3>
+            <button class="v3-modal-close" id="closePayModal" type="button" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="payModalContent"></div>
+    </div>
+</div>
+
+<script type="module">
+import { initShell } from "./js/owner-shell.js";
+initShell("Payments");
+</script>
+<script type="module" src="./js/owner-payments.js"></script>
+</body>
+</html>

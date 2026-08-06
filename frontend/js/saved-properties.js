@@ -180,7 +180,7 @@ function renderPage() {
   DOM.grid.innerHTML = "";
 
   pageItems.forEach((p) => {
-    const img = p.images?.length ? getImageUrl(p.images[0]) : "./images/property-placeholder.jpg";
+    const img = p.images?.length ? getImageUrl(p.images[0]) : "./assets/images/property-placeholder.jpg";
     const name = p.propertyName || p.title || "Campora Property";
     const loc = p.city ? `${p.city}${p.state ? ", " + p.state : ""}` : "Location not specified";
     const rent = p.rent || p.price || 0;
@@ -191,7 +191,7 @@ function renderPage() {
     card.className = "property-card";
     card.innerHTML = `
       <div class="property-image">
-        <img src="${img}" alt="${name}" loading="lazy" onerror="this.src='./images/property-placeholder.jpg'" />
+        <img src="${img}" alt="${name}" loading="lazy" onerror="this.src='./assets/images/property-placeholder.jpg'" />
         ${p.verified ? '<div class="property-badge">Verified</div>' : ""}
         <button class="property-save saved" data-id="${p._id}" aria-label="Remove from saved" onclick="window.removeSaved('${p._id}', this)">
           <i class="fa-solid fa-heart"></i>
@@ -204,7 +204,7 @@ function renderPage() {
         ${sharing ? `<div class="property-features"><span class="feature-chip">${sharing}</span></div>` : ""}
         <div class="property-footer">
           <div class="property-rating">${rating > 0 ? `<i class="fa-solid fa-star"></i> ${rating.toFixed(1)}` : '<span style="color:#94a3b8">New</span>'}</div>
-          <button class="book-btn" onclick="window.location.href='property-details.html?id=${p._id}'">View</button>
+          <button class="book-btn" onclick="window.location.href='/pages/property/property.html?id=${p._id}'">View</button>
         </div>
       </div>`;
     DOM.grid.appendChild(card);
@@ -249,7 +249,7 @@ window.removeSaved = async function (id, btn) {
 // =====================================================
 
 function getImageUrl(path) {
-  if (!path) return "./images/property-placeholder.jpg";
+  if (!path) return "./assets/images/property-placeholder.jpg";
   if (path.startsWith("http")) return path;
   return IMAGE_BASE + path.replace(/^\//, "");
 }

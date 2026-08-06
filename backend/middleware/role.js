@@ -1,37 +1,29 @@
 // ======================================================
-// CAMPORA ROLE MIDDLEWARE
+// CAMPORA ROLE-BASED ACCESS CONTROL (RBAC) MIDDLEWARE
 // ======================================================
 
-module.exports = (...roles) => {
-
+module.exports = (...allowedRoles) => {
     return (req, res, next) => {
-
-        if (!req.user) {
-
+        if (!req.user || !req.user.role) {
             return res.status(401).json({
-
                 success: false,
-
-                message: "Unauthorized"
-
+                message: "Unauthorized: Authentication required.",
+                error: "UNAUTHORIZED"
             });
-
         }
 
-        if (!roles.includes(req.user.role)) {
+        const userRole = req.user.role.toLowerCase();
+        const normalizedRoles = allowedRoles.map(r => r.toLowerCase());
 
-            return res.status(403).json({
-
-                success: false,
-
-                message: "Permission denied."
-
-            });
-
+        // ADMINs have global access override
+        if (userRole === "admin" || normalizedRoles.includes(userRole)) {
+            return next();
         }
 
-        return next();
-
+        return res.status(403).json({
+            success: false,
+            message: `Forbidden: Access restricted for ${req.user.role} role.`,
+            error: "FORBIDDEN"
+        });
     };
-
 };

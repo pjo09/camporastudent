@@ -28,7 +28,7 @@ function inr(value) {
 }
 
 function imageUrl(src) {
-    if (!src) return "./images/property-placeholder.jpg";
+    if (!src) return "./assets/images/property-placeholder.jpg";
     if (/^(https?:|\/\/)/.test(src)) return src;
     return src;
 }
@@ -553,7 +553,7 @@ const Properties = (() => {
         const loc = p.city ? p.city + (p.state ? ", " + p.state : "") : "Location not specified";
         const rent = p.rent || p.price || 0;
         const rating = p.averageRating || 0;
-        const img = p.images && p.images.length ? imageUrl(p.images[0]) : "./images/property-placeholder.jpg";
+        const img = p.images && p.images.length ? imageUrl(p.images[0]) : "./assets/images/property-placeholder.jpg";
         const badge = p.verified ? "Verified" : p.featured ? "Featured" : "";
         const amenities = Array.isArray(p.amenities) && p.amenities.length
             ? p.amenities.slice(0, 3).map((a) => '<span class="feature-item"><i class="fa-solid fa-check"></i> ' + esc(a) + "</span>").join("")
@@ -562,7 +562,7 @@ const Properties = (() => {
         return `
         <div class="property-card reveal">
             <div class="property-image">
-                <img src="${img}" alt="${esc(name)}" loading="lazy" onerror="this.src='./images/property-placeholder.jpg'">
+                <img src="${img}" alt="${esc(name)}" loading="lazy" onerror="this.src='./assets/images/property-placeholder.jpg'">
                 ${badge ? '<span class="property-badge">' + esc(badge) + "</span>" : ""}
                 ${p.propertyType ? '<span class="property-type">' + esc(p.propertyType) + "</span>" : ""}
             </div>
@@ -573,7 +573,7 @@ const Properties = (() => {
                 <div class="property-footer">
                     <div class="property-price"><span>Rent / month</span><h3>${inr(rent)}</h3></div>
                     <span class="property-rating"><i class="fa-solid fa-star"></i> ${rating > 0 ? rating.toFixed(1) : "New"}</span>
-                    <a href="property-details.html?id=${p._id}" class="property-btn">Book</a>
+                    <a href="/pages/property/property.html?id=${p._id}" class="property-btn">Book</a>
                 </div>
             </div>
         </div>`;

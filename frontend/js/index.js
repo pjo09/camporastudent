@@ -26,7 +26,7 @@ card.className="property-card";
 
 card.innerHTML=`
 
-<img src="${property.images?.[0] || "./images/property-placeholder.jpg"}">
+<img src="${property.images?.[0] || "./assets/images/property-placeholder.jpg"}">
 
 <div class="property-content">
 
@@ -56,7 +56,7 @@ ${property.title}
 
 </span>
 
-<a href="property-details.html?id=${property._id}"
+<a href="/pages/property/property.html?id=${property._id}"
 
 class="property-btn">
 

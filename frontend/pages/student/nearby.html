@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <title>Campora | Nearby Properties</title>
+    <meta name="theme-color" content="#2563eb" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+    <link rel="stylesheet" href="./css/theme.css" />
+    <link rel="stylesheet" href="./css/dashboard-v2.css" />
+    <link rel="icon" href="./images/logo.png" type="image/png" />
+    <style>
+        .nearby-layout{display:grid;grid-template-columns:1fr 400px;gap:28px;min-height:70vh}
+        .map-container{height:100%;min-height:500px;border-radius:24px;overflow:hidden;background:rgba(255,255,255,.06)}
+        .map-container iframe{width:100%;height:100%;border:none}
+        .nearby-sidebar{display:flex;flex-direction:column;gap:20px}
+        .nearby-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:12px;margin-bottom:8px}
+        .nearby-header h2{font-size:22px}
+        .nearby-count{color:#94a3b8;font-size:14px}
+        .nearby-list{flex:1;overflow-y:auto;display:flex;flex-direction:column;gap:12px;max-height:600px;padding-right:8px}
+        .nearby-card{display:flex;gap:14px;padding:16px;border-radius:16px;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.08);cursor:pointer;transition:.3s}
+        .nearby-card:hover{background:rgba(255,255,255,.1);transform:translateX(-4px)}
+        .nearby-card-img{width:100px;height:80px;border-radius:12px;object-fit:cover;flex-shrink:0}
+        .nearby-card-content{flex:1;min-width:0}
+        .nearby-card-title{font-weight:600;margin-bottom:4px;font-size:15px}
+        .nearby-card-location{font-size:12px;color:#94a3b8;margin-bottom:4px}
+        .nearby-card-price{font-size:16px;font-weight:700;color:#60a5fa}
+        .nearby-card-distance{font-size:12px;color:#64748b;display:flex;align-items:center;gap:4px;margin-top:4px}
+        .nearby-card-distance i{color:#22c55e}
+        .univerity-marker{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:999px;background:rgba(37,99,235,.12);color:#60a5fa;font-size:11px;font-weight:600}
+        @media(max-width:1024px){.nearby-layout{grid-template-columns:1fr}.map-container{min-height:350px;order:-1}.nearby-sidebar{max-height:none}}
+    </style>
+</head>
+<body class="dashboard-page">
+<div class="dashboard-bg"><div class="bg-circle circle1"></div><div class="bg-circle circle2"></div><div class="bg-circle circle3"></div></div>
+<a href="#mainContent" class="skip-link">Skip to main content</a>
+<div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-top"><a href="dashboard.html" class="sidebar-logo"><img src="./images/logo.png" class="logo-img" alt="Campora"><div class="logo-text"><h2>Campora</h2><p>Student Dashboard</p></div></a></div>
+    <nav class="sidebar-nav">
+        <a class="nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
+        <a class="nav-item" href="../property/property.html"><i class="fa-solid fa-magnifying-glass"></i><span>Explore</span></a>
+        <a class="nav-item" href="saved-../../properties.html"><i class="fa-solid fa-heart"></i><span>Saved</span></a>
+        <a class="nav-item" href="bookings.html"><i class="fa-solid fa-calendar-check"></i><span>Bookings</span></a>
+        <a class="nav-item active" href="nearby.html"><i class="fa-solid fa-map-location-dot"></i><span>Nearby</span></a>
+        <a class="nav-item" href="messages.html"><i class="fa-solid fa-comments"></i><span>Messages</span></a>
+        <a class="nav-item" href="notifications.html"><i class="fa-solid fa-bell"></i><span>Notifications</span></a>
+        <a class="nav-item" href="profile.html"><i class="fa-solid fa-user"></i><span>Profile</span></a>
+        <a class="nav-item" href="settings.html"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+    </nav>
+    <div class="sidebar-bottom"><button id="logoutBtn" class="logout-btn" type="button" aria-label="Logout"><i class="fa-solid fa-right-from-bracket"></i><span>Logout</span></button></div>
+</aside>
+
+<div class="main-wrapper">
+    <header class="topbar" role="banner">
+        <div class="top-left"><button id="menuBtn" class="menu-btn" type="button" aria-label="Open menu" aria-controls="sidebar" aria-expanded="false"><i class="fa-solid fa-bars"></i></button><h1>Nearby</h1></div>
+        <div class="search-box" role="search">
+            <i class="fa-solid fa-search"></i>
+            <input id="searchInput" type="search" placeholder="Search by city, college, or property name..." aria-label="Search nearby" />
+        </div>
+        <div class="top-right">
+            <button class="icon-btn" id="notificationBtn" type="button" aria-label="Notifications"><i class="fa-solid fa-bell"></i></button>
+            <button class="profile" id="profileBtn" type="button" aria-label="Profile menu">
+                <img src="./images/logo.png" id="avatar" alt="Profile" />
+                <div><h4 id="username">Loading...</h4><p>Student</p></div>
+            </button>
+        </div>
+    </header>
+    <main id="mainContent" role="main">
+        <div class="nearby-layout">
+            <div class="map-container" id="mapContainer">
+                <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;height:100%;color:#64748b;gap:12px">
+                    <i class="fa-solid fa-map" style="font-size:48px"></i>
+                    <p>Loading map...</p>
+                </div>
+            </div>
+            <div class="nearby-sidebar">
+                <div class="nearby-header">
+                    <h2>Nearby Properties</h2>
+                    <span class="nearby-count" id="propertyCount">0 found</span>
+                </div>
+<div class="filter-bar" style="margin-bottom:0">
+                    <div class="filter-group">
+                        <button class="filter-btn active" data-filter="all" type="button">All</button>
+                        <button class="filter-btn" data-filter="PG" type="button">PG</button>
+                        <button class="filter-btn" data-filter="Hostel" type="button">Hostel</button>
+                        <button class="filter-btn" data-filter="Flat" type="button">Flat</button>
+                        <button class="filter-btn" data-filter="Apartment" type="button">Apartment</button>
+                        <button class="filter-btn" data-filter="Coliving" type="button">Coliving</button>
+                    </div>
+                    <select class="sort-select" id="sortSelect" style="padding:8px 14px;font-size:13px">
+                        <option value="distance">Nearest</option>
+                        <option value="priceLow">Lowest Price</option>
+                        <option value="rating">Top Rated</option>
+                    </select>
+                </div>
+                <div id="nearbyList" class="nearby-list">
+                    <div style="text-align:center;padding:40px 20px;color:#64748b">
+                        <i class="fa-solid fa-spinner fa-spin" style="font-size:32px;display:block;margin-bottom:12px"></i>
+                        Loading properties...
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</div>
+<nav class="bottom-nav">
+    <a href="dashboard.html" class="bottom-nav-item"><i class="fa-solid fa-house"></i><span>Home</span></a>
+    <a href="bookings.html" class="bottom-nav-item"><i class="fa-solid fa-calendar-check"></i><span>Bookings</span></a>
+    <a href="nearby.html" class="bottom-nav-item active"><i class="fa-solid fa-map-location-dot"></i><span>Nearby</span></a>
+    <a href="profile.html" class="bottom-nav-item"><i class="fa-solid fa-user"></i><span>Profile</span></a>
+    <a href="settings.html" class="bottom-nav-item"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+</nav>
+<div id="sidebarBackdrop" class="sidebar-backdrop" hidden></div>
+<script type="module" src="./js/nearby.js"></script>
+</body>
+</html>
+

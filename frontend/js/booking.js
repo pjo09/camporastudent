@@ -52,7 +52,7 @@ function showToast(msg, type = "info", dur = 4000) {
 
 if (!propertyId) {
   showToast("No property selected.", "error");
-  setTimeout(() => (window.location.href = "dashboard.html"), 1500);
+  setTimeout(() => (window.location.href = "/pages/student/dashboard.html"), 1500);
 }
 
 // ==========================================
@@ -96,7 +96,7 @@ async function loadProperty() {
   } catch (err) {
     console.error("Load Property Error:", err);
     showToast("Unable to load property details.", "error");
-    setTimeout(() => (window.location.href = "dashboard.html"), 1500);
+    setTimeout(() => (window.location.href = "/pages/student/dashboard.html"), 1500);
   }
 }
 

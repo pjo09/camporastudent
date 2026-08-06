@@ -1,0 +1,337 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width,initial-scale=1.0">
+
+<title>Campora | Secure Payment</title>
+
+    <link rel="stylesheet"
+href="./css/theme.css">
+    <link rel="stylesheet"
+href="./css/payment.css">
+
+<link rel="preconnect"
+href="https://fonts.googleapis.com">
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+rel="stylesheet">
+
+<link rel="stylesheet"
+href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+
+</head>
+
+<body>
+
+<!-- ====================================== -->
+<!-- NAVBAR -->
+<!-- ====================================== -->
+
+<header class="payment-navbar">
+
+<div class="logo">
+
+<a href="dashboard.html">
+
+<img
+src="/images/logo.png"
+class="logo-img"
+alt="Campora">
+
+</a>
+
+<div>
+
+<h2>Campora</h2>
+
+<p>Secure Student Payments</p>
+
+</div>
+
+</div>
+
+<a
+href="booking.html"
+class="back-btn">
+
+<i class="fa-solid fa-arrow-left"></i>
+
+Back
+
+</a>
+
+</header>
+
+<!-- ====================================== -->
+<!-- MAIN -->
+<!-- ====================================== -->
+
+<main class="payment-container">
+
+<!-- LEFT -->
+
+<section class="payment-card glass">
+
+<h1>
+
+Complete Payment
+
+</h1>
+
+<p>
+
+Your booking is almost confirmed.
+
+</p>
+
+<div class="payment-methods">
+
+<button class="method active">
+
+<i class="fa-solid fa-credit-card"></i>
+
+Card
+
+</button>
+
+<button class="method">
+
+<i class="fa-brands fa-google-pay"></i>
+
+UPI
+
+</button>
+
+<button class="method">
+
+<i class="fa-solid fa-building-columns"></i>
+
+Net Banking
+
+</button>
+
+</div>
+
+<form id="paymentForm">
+
+<div class="input-group">
+
+<label>
+
+Card Holder Name
+
+</label>
+
+<input
+
+id="cardName"
+
+type="text"
+
+placeholder="John Doe"
+
+required>
+
+</div>
+
+<div class="input-group">
+
+<label>
+
+Card Number
+
+</label>
+
+<input
+
+id="cardNumber"
+
+maxlength="19"
+
+placeholder="1234 5678 9012 3456"
+
+required>
+
+</div>
+
+<div class="row">
+
+<div class="input-group">
+
+<label>
+
+Expiry
+
+</label>
+
+<input
+
+id="expiry"
+
+placeholder="MM/YY"
+
+required>
+
+</div>
+
+<div class="input-group">
+
+<label>
+
+CVV
+
+</label>
+
+<input
+
+id="cvv"
+
+maxlength="3"
+
+type="password"
+
+required>
+
+</div>
+
+</div>
+
+<div class="input-group">
+
+<label>
+
+Coupon Code</label>
+
+<input
+
+id="coupon"
+
+placeholder="Optional">
+
+</div>
+
+<button
+
+type="submit"
+
+class="pay-btn">
+
+Pay Securely
+
+</button>
+
+</form>
+
+</section>
+
+<!-- RIGHT -->
+
+<aside class="summary glass">
+
+<img
+
+id="propertyImage"
+
+src="/images/property-placeholder.jpg"
+
+alt="Property">
+
+<h2
+
+id="propertyTitle">
+
+Loading...
+
+</h2>
+
+<p
+
+id="propertyLocation">
+
+Loading...
+
+</p>
+
+<div class="price">
+
+₹
+
+<span id="amount">
+
+0
+
+</span>
+
+</div>
+
+<hr>
+
+<div class="summary-row">
+
+<span>Booking</span>
+
+<span id="bookingFee">
+
+₹1000</span>
+
+</div>
+
+<div class="summary-row">
+
+<span>Deposit</span>
+
+<span id="deposit">
+
+₹0</span>
+
+</div>
+
+<div class="summary-row total">
+
+<span>Total</span>
+
+<span id="total">
+
+₹0</span>
+
+</div>
+
+</aside>
+
+</main>
+
+<!-- ====================================== -->
+<!-- TOAST CONTAINER -->
+<!-- ====================================== -->
+
+<div id="toastContainer" class="toast-container"></div>
+
+<!-- ====================================== -->
+<!-- RAZORPAY CHECKOUT SDK -->
+<!-- ====================================== -->
+
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+
+<script>
+// Expose Razorpay key for the checkout modal.
+// In production, replace with your public key:
+// window.__RAZORPAY_KEY_ID = "rzp_live_xxxxxxxx";
+window.__RAZORPAY_KEY_ID = "rzp_test_xxxxxxxx";
+</script>
+
+<script
+
+type="module"
+
+src="./js/payment.js">
+
+</script>
+
+</body>
+
+</html>

@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campora | Analytics</title>
+    <meta name="theme-color" content="#2563eb">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/owner-v3.css">
+    <link rel="icon" href="./images/logo.png" type="image/png">
+</head>
+<body class="v3-body">
+
+<div class="v3-bg" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+</div>
+
+<div id="toastContainer" class="v3-toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<main class="v3-content" id="mainContent" role="main">
+
+        <!-- Stats -->
+        <div class="v3-stats-grid">
+            <div class="v3-stat-card">
+                <div class="v3-stat-icon" style="background:linear-gradient(135deg,#2563eb,#7c3aed)"><i class="fa-solid fa-eye"></i></div>
+                <div class="v3-stat-title">Total Views</div>
+                <div class="v3-stat-value" id="totalViews">0</div>
+            </div>
+            <div class="v3-stat-card">
+                <div class="v3-stat-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a)"><i class="fa-solid fa-calendar-check"></i></div>
+                <div class="v3-stat-title">Total Bookings</div>
+                <div class="v3-stat-value" id="totalBookings">0</div>
+            </div>
+            <div class="v3-stat-card">
+                <div class="v3-stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                <div class="v3-stat-title">Total Earnings</div>
+                <div class="v3-stat-value" id="totalEarnings">₹0</div>
+            </div>
+            <div class="v3-stat-card">
+                <div class="v3-stat-icon" style="background:linear-gradient(135deg,#06b6d4,#0891b2)"><i class="fa-solid fa-star"></i></div>
+                <div class="v3-stat-title">Avg Rating</div>
+                <div class="v3-stat-value" id="avgRating">0.0</div>
+            </div>
+        </div>
+
+        <!-- Charts -->
+        <section class="v3-grid-2">
+            <div class="v3-card">
+                <div class="v3-section-header"><h2>Monthly Revenue</h2></div>
+                <canvas id="revenueChart" height="150" aria-label="Monthly revenue chart"></canvas>
+            </div>
+            <div class="v3-card">
+                <div class="v3-section-header"><h2>Monthly Bookings</h2></div>
+                <canvas id="bookingsChart" height="150" aria-label="Monthly bookings chart"></canvas>
+            </div>
+        </section>
+
+        <!-- Top Properties -->
+        <section class="v3-section">
+            <div class="v3-section-header"><h2>Top Properties</h2></div>
+            <div class="v3-table-wrap">
+                <table class="v3-table">
+                    <thead>
+                        <tr>
+                            <th>Property</th>
+                            <th>Views</th>
+                            <th>Rating</th>
+                            <th>Reviews</th>
+                            <th>Status</th>
+                        </tr>
+                    </thead>
+                    <tbody id="topPropertiesBody">
+                        <tr><td colspan="5" class="v3-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading properties...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+</main>
+
+<div id="sidebarBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998" hidden></div>
+
+<script>
+document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>');
+</script>
+<script type="module">
+import { initShell } from "./js/owner-shell.js";
+initShell("Analytics");
+</script>
+<script type="module" src="./js/owner-analytics.js"></script>
+</body>
+</html>

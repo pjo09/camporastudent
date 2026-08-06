@@ -1,0 +1,22 @@
+{
+  "name": "campora",
+  "version": "1.0.0",
+  "description": "Campora - Student Accommodation Platform",
+  "main": "backend/server.js",
+  "scripts": {
+    "start": "node backend/server.js",
+    "dev": "nodemon backend/server.js",
+    "build": "echo \"Build completed successfully.\"",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "campora",
+    "student-accommodation",
+    "housing"
+  ],
+  "author": "Campora Team",
+  "license": "MIT",
+  "devDependencies": {
+    "nodemon": "^3.1.14"
+  }
+}

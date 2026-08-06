@@ -1,7 +1,7 @@
 // ================================================
 // CAMPORA PROPERTIES LISTING PAGE
 // Public page - loads properties from GET /api/properties/search
-// Cards link to property-details.html?id=<MongoDB _id>
+// Cards link to /pages/property/property.html?id=<MongoDB _id>
 // ================================================
 
 import { API } from "./config.js";
@@ -300,7 +300,7 @@ properties.forEach((p) => {
     card.setAttribute("role", "article");
     card.innerHTML = `
       <div class="property-image">
-        <img src="${imgSrc}" alt="${name}" loading="lazy" decoding="async" onerror="this.src='./images/property-placeholder.jpg'">
+        <img src="${imgSrc}" alt="${name}" loading="lazy" decoding="async" onerror="this.src='./assets/images/property-placeholder.jpg'">
         ${badge ? `<div class="property-badge ${p.verified ? "verified" : "featured"}">${badge}</div>` : ""}
       </div>
       <div class="property-body">
@@ -330,7 +330,7 @@ properties.forEach((p) => {
 // ================================================
 
 window.viewProperty = function (id) {
-  window.location.href = `property-details.html?id=${id}`;
+  window.location.href = `/pages/property/property.html?id=${id}`;
 };
 
 // ================================================

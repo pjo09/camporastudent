@@ -93,7 +93,7 @@ animation-delay:5.4s;
 
 /* =====================================================
    LOGO FALLBACK
-   Shown automatically if images/logo.png fails to load
+   Shown automatically if ../assets/logos/logo.png fails to load
 ===================================================== */
 
 .logo-fallback{

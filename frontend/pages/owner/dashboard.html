@@ -1,0 +1,451 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campora | Owner Command Center</title>
+    <meta name="description" content="Campora Owner Command Center - Manage properties, bookings, revenue, maintenance, students, and analytics from a premium dashboard.">
+    <meta name="theme-color" content="#2563eb">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="./css/owner-v3.css">
+    <link rel="icon" href="./images/logo.png" type="image/png">
+</head>
+<body class="v3-body">
+
+<div class="v3-bg" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+</div>
+
+<div id="toastContainer" class="v3-toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<main id="mainContent" class="v3-content" role="main">
+
+    <!-- ============ PREMIUM WELCOME HERO (split layout) ============ -->
+    <section class="od-hero v3-animate">
+        <div class="od-hero-left">
+            <span class="v3-hero-tag"><i class="fa-solid fa-house"></i> OWNER COMMAND CENTER</span>
+            <h1>Welcome back, <span id="heroName">Owner</span> 👋</h1>
+            <p>Your PG empire at a glance — properties, bookings, revenue, students, and maintenance in one premium command center.</p>
+            <div class="v3-hero-actions">
+                <a href="add-property.html" class="v3-btn v3-btn-primary"><i class="fa-solid fa-plus"></i> Add Property</a>
+                <a href="owner-messages.html" class="v3-btn v3-btn-ghost"><i class="fa-solid fa-paper-plane"></i> Broadcast</a>
+                <a href="owner-analytics.html" class="v3-btn v3-btn-ghost"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+            </div>
+        </div>
+        <div class="od-hero-right">
+            <div class="od-hero-card">
+                <div class="od-hero-card-label"><i class="fa-solid fa-indian-rupee-sign"></i> TODAY'S REVENUE</div>
+                <div class="od-hero-card-value" id="todayRevenue">₹0</div>
+                <div class="od-hero-card-sub"><span class="od-trend up"><i class="fa-solid fa-arrow-trend-up"></i> Live</span> earnings</div>
+            </div>
+            <div class="od-hero-ring" id="heroRingWrap">
+                <div class="od-ring" id="heroOccupancyRing" data-pct="0">
+                    <div class="od-ring-inner">
+                        <span class="od-ring-value" id="heroOccupancyValue">0%</span>
+                        <span class="od-ring-label">Occupancy</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ REVENUE SUMMARY STRIP ============ -->
+    <section class="od-revenue-strip v3-animate">
+        <div class="od-revenue-item">
+            <div class="od-revenue-icon ic-blue"><i class="fa-solid fa-calendar-day"></i></div>
+            <div class="od-revenue-meta">
+                <span class="od-revenue-label">Today</span>
+                <strong class="od-revenue-value" id="revToday">₹0</strong>
+                <span class="od-trend up"><i class="fa-solid fa-arrow-trend-up"></i> Live</span>
+            </div>
+        </div>
+        <div class="od-revenue-item">
+            <div class="od-revenue-icon ic-purple"><i class="fa-solid fa-calendar-week"></i></div>
+            <div class="od-revenue-meta">
+                <span class="od-revenue-label">This Month</span>
+                <strong class="od-revenue-value" id="revMonth">₹0</strong>
+                <span class="od-trend up"><i class="fa-solid fa-arrow-trend-up"></i> Total</span>
+            </div>
+        </div>
+        <div class="od-revenue-item">
+            <div class="od-revenue-icon ic-green"><i class="fa-solid fa-sack-dollar"></i></div>
+            <div class="od-revenue-meta">
+                <span class="od-revenue-label">All Time</span>
+                <strong class="od-revenue-value" id="revTotal">₹0</strong>
+                <span class="od-trend neutral"><i class="fa-solid fa-circle-check"></i> Collected</span>
+            </div>
+        </div>
+        <div class="od-revenue-item">
+            <div class="od-revenue-icon ic-cyan"><i class="fa-solid fa-receipt"></i></div>
+            <div class="od-revenue-meta">
+                <span class="od-revenue-label">Avg / Booking</span>
+                <strong class="od-revenue-value" id="revAvg">₹0</strong>
+                <span class="od-trend neutral"><i class="fa-solid fa-chart-simple"></i> Per booking</span>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ KPI STAT GRID (existing 8 cards) ============ -->
+    <div class="v3-stats-grid" id="statsSkeleton">
+        <div class="v3-card"><div class="v3-loading" style="padding:20px"><i class="fa-solid fa-spinner fa-spin"></i>Loading...</div></div>
+        <div class="v3-card"><div class="v3-loading" style="padding:20px"><i class="fa-solid fa-spinner fa-spin"></i>Loading...</div></div>
+        <div class="v3-card"><div class="v3-loading" style="padding:20px"><i class="fa-solid fa-spinner fa-spin"></i>Loading...</div></div>
+        <div class="v3-card"><div class="v3-loading" style="padding:20px"><i class="fa-solid fa-spinner fa-spin"></i>Loading...</div></div>
+    </div>
+
+    <section class="v3-stats-grid" id="statsGrid" style="display:none">
+        <div class="v3-stat-card">
+            <div class="v3-stat-icon" style="background:linear-gradient(135deg,#2563eb,#7c3aed)"><i class="fa-solid fa-building"></i></div>
+            <div class="v3-stat-title">Total Properties</div>
+            <div class="v3-stat-value" id="totalProperties">0</div>
+            <div class="v3-stat-sub"><span id="approvedCount">0</span> approved</div>
+        </div>
+        <div class="v3-stat-card">
+            <div class="v3-stat-icon" style="background:linear-gradient(135deg,#7c3aed,#a855f7)"><i class="fa-solid fa-user-graduate"></i></div>
+            <div class="v3-stat-title">Active Students</div>
+            <div class="v3-stat-value" id="activeStudents">0</div>
+            <div class="v3-stat-sub">Currently housed</div>
+        </div>
+        <div class="v3-stat-card">
+            <div class="v3-stat-icon" style="background:linear-gradient(135deg,#06b6d4,#0ea5e9)"><i class="fa-solid fa-bed"></i></div>
+            <div class="v3-stat-title">Occupancy</div>
+            <div class="v3-stat-value" id="occupancy">0%</div>
+            <div class="v3-stat-sub"><span id="occupiedBeds">0</span>/<span id="totalBeds">0</span> beds filled</div>
+        </div>
+        <div class="v3-stat-card">
+            <div class="v3-stat-icon" style="background:linear-gradient(135deg,#22c55e,#16a34a)"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+            <div class="v3-stat-title">Monthly Revenue</div>
+            <div class="v3-stat-value" id="monthlyRevenue">₹0</div>
+            <div class="v3-stat-sub">This month</div>
+        </div>
+        <div class="v3-stat-card">
+            <div class="v3-stat-icon" style="background:linear-gradient(135deg,#f59e0b,#d97706)"><i class="fa-solid fa-calendar-check"></i></div>
+            <div class="v3-stat-title">Pending Bookings</div>
+            <div class="v3-stat-value" id="pendingBookings">0</div>
+            <div class="v3-stat-sub">Need your review</div>
+        </div>
+        <div class="v3-stat-card">
+            <div class="v3-stat-icon" style="background:linear-gradient(135deg,#0891b2,#06b6d4)"><i class="fa-solid fa-right-to-bracket"></i></div>
+            <div class="v3-stat-title">Check-ins Today</div>
+            <div class="v3-stat-value" id="todayCheckIns">0</div>
+            <div class="v3-stat-sub"><span id="todayCheckOuts">0</span> check-outs</div>
+        </div>
+        <div class="v3-stat-card">
+            <div class="v3-stat-icon" style="background:linear-gradient(135deg,#8b5cf6,#7c3aed)"><i class="fa-solid fa-star"></i></div>
+            <div class="v3-stat-title">Pending Reviews</div>
+            <div class="v3-stat-value" id="pendingReviews">0</div>
+            <div class="v3-stat-sub">Awaiting moderation</div>
+        </div>
+        <div class="v3-stat-card">
+            <div class="v3-stat-icon" style="background:linear-gradient(135deg,#ef4444,#dc2626)"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+            <div class="v3-stat-title">Open Maintenance</div>
+            <div class="v3-stat-value" id="pendingMaintenance">0</div>
+            <div class="v3-stat-sub"><span id="urgentMaintenance">0</span> urgent</div>
+        </div>
+    </section>
+
+    <!-- ============ COMMAND ROW: Occupancy + Booking Summary ============ -->
+    <section class="v3-grid-2">
+        <!-- Occupancy gauge -->
+        <div class="v3-card">
+            <div class="v3-section-header">
+                <h2><i class="fa-solid fa-bed" style="color:#06b6d4"></i> Occupancy</h2>
+                <a href="owner-../../properties.html" class="v3-view-all">Manage</a>
+            </div>
+            <div class="od-occupancy-panel">
+                <div class="od-ring od-ring-lg" id="occupancyRing" data-pct="0">
+                    <div class="od-ring-inner">
+                        <span class="od-ring-value" id="occupancyRingValue">0%</span>
+                        <span class="od-ring-label">Beds filled</span>
+                    </div>
+                </div>
+                <div class="od-occupancy-stats">
+                    <div class="od-occupancy-stat">
+                        <span class="od-dot" style="background:#22c55e"></span>
+                        <div><strong id="occupancyBedsFilled">0</strong><small>Beds occupied</small></div>
+                    </div>
+                    <div class="od-occupancy-stat">
+                        <span class="od-dot" style="background:#94a3b8"></span>
+                        <div><strong id="occupancyBedsTotal">0</strong><small>Total beds</small></div>
+                    </div>
+                    <div class="od-occupancy-stat">
+                        <span class="od-dot" style="background:#2563eb"></span>
+                        <div><strong id="occupancyApproved">0</strong><small>Approved properties</small></div>
+                    </div>
+                    <div class="od-occupancy-stat">
+                        <span class="od-dot" style="background:#f59e0b"></span>
+                        <div><strong id="occupancyPending">0</strong><small>Pending approval</small></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Booking summary -->
+        <div class="v3-card">
+            <div class="v3-section-header">
+                <h2><i class="fa-solid fa-calendar-check" style="color:#60a5fa"></i> Bookings</h2>
+                <a href="owner-bookings.html" class="v3-view-all">View All</a>
+            </div>
+            <div class="od-booking-summary-grid">
+                <a href="owner-bookings.html?status=pending" class="od-booking-summary-card bsc-pending">
+                    <div class="od-bsc-icon"><i class="fa-solid fa-clock"></i></div>
+                    <div><strong id="bookPending">0</strong><span>Pending</span></div>
+                </a>
+                <a href="owner-bookings.html?status=confirmed" class="od-booking-summary-card bsc-confirmed">
+                    <div class="od-bsc-icon"><i class="fa-solid fa-circle-check"></i></div>
+                    <div><strong id="bookConfirmed">0</strong><span>Confirmed</span></div>
+                </a>
+                <a href="owner-bookings.html?status=checked-in" class="od-booking-summary-card bsc-checkedin">
+                    <div class="od-bsc-icon"><i class="fa-solid fa-right-to-bracket"></i></div>
+                    <div><strong id="bookCheckedIn">0</strong><span>Checked-in</span></div>
+                </a>
+                <a href="owner-bookings.html?status=checked-out" class="od-booking-summary-card bsc-checkedout">
+                    <div class="od-bsc-icon"><i class="fa-solid fa-right-from-bracket"></i></div>
+                    <div><strong id="bookCheckedOut">0</strong><span>Checked-out</span></div>
+                </a>
+                <a href="owner-bookings.html?status=cancelled" class="od-booking-summary-card bsc-cancelled">
+                    <div class="od-bsc-icon"><i class="fa-solid fa-ban"></i></div>
+                    <div><strong id="bookCancelled">0</strong><span>Cancelled</span></div>
+                </a>
+                <a href="owner-bookings.html" class="od-booking-summary-card bsc-total">
+                    <div class="od-bsc-icon"><i class="fa-solid fa-layer-group"></i></div>
+                    <div><strong id="bookTotal">0</strong><span>Total</span></div>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ ANALYTICS SECTION ============ -->
+    <section class="od-analytics">
+        <div class="od-analytics-head">
+            <div>
+                <h2><i class="fa-solid fa-chart-line" style="color:#60a5fa"></i> Analytics</h2>
+                <p>Monthly performance overview</p>
+            </div>
+            <a href="owner-analytics.html" class="v3-btn v3-btn-ghost v3-btn-sm"><i class="fa-solid fa-arrow-up-right-from-square"></i> Full Analytics</a>
+        </div>
+        <div class="v3-grid-3 od-analytics-grid">
+            <div class="v3-card">
+                <div class="v3-section-header">
+                    <h2>Revenue</h2>
+                    <span class="v3-view-all">Monthly</span>
+                </div>
+                <canvas id="revenueChart" height="120" aria-label="Monthly revenue chart"></canvas>
+            </div>
+            <div class="v3-card">
+                <div class="v3-section-header">
+                    <h2>Bookings</h2>
+                    <span class="v3-view-all">Monthly</span>
+                </div>
+                <canvas id="bookingsChart" height="120" aria-label="Monthly bookings chart"></canvas>
+            </div>
+            <div class="v3-card">
+                <div class="v3-section-header">
+                    <h2>Occupancy Trend</h2>
+                    <span class="v3-view-all">Live</span>
+                </div>
+                <canvas id="occupancyChart" height="120" aria-label="Occupancy trend chart"></canvas>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ PROPERTY PERFORMANCE + PENDING APPROVALS ============ -->
+    <section class="v3-grid-2">
+        <div class="v3-card">
+            <div class="v3-section-header">
+                <h2><i class="fa-solid fa-fire" style="color:#f59e0b"></i> Property Performance</h2>
+                <a href="owner-../../properties.html" class="v3-view-all">All Properties</a>
+            </div>
+            <div id="topPropertiesList" class="od-top-props">
+                <div class="v3-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading</div>
+            </div>
+        </div>
+        <div class="v3-card">
+            <div class="v3-section-header">
+                <h2><i class="fa-solid fa-list-check" style="color:#22c55e"></i> Pending Approvals</h2>
+                <a href="owner-bookings.html?status=pending" class="v3-view-all">Review</a>
+            </div>
+            <div class="od-approvals">
+                <a href="owner-bookings.html?status=pending" class="od-approval-item">
+                    <div class="od-approval-icon a-booking"><i class="fa-solid fa-calendar-check"></i></div>
+                    <div><strong id="approvalBookings">0</strong><span>Pending bookings</span></div>
+                    <i class="fa-solid fa-chevron-right od-arrow"></i>
+                </a>
+                <a href="owner-../../properties.html" class="od-approval-item">
+                    <div class="od-approval-icon a-property"><i class="fa-solid fa-building"></i></div>
+                    <div><strong id="approvalProperties">0</strong><span>Properties under review</span></div>
+                    <i class="fa-solid fa-chevron-right od-arrow"></i>
+                </a>
+                <a href="owner-reviews.html" class="od-approval-item">
+                    <div class="od-approval-icon a-review"><i class="fa-solid fa-star"></i></div>
+                    <div><strong id="approvalReviews">0</strong><span>Reviews to moderate</span></div>
+                    <i class="fa-solid fa-chevron-right od-arrow"></i>
+                </a>
+                <a href="owner-maintenance.html" class="od-approval-item">
+                    <div class="od-approval-icon a-maintenance"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                    <div><strong id="approvalMaintenance">0</strong><span>Open maintenance</span></div>
+                    <i class="fa-solid fa-chevron-right od-arrow"></i>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ MAINTENANCE OVERVIEW + REVIEW SUMMARY ============ -->
+    <section class="v3-grid-2">
+        <div class="v3-card">
+            <div class="v3-section-header">
+                <h2><i class="fa-solid fa-screwdriver-wrench" style="color:#ef4444"></i> Maintenance Overview</h2>
+                <a href="owner-maintenance.html" class="v3-view-all">Manage</a>
+            </div>
+            <div class="od-maintenance-grid" id="maintenanceOverview">
+                <div class="v3-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading</div>
+            </div>
+        </div>
+        <div class="v3-card">
+            <div class="v3-section-header">
+                <h2><i class="fa-solid fa-star" style="color:#fbbf24"></i> Review Summary</h2>
+                <a href="owner-reviews.html" class="v3-view-all">All Reviews</a>
+            </div>
+            <div id="reviewSummary" class="od-review-summary">
+                <div class="v3-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ RECENT ACTIVITY TIMELINE ============ -->
+    <section class="v3-card">
+        <div class="v3-section-header">
+            <h2><i class="fa-solid fa-bolt" style="color:#60a5fa"></i> Recent Activity</h2>
+            <span class="v3-view-all">Live feed</span>
+        </div>
+        <div class="od-activity-list" id="activityList">
+            <div class="v3-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading activity...</div>
+        </div>
+    </section>
+
+    <!-- ============ RECENT BOOKINGS TABLE ============ -->
+    <section class="v3-section">
+        <div class="v3-section-header">
+            <h2>Recent Bookings</h2>
+            <a href="owner-bookings.html" class="v3-view-all">View All <i class="fa-solid fa-arrow-right"></i></a>
+        </div>
+        <div class="v3-table-wrap">
+            <table class="v3-table">
+                <thead>
+                    <tr>
+                        <th>Property</th>
+                        <th>Student</th>
+                        <th>Date</th>
+                        <th>Amount</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="recentBookingsBody">
+                    <tr><td colspan="5" class="v3-loading" style="padding:24px"><i class="fa-solid fa-spinner fa-spin"></i> Loading bookings...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- ============ RECENT STUDENT ACTIVITY ============ -->
+    <section class="v3-card">
+        <div class="v3-section-header">
+            <h2><i class="fa-solid fa-user-graduate" style="color:#7c3aed"></i> Recent Student Activity</h2>
+            <a href="owner-students.html" class="v3-view-all">All Students</a>
+        </div>
+        <div id="studentActivityList" class="od-student-activity">
+            <div class="v3-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading activity...</div>
+        </div>
+    </section>
+
+    <!-- ============ RECENT REVIEWS + NOTIFICATIONS ============ -->
+    <section class="v3-grid-2">
+        <div class="v3-card">
+            <div class="v3-section-header">
+                <h2><i class="fa-solid fa-star" style="color:#fbbf24"></i> Recent Reviews</h2>
+                <a href="owner-reviews.html" class="v3-view-all">All Reviews</a>
+            </div>
+            <div id="recentReviewsList">
+                <div class="v3-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading</div>
+            </div>
+        </div>
+        <div class="v3-card">
+            <div class="v3-section-header">
+                <h2><i class="fa-solid fa-bell" style="color:#60a5fa"></i> Recent Alerts</h2>
+                <a href="owner-notifications.html" class="v3-view-all">All</a>
+            </div>
+            <div id="recentNotificationsList">
+                <div class="v3-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- ============ ENHANCED QUICK ACTIONS + FAST NAV ============ -->
+    <section class="od-quick-actions v3-animate">
+        <div class="od-section-title"><h2><i class="fa-solid fa-bolt" style="color:#60a5fa"></i> Quick Actions</h2></div>
+        <div class="od-quick-grid">
+            <a href="add-property.html" class="od-quick-action qa-primary">
+                <div class="od-qa-icon"><i class="fa-solid fa-plus"></i></div>
+                <div><strong>Add Property</strong><span>List a new PG</span></div>
+                <i class="fa-solid fa-arrow-right od-qa-arrow"></i>
+            </a>
+            <a href="owner-bookings.html?status=pending" class="od-quick-action qa-warning">
+                <div class="od-qa-icon"><i class="fa-solid fa-calendar-check"></i></div>
+                <div><strong>Review Bookings</strong><span>Approve requests</span></div>
+                <i class="fa-solid fa-arrow-right od-qa-arrow"></i>
+            </a>
+            <a href="owner-maintenance.html" class="od-quick-action qa-danger">
+                <div class="od-qa-icon"><i class="fa-solid fa-screwdriver-wrench"></i></div>
+                <div><strong>Maintenance</strong><span>Track requests</span></div>
+                <i class="fa-solid fa-arrow-right od-qa-arrow"></i>
+            </a>
+            <a href="owner-messages.html" class="od-quick-action qa-purple">
+                <div class="od-qa-icon"><i class="fa-solid fa-paper-plane"></i></div>
+                <div><strong>Broadcast</strong><span>Send announcement</span></div>
+                <i class="fa-solid fa-arrow-right od-qa-arrow"></i>
+            </a>
+            <a href="owner-payments.html" class="od-quick-action qa-green">
+                <div class="od-qa-icon"><i class="fa-solid fa-indian-rupee-sign"></i></div>
+                <div><strong>Payments</strong><span>Invoices &amp; rent</span></div>
+                <i class="fa-solid fa-arrow-right od-qa-arrow"></i>
+            </a>
+            <a href="owner-analytics.html" class="od-quick-action qa-cyan">
+                <div class="od-qa-icon"><i class="fa-solid fa-chart-pie"></i></div>
+                <div><strong>Analytics</strong><span>Performance data</span></div>
+                <i class="fa-solid fa-arrow-right od-qa-arrow"></i>
+            </a>
+        </div>
+    </section>
+
+    <!-- ============ FAST NAVIGATION ============ -->
+    <section class="od-fast-nav">
+        <div class="od-section-title"><h2><i class="fa-solid fa-compass" style="color:#7c3aed"></i> Navigate</h2></div>
+        <div class="od-fast-grid">
+            <a href="owner-../../properties.html" class="od-fast-item"><i class="fa-solid fa-building"></i><span>Properties</span></a>
+            <a href="owner-students.html" class="od-fast-item"><i class="fa-solid fa-user-graduate"></i><span>Students</span></a>
+            <a href="owner-messages.html" class="od-fast-item"><i class="fa-solid fa-comments"></i><span>Messages</span></a>
+            <a href="owner-reviews.html" class="od-fast-item"><i class="fa-solid fa-star"></i><span>Reviews</span></a>
+            <a href="owner-notifications.html" class="od-fast-item"><i class="fa-solid fa-bell"></i><span>Notifications</span></a>
+            <a href="owner-settings.html" class="od-fast-item"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
+        </div>
+    </section>
+
+</main>
+
+<div id="sidebarBackdrop" class="v3-sidebar-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998" hidden></div>
+
+<script>
+document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>');
+</script>
+<script type="module">
+import { initShell } from "./js/owner-shell.js";
+initShell("Command Center");
+</script>
+<script type="module" src="./js/owner-dashboard-v3.js"></script>
+</body>
+</html>
