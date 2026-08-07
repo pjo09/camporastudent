@@ -1,0 +1,2180 @@
+{
+  "scanned": [
+    "add-property.html",
+    "admin-dashboard.html",
+    "admin-login.html",
+    "analytics.html",
+    "booking.html",
+    "bookings.html",
+    "contact.html",
+    "css/add-property.css",
+    "css/admin.css",
+    "css/auth.css",
+    "css/base.css",
+    "css/booking.css",
+    "css/bookings.css",
+    "css/components.css",
+    "css/dashboard-new.css",
+    "css/dashboard-v2.css",
+    "css/dashboard.css",
+    "css/index.css",
+    "css/landing.css",
+    "css/owner-dashboard.css",
+    "css/owner-v3.css",
+    "css/owner.css",
+    "css/payment.css",
+    "css/property-details.css",
+    "css/property-upload.css",
+    "css/property.css",
+    "css/responsive.css",
+    "css/student-v3.css",
+    "css/style.css",
+    "css/success.css",
+    "css/theme.css",
+    "dashboard-new.html",
+    "dashboard.html",
+    "documents.html",
+    "forgot-password.html",
+    "index.html",
+    "js/add-property.js",
+    "js/admin-dashboard.js",
+    "js/admin-login.js",
+    "js/api.js",
+    "js/app.js",
+    "js/config.js",
+    "js/dashboard-new.js",
+    "js/forgot-password.js",
+    "js/image-utils.js",
+    "js/index.js",
+    "js/login.js",
+    "js/main.js",
+    "js/navbar.js",
+    "js/nearby.js",
+    "js/otp-auth.js",
+    "js/otp.js",
+    "js/owner-analytics.js",
+    "js/owner-bookings.js",
+    "js/owner-dashboard-v3.js",
+    "js/owner-maintenance.js",
+    "js/owner-messages.js",
+    "js/owner-notifications.js",
+    "js/owner-payments.js",
+    "js/owner-properties.js",
+    "js/owner-reviews.js",
+    "js/owner-settings.js",
+    "js/owner-shell.js",
+    "js/owner-students.js",
+    "js/payment.js",
+    "js/register.js",
+    "js/script.js",
+    "js/session.js",
+    "js/student-analytics.js",
+    "js/student-booking.js",
+    "js/student-bookings.js",
+    "js/student-dashboard.js",
+    "js/student-documents.js",
+    "js/student-explore.js",
+    "js/student-maintenance.js",
+    "js/student-messages.js",
+    "js/student-notifications.js",
+    "js/student-payments.js",
+    "js/student-profile.js",
+    "js/student-property-details.js",
+    "js/student-reviews.js",
+    "js/student-saved.js",
+    "js/student-settings.js",
+    "js/student-support.js",
+    "js/student-utils.js",
+    "js/success.js",
+    "js/theme.js",
+    "login.html",
+    "maintenance.html",
+    "messages.html",
+    "nearby.html",
+    "notifications.html",
+    "owner-analytics.html",
+    "owner-bookings.html",
+    "owner-dashboard.html",
+    "owner-maintenance.html",
+    "owner-messages.html",
+    "owner-notifications.html",
+    "owner-payments.html",
+    "owner-properties.html",
+    "owner-reviews.html",
+    "owner-settings.html",
+    "owner-students.html",
+    "pages/admin/bookings.html",
+    "pages/admin/contact.html",
+    "pages/admin/dashboard.html",
+    "pages/admin/login.html",
+    "pages/admin/owners.html",
+    "pages/admin/properties.html",
+    "pages/admin/reports.html",
+    "pages/admin/settings.html",
+    "pages/admin/users.html",
+    "pages/owner/add-property.html",
+    "pages/owner/analytics.html",
+    "pages/owner/bookings.html",
+    "pages/owner/dashboard.html",
+    "pages/owner/edit-property.html",
+    "pages/owner/maintenance.html",
+    "pages/owner/messages.html",
+    "pages/owner/notifications.html",
+    "pages/owner/payments.html",
+    "pages/owner/properties.html",
+    "pages/owner/reviews.html",
+    "pages/owner/rooms.html",
+    "pages/owner/settings.html",
+    "pages/owner/tenants.html",
+    "pages/property/compare.html",
+    "pages/property/property-simple.html",
+    "pages/property/property.html",
+    "pages/property/review.html",
+    "pages/student/analytics.html",
+    "pages/student/booking-details.html",
+    "pages/student/bookings.html",
+    "pages/student/dashboard-new.html",
+    "pages/student/dashboard.html",
+    "pages/student/documents.html",
+    "pages/student/maintenance.html",
+    "pages/student/messages.html",
+    "pages/student/nearby.html",
+    "pages/student/notifications.html",
+    "pages/student/payment.html",
+    "pages/student/payments.html",
+    "pages/student/profile.html",
+    "pages/student/reviews.html",
+    "pages/student/saved-properties.html",
+    "pages/student/settings.html",
+    "pages/student/success.html",
+    "pages/student/support.html",
+    "payment.html",
+    "payments.html",
+    "profile.html",
+    "properties.html",
+    "property-details.html",
+    "property.html",
+    "register.html",
+    "reviews.html",
+    "saved-properties.html",
+    "settings.html",
+    "signup.html",
+    "success.html",
+    "support.html",
+    "universities.html"
+  ],
+  "references": {
+    "add-property.html": [
+      "css/owner-v3.css",
+      "css/add-property.css",
+      "images/logo.png",
+      "js/add-property.js"
+    ],
+    "admin-dashboard.html": [
+      "css/theme.css",
+      "css/dashboard-v2.css",
+      "images/logo.png",
+      "js/admin-dashboard.js"
+    ],
+    "admin-login.html": [
+      "css/theme.css",
+      "css/style.css",
+      "css/auth.css",
+      "index.html",
+      "images/logo.png",
+      "login.html",
+      "js/session.js",
+      "js/admin-login.js"
+    ],
+    "analytics.html": [
+      "css/student-v3.css",
+      "images/logo.png",
+      "dashboard.html",
+      "properties.html",
+      "saved-properties.html",
+      "bookings.html",
+      "payments.html",
+      "messages.html",
+      "notifications.html",
+      "maintenance.html",
+      "reviews.html",
+      "documents.html",
+      "analytics.html",
+      "support.html",
+      "profile.html",
+      "settings.html",
+      "login.html",
+      "js/student-analytics.js"
+    ],
+    "booking.html": [
+      "css/student-v3.css",
+      "images/logo.png",
+      "dashboard.html",
+      "properties.html",
+      "saved-properties.html",
+      "bookings.html",
+      "payments.html",
+      "messages.html",
+      "notifications.html",
+      "maintenance.html",
+      "reviews.html",
+      "documents.html",
+      "analytics.html",
+      "support.html",
+      "profile.html",
+      "settings.html",
+      "login.html",
+      "js/student-booking.js"
+    ],
+    "bookings.html": [
+      "css/student-v3.css",
+      "images/logo.png",
+      "dashboard.html",
+      "properties.html",
+      "saved-properties.html",
+      "bookings.html",
+      "payments.html",
+      "messages.html",
+      "notifications.html",
+      "maintenance.html",
+      "reviews.html",
+      "documents.html",
+      "analytics.html",
+      "support.html",
+      "profile.html",
+      "settings.html",
+      "login.html",
+      "js/student-bookings.js"
+    ],
+    "contact.html": [
+      "css/theme.css",
+      "index.html",
+      "properties.html",
+      "dashboard.html"
+    ],
+    "dashboard-new.html": [
+      "css/theme.css",
+      "css/dashboard-new.css",
+      "images/logo.png",
+      "dashboard-new.html",
+      "properties.html",
+      "saved-properties.html",
+      "bookings.html",
+      "messages.html",
+      "nearby.html",
+      "notifications.html",
+      "payment.html",
+      "profile.html",
+      "settings.html",
+      "images/hero-room.png",
+      "js/dashboard-new.js"
+    ],
+    "dashboard.html": [
+      "css/student-v3.css",
+      "images/logo.png",
+      "dashboard.html",
+      "properties.html",
+      "saved-properties.html",
+      "bookings.html",
+      "payments.html",
+      "messages.html",
+      "notifications.html",
+      "maintenance.html",
+      "reviews.html",
+      "documents.html",
+      "analytics.html",
+      "support.html",
+      "profile.html",
+      "settings.html",
+      "login.html",
+      "js/student-dashboard.js"
+    ],
+    "documents.html": [
+      "css/student-v3.css",
+      "images/logo.png",
+      "dashboard.html",
+      "properties.html",
+      "saved-properties.html",
+      "bookings.html",
+      "payments.html",
+      "messages.html",
+      "notifications.html",
+      "maintenance.html",
+      "reviews.html",
+      "documents.html",
+      "analytics.html",
+      "support.html",
+      "profile.html",
+      "settings.html",
+      "login.html",
+      "js/student-documents.js"
+    ],
+    "forgot-password.html": [
+      "css/theme.css",
+      "css/style.css",
+      "css/auth.css",
+      "index.html",
+      "images/logo.png",
+      "login.html",
+      "js/session.js",
+      "js/forgot-password.js"
+    ],
+    "index.html": [
+      "assets/logos/logo.png",
+      "css/index.css",
+      "index.html",
+      "dashboard.html",
+      "assets/images/hero-room.png",
+      "properties.html",
+      "support.html",
+      "js/script.js"
+    ],
+    "js/add-property.js": [
+      "js/owner-shell.js",
+      "js/config.js",
+      "js/session.js",
+      "pages/owner/dashboard.html"
+    ],
+    "js/admin-dashboard.js": [
+      "js/session.js",
+      "js/config.js",
+      "js/login.html",
+      "pages/property/property.html"
+    ],
+    "js/admin-login.js": [
+      "js/session.js",
+      "js/config.js"
+    ],
+    "js/api.js": [
+      "js/config.js"
+    ],
+    "js/app.js": [
+      "js/js/config.js",
+      "js/js/app.js",
+      "js/index.html"
+    ],
+    "js/dashboard-new.js": [
+      "js/assets/images/property-placeholder.jpg"
+    ],
+    "js/forgot-password.js": [
+      "js/config.js",
+      "js/login.html"
+    ],
+    "js/image-utils.js": [
+      "js/config.js",
+      "js/assets/images/property-placeholder.jpg",
+      "js/uploads/xxx.jpg"
+    ],
+    "js/index.js": [
+      "js/assets/images/property-placeholder.jpg"
+    ],
+    "js/login.js": [
+      "js/session.js",
+      "js/config.js",
+      "js/login.html"
+    ],
+    "js/main.js": [
+      "js/otp.js",
+      "js/navbar.js",
+      "js/theme.js",
+      "js/session.js",
+      "js/otp-auth.js",
+      "js/config.js"
+    ],
+    "js/navbar.js": [
+      "js/session.js",
+      "js/index.html"
+    ],
+    "js/nearby.js": [
+      "js/session.js",
+      "js/config.js",
+      "js/assets/images/property-placeholder.jpg"
+    ],
+    "js/otp-auth.js": [
+      "js/config.js"
+    ],
+    "js/otp.js": [
+      "js/otp-auth.js"
+    ],
+    "js/owner-analytics.js": [
+      "js/owner-shell.js"
+    ],
+    "js/owner-bookings.js": [
+      "js/owner-shell.js"
+    ],
+    "js/owner-dashboard-v3.js": [
+      "js/owner-shell.js",
+      "js/session.js"
+    ],
+    "js/owner-maintenance.js": [
+      "js/owner-shell.js"
+    ],
+    "js/owner-messages.js": [
+      "js/owner-shell.js"
+    ],
+    "js/owner-notifications.js": [
+      "js/owner-shell.js",
+      "pages/owner/bookings.html",
+      "pages/owner/properties.html",
+      "pages/owner/messages.html",
+      "pages/owner/payments.html",
+      "pages/owner/maintenance.html",
+      "pages/owner/reviews.html",
+      "pages/owner/dashboard.html"
+    ],
+    "js/owner-payments.js": [
+      "js/owner-shell.js"
+    ],
+    "js/owner-properties.js": [
+      "js/owner-shell.js"
+    ],
+    "js/owner-reviews.js": [
+      "js/owner-shell.js"
+    ],
+    "js/owner-settings.js": [
+      "js/owner-shell.js"
+    ],
+    "js/owner-shell.js": [
+      "js/session.js",
+      "js/config.js",
+      "js/login.html",
+      "pages/owner/dashboard.html",
+      "pages/owner/properties.html",
+      "pages/owner/add-property.html",
+      "pages/owner/bookings.html",
+      "pages/owner/tenants.html",
+      "pages/owner/messages.html",
+      "pages/owner/maintenance.html",
+      "pages/owner/payments.html",
+      "pages/owner/analytics.html",
+      "pages/owner/reviews.html",
+      "pages/owner/notifications.html",
+      "pages/owner/settings.html",
+      "js/assets/logos/logo.png"
+    ],
+    "js/owner-students.js": [
+      "js/owner-shell.js"
+    ],
+    "js/payment.js": [
+      "js/session.js",
+      "js/config.js",
+      "js/bookings.html",
+      "assets/images/property-placeholder.jpg"
+    ],
+    "js/register.js": [
+      "js/session.js",
+      "js/config.js"
+    ],
+    "js/script.js": [
+      "js/config.js",
+      "js/session.js",
+      "js/assets/images/property-placeholder.jpg",
+      "js/index.html",
+      "js/properties.html"
+    ],
+    "js/session.js": [
+      "pages/owner/dashboard.html",
+      "pages/admin/dashboard.html",
+      "pages/student/dashboard.html",
+      "js/login.html"
+    ],
+    "js/student-analytics.js": [
+      "js/student-utils.js"
+    ],
+    "js/student-booking.js": [
+      "js/student-utils.js",
+      "js/config.js",
+      "js/session.js",
+      "js/properties.html",
+      "js/assets/logos/logo.png",
+      "js/bookings.html"
+    ],
+    "js/student-bookings.js": [
+      "js/student-utils.js",
+      "js/properties.html",
+      "js/assets/logos/logo.png"
+    ],
+    "js/student-dashboard.js": [
+      "js/student-utils.js",
+      "js/session.js",
+      "js/login.html",
+      "js/assets/logos/logo.png",
+      "js/bookings.html",
+      "js/notifications.html",
+      "pages/property/property.html"
+    ],
+    "js/student-documents.js": [
+      "js/student-utils.js"
+    ],
+    "js/student-explore.js": [
+      "js/student-utils.js",
+      "js/assets/logos/logo.png",
+      "pages/property/property.html"
+    ],
+    "js/student-maintenance.js": [
+      "js/student-utils.js"
+    ],
+    "js/student-messages.js": [
+      "js/student-utils.js"
+    ],
+    "js/student-notifications.js": [
+      "js/student-utils.js"
+    ],
+    "js/student-payments.js": [
+      "js/student-utils.js"
+    ],
+    "js/student-profile.js": [
+      "js/student-utils.js"
+    ],
+    "js/student-property-details.js": [
+      "js/student-utils.js",
+      "js/properties.html",
+      "js/assets/logos/logo.png"
+    ],
+    "js/student-reviews.js": [
+      "js/student-utils.js"
+    ],
+    "js/student-saved.js": [
+      "js/student-utils.js",
+      "js/properties.html",
+      "js/assets/logos/logo.png",
+      "pages/property/property.html"
+    ],
+    "js/student-settings.js": [
+      "js/student-utils.js",
+      "js/login.html"
+    ],
+    "js/student-support.js": [
+      "js/student-utils.js"
+    ],
+    "js/student-utils.js": [
+      "js/session.js",
+      "js/config.js",
+      "js/login.html",
+      "js/assets/logos/logo.png",
+      "js/notifications.html"
+    ],
+    "js/success.js": [
+      "js/session.js",
+      "js/config.js",
+      "js/bookings.html"
+    ],
+    "login.html": [
+      "css/theme.css",
+      "css/style.css",
+      "css/auth.css",
+      "index.html",
+      "images/logo.png",
+      "register.html",
+      "forgot-password.html",
+      "admin-login.html",
+      "js/session.js",
+      "js/login.js"
+    ],
+    "maintenance.html": [
+      "css/student-v3.css",
+      "images/logo.png",
+      "dashboard.html",
+      "properties.html",
+      "saved-properties.html",
+      "bookings.html",
+      "payments.html",
+      "messages.html",
+      "notifications.html",
+      "maintenance.html",
+      "reviews.html",
+      "documents.html",
+      "analytics.html",
+      "support.html",
+      "profile.html",
+      "settings.html",
+      "login.html",
+      "js/student-maintenance.js"
+    ],
+    "messages.html": [
+      "css/student-v3.css",
+      "images/logo.png",
+      "dashboard.html",
+      "properties.html",
+      "saved-properties.html",
+      "bookings.html",
+      "payments.html",
+      "messages.html",
+      "notifications.html",
+      "maintenance.html",
+      "reviews.html",
+      "documents.html",
+      "analytics.html",
+      "support.html",
+      "profile.html",
+      "settings.html",
+      "login.html",
+      "js/student-messages.js"
+    ],
+    "nearby.html": [
+      "css/theme.css",
+      "css/dashboard-v2.css",
+      "images/logo.png",
+      "dashboard.html",
+      "pages/property/property.html",
+      "saved-properties.html",
+      "bookings.html",
+      "nearby.html",
+      "messages.html",
+      "notifications.html",
+      "profile.html",
+      "settings.html",
+      "js/nearby.js"
+    ],
+    "notifications.html": [
+      "css/student-v3.css",
+      "images/logo.png",
+      "dashboard.html",
+      "properties.html",
+      "saved-properties.html",
+      "bookings.html",
+      "payments.html",
+      "messages.html",
+      "notifications.html",
+      "maintenance.html",
+      "reviews.html",
+      "documents.html",
+      "analytics.html",
+      "support.html",
+      "profile.html",
+      "settings.html",
+      "login.html",
+      "js/student-notifications.js"
+    ],
+    "owner-analytics.html": [
+      "css/owner-v3.css",
+      "images/logo.png",
+      "js/owner-analytics.js"
+    ],
+    "owner-bookings.html": [
+      "css/owner-v3.css",
+      "images/logo.png",
+      "js/owner-bookings.js"
+    ],
+    "owner-dashboard.html": [
+      "css/owner-v3.css",
+      "images/logo.png",
+      "add-property.html",
+      "owner-messages.html",
+      "owner-analytics.html",
+      "owner-properties.html",
+      "owner-bookings.html",
+      "owner-reviews.html",
+      "owner-maintenance.html",
+      "owner-students.html",
+      "owner-notifications.html",
+      "owner-payments.html",
+      "owner-settings.html",
+      "js/owner-dashboard-v3.js"
+    ],
+    "owner-maintenance.html": [
+      "css/owner-v3.css",
+      "images/logo.png",
+      "js/owner-maintenance.js"
+    ],
+    "owner-messages.html": [
+      "css/owner-v3.css",
+      "images/logo.png",
+      "js/owner-messages.js"
+    ],
+    "owner-notifications.html": [
+      "css/owner-v3.css",
+      "images/logo.png",
+      "js/owner-notifications.js"
+    ],
+    "owner-payments.html": [
+      "css/owner-v3.css",
+      "images/logo.png",
+      "js/owner-payments.js"
+    ],
+    "owner-properties.html": [
+      "css/owner-v3.css",
+      "images/logo.png",
+      "add-property.html",
+      "js/owner-properties.js"
+    ],
+    "owner-reviews.html": [
+      "css/owner-v3.css",
+      "images/logo.png",
+      "js/owner-reviews.js"
+    ],
+    "owner-settings.html": [
+      "css/owner-v3.css",
+      "images/logo.png",
+      "js/owner-settings.js"
+    ],
+    "owner-students.html": [
+      "css/owner-v3.css",
+      "images/logo.png",
+      "js/owner-students.js"
+    ],
+    "pages/admin/bookings.html": [
+      "css/base.css",
+      "css/components.css",
+      "js/config.js",
+      "js/app.js"
+    ],
+    "pages/admin/contact.html": [
+      "css/base.css",
+      "css/components.css",
+      "js/config.js",
+      "js/app.js"
+    ],
+    "pages/admin/dashboard.html": [
+      "pages/admin/css/theme.css",
+      "pages/admin/css/dashboard-v2.css",
+      "pages/admin/images/logo.png",
+      "pages/admin/js/admin-dashboard.js"
+    ],
+    "pages/admin/login.html": [
+      "css/base.css",
+      "css/components.css",
+      "js/config.js",
+      "js/app.js"
+    ],
+    "pages/admin/owners.html": [
+      "css/base.css",
+      "css/components.css",
+      "js/config.js",
+      "js/app.js"
+    ],
+    "pages/admin/properties.html": [
+      "css/base.css",
+      "css/components.css",
+      "js/config.js",
+      "js/app.js"
+    ],
+    "pages/admin/reports.html": [
+      "css/base.css",
+      "css/components.css",
+      "js/config.js",
+      "js/app.js"
+    ],
+    "pages/admin/settings.html": [
+      "css/base.css",
+      "css/components.css",
+      "js/config.js",
+      "js/app.js"
+    ],
+    "pages/admin/users.html": [
+      "css/base.css",
+      "css/components.css",
+      "js/config.js",
+      "js/app.js"
+    ],
+    "pages/owner/add-property.html": [
+      "pages/owner/css/owner-v3.css",
+      "pages/owner/css/add-property.css",
+      "pages/owner/images/logo.png",
+      "pages/owner/js/add-property.js"
+    ],
+    "pages/owner/analytics.html": [
+      "pages/owner/css/owner-v3.css",
+      "pages/owner/images/logo.png",
+      "pages/owner/js/owner-analytics.js"
+    ],
+    "pages/owner/bookings.html": [
+      "pages/owner/css/owner-v3.css",
+      "pages/owner/images/logo.png",
+      "pages/owner/js/owner-bookings.js"
+    ],
+    "pages/owner/dashboard.html": [
+      "pages/owner/css/owner-v3.css",
+      "pages/owner/images/logo.png",
+      "pages/owner/add-property.html",
+      "pages/owner/owner-messages.html",
+      "pages/owner/owner-analytics.html",
+      "pages/owner/properties.html",
+      "pages/owner/owner-bookings.html",
+      "pages/owner/owner-reviews.html",
+      "pages/owner/owner-maintenance.html",
+      "pages/owner/owner-students.html",
+      "pages/owner/owner-notifications.html",
+      "pages/owner/owner-payments.html",
+      "pages/owner/owner-settings.html",
+      "pages/owner/js/owner-dashboard-v3.js"
+    ],
+    "pages/owner/edit-property.html": [
+      "css/base.css",
+      "css/components.css",
+      "js/config.js",
+      "js/app.js"
+    ],
+    "pages/owner/maintenance.html": [
+      "pages/owner/css/owner-v3.css",
+      "pages/owner/images/logo.png",
+      "pages/owner/js/owner-maintenance.js"
+    ],
+    "pages/owner/messages.html": [
+      "pages/owner/css/owner-v3.css",
+      "pages/owner/images/logo.png",
+      "pages/owner/js/owner-messages.js"
+    ],
+    "pages/owner/notifications.html": [
+      "pages/owner/css/owner-v3.css",
+      "pages/owner/images/logo.png",
+      "pages/owner/js/owner-notifications.js"
+    ],
+    "pages/owner/payments.html": [
+      "pages/owner/css/owner-v3.css",
+      "pages/owner/images/logo.png",
+      "pages/owner/js/owner-payments.js"
+    ],
+    "pages/owner/properties.html": [
+      "pages/owner/css/owner-v3.css",
+      "pages/owner/images/logo.png",
+      "pages/owner/add-property.html",
+      "pages/owner/js/owner-properties.js"
+    ],
+    "pages/owner/reviews.html": [
+      "pages/owner/css/owner-v3.css",
+      "pages/owner/images/logo.png",
+      "pages/owner/js/owner-reviews.js"
+    ],
+    "pages/owner/rooms.html": [
+      "css/base.css",
+      "css/components.css",
+      "js/config.js",
+      "js/app.js"
+    ],
+    "pages/owner/settings.html": [
+      "pages/owner/css/owner-v3.css",
+      "pages/owner/images/logo.png",
+      "pages/owner/js/owner-settings.js"
+    ],
+    "pages/owner/tenants.html": [
+      "pages/owner/css/owner-v3.css",
+      "pages/owner/images/logo.png",
+      "pages/owner/js/owner-students.js"
+    ],
+    "pages/property/compare.html": [
+      "css/base.css",
+      "css/components.css",
+      "js/config.js",
+      "js/app.js"
+    ],
+    "pages/property/property-simple.html": [
+      "properties.html"
+    ],
+    "pages/property/property.html": [
+      "pages/property/css/student-v3.css",
+      "pages/property/images/logo.png",
+      "pages/property/dashboard.html",
+      "properties.html",
+      "pages/property/properties.html",
+      "pages/property/bookings.html",
+      "pages/property/payments.html",
+      "pages/property/messages.html",
+      "pages/property/notifications.html",
+      "pages/property/maintenance.html",
+      "pages/property/reviews.html",
+      "pages/property/documents.html",
+      "pages/property/analytics.html",
+      "pages/property/support.html",
+      "pages/property/profile.html",
+      "pages/property/settings.html",
+      "login.html",
+      "pages/property/js/student-property-details.js"
+    ],
+    "pages/property/review.html": [
+      "css/base.css",
+      "css/components.css",
+      "js/config.js",
+      "js/app.js"
+    ],
+    "pages/student/analytics.html": [
+      "pages/student/css/student-v3.css",
+      "pages/student/images/logo.png",
+      "pages/student/dashboard.html",
+      "properties.html",
+      "pages/student/properties.html",
+      "pages/student/bookings.html",
+      "pages/student/payments.html",
+      "pages/student/messages.html",
+      "pages/student/notifications.html",
+      "pages/student/maintenance.html",
+      "pages/student/reviews.html",
+      "pages/student/documents.html",
+      "pages/student/analytics.html",
+      "pages/student/support.html",
+      "pages/student/profile.html",
+      "pages/student/settings.html",
+      "login.html",
+      "pages/student/js/student-analytics.js"
+    ],
+    "pages/student/booking-details.html": [
+      "pages/student/css/student-v3.css",
+      "pages/student/images/logo.png",
+      "pages/student/dashboard.html",
+      "properties.html",
+      "pages/student/properties.html",
+      "pages/student/bookings.html",
+      "pages/student/payments.html",
+      "pages/student/messages.html",
+      "pages/student/notifications.html",
+      "pages/student/maintenance.html",
+      "pages/student/reviews.html",
+      "pages/student/documents.html",
+      "pages/student/analytics.html",
+      "pages/student/support.html",
+      "pages/student/profile.html",
+      "pages/student/settings.html",
+      "login.html",
+      "pages/student/js/student-booking.js"
+    ],
+    "pages/student/bookings.html": [
+      "pages/student/css/student-v3.css",
+      "pages/student/images/logo.png",
+      "pages/student/dashboard.html",
+      "properties.html",
+      "pages/student/properties.html",
+      "pages/student/bookings.html",
+      "pages/student/payments.html",
+      "pages/student/messages.html",
+      "pages/student/notifications.html",
+      "pages/student/maintenance.html",
+      "pages/student/reviews.html",
+      "pages/student/documents.html",
+      "pages/student/analytics.html",
+      "pages/student/support.html",
+      "pages/student/profile.html",
+      "pages/student/settings.html",
+      "login.html",
+      "pages/student/js/student-bookings.js"
+    ],
+    "pages/student/dashboard-new.html": [
+      "pages/student/css/theme.css",
+      "pages/student/css/dashboard-new.css",
+      "pages/student/images/logo.png",
+      "pages/student/dashboard-new.html",
+      "properties.html",
+      "pages/student/properties.html",
+      "pages/student/bookings.html",
+      "pages/student/messages.html",
+      "pages/student/nearby.html",
+      "pages/student/notifications.html",
+      "pages/student/payment.html",
+      "pages/student/profile.html",
+      "pages/student/settings.html",
+      "pages/student/images/hero-room.png",
+      "pages/student/js/dashboard-new.js"
+    ],
+    "pages/student/dashboard.html": [
+      "pages/student/css/student-v3.css",
+      "pages/student/images/logo.png",
+      "pages/student/dashboard.html",
+      "properties.html",
+      "pages/student/properties.html",
+      "pages/student/bookings.html",
+      "pages/student/payments.html",
+      "pages/student/messages.html",
+      "pages/student/notifications.html",
+      "pages/student/maintenance.html",
+      "pages/student/reviews.html",
+      "pages/student/documents.html",
+      "pages/student/analytics.html",
+      "pages/student/support.html",
+      "pages/student/profile.html",
+      "pages/student/settings.html",
+      "login.html",
+      "pages/student/js/student-dashboard.js"
+    ],
+    "pages/student/documents.html": [
+      "pages/student/css/student-v3.css",
+      "pages/student/images/logo.png",
+      "pages/student/dashboard.html",
+      "properties.html",
+      "pages/student/properties.html",
+      "pages/student/bookings.html",
+      "pages/student/payments.html",
+      "pages/student/messages.html",
+      "pages/student/notifications.html",
+      "pages/student/maintenance.html",
+      "pages/student/reviews.html",
+      "pages/student/documents.html",
+      "pages/student/analytics.html",
+      "pages/student/support.html",
+      "pages/student/profile.html",
+      "pages/student/settings.html",
+      "login.html",
+      "pages/student/js/student-documents.js"
+    ],
+    "pages/student/maintenance.html": [
+      "pages/student/css/student-v3.css",
+      "pages/student/images/logo.png",
+      "pages/student/dashboard.html",
+      "properties.html",
+      "pages/student/properties.html",
+      "pages/student/bookings.html",
+      "pages/student/payments.html",
+      "pages/student/messages.html",
+      "pages/student/notifications.html",
+      "pages/student/maintenance.html",
+      "pages/student/reviews.html",
+      "pages/student/documents.html",
+      "pages/student/analytics.html",
+      "pages/student/support.html",
+      "pages/student/profile.html",
+      "pages/student/settings.html",
+      "login.html",
+      "pages/student/js/student-maintenance.js"
+    ],
+    "pages/student/messages.html": [
+      "pages/student/css/student-v3.css",
+      "pages/student/images/logo.png",
+      "pages/student/dashboard.html",
+      "properties.html",
+      "pages/student/properties.html",
+      "pages/student/bookings.html",
+      "pages/student/payments.html",
+      "pages/student/messages.html",
+      "pages/student/notifications.html",
+      "pages/student/maintenance.html",
+      "pages/student/reviews.html",
+      "pages/student/documents.html",
+      "pages/student/analytics.html",
+      "pages/student/support.html",
+      "pages/student/profile.html",
+      "pages/student/settings.html",
+      "login.html",
+      "pages/student/js/student-messages.js"
+    ],
+    "pages/student/nearby.html": [
+      "pages/student/css/theme.css",
+      "pages/student/css/dashboard-v2.css",
+      "pages/student/images/logo.png",
+      "pages/student/dashboard.html",
+      "pages/property/property.html",
+      "pages/student/properties.html",
+      "pages/student/bookings.html",
+      "pages/student/nearby.html",
+      "pages/student/messages.html",
+      "pages/student/notifications.html",
+      "pages/student/profile.html",
+      "pages/student/settings.html",
+      "pages/student/js/nearby.js"
+    ],
+    "pages/student/notifications.html": [
+      "pages/student/css/student-v3.css",
+      "pages/student/images/logo.png",
+      "pages/student/dashboard.html",
+      "properties.html",
+      "pages/student/properties.html",
+      "pages/student/bookings.html",
+      "pages/student/payments.html",
+      "pages/student/messages.html",
+      "pages/student/notifications.html",
+      "pages/student/maintenance.html",
+      "pages/student/reviews.html",
+      "pages/student/documents.html",
+      "pages/student/analytics.html",
+      "pages/student/support.html",
+      "pages/student/profile.html",
+      "pages/student/settings.html",
+      "login.html",
+      "pages/student/js/student-notifications.js"
+    ],
+    "pages/student/payment.html": [
+      "pages/student/css/theme.css",
+      "pages/student/css/payment.css",
+      "pages/student/dashboard.html",
+      "images/logo.png",
+      "pages/student/booking.html",
+      "images/property-placeholder.jpg",
+      "pages/student/js/payment.js"
+    ],
+    "pages/student/payments.html": [
+      "pages/student/css/student-v3.css",
+      "pages/student/images/logo.png",
+      "pages/student/dashboard.html",
+      "properties.html",
+      "pages/student/properties.html",
+      "pages/student/bookings.html",
+      "pages/student/payments.html",
+      "pages/student/messages.html",
+      "pages/student/notifications.html",
+      "pages/student/maintenance.html",
+      "pages/student/reviews.html",
+      "pages/student/documents.html",
+      "pages/student/analytics.html",
+      "pages/student/support.html",
+      "pages/student/profile.html",
+      "pages/student/settings.html",
+      "login.html",
+      "pages/student/js/student-payments.js"
+    ],
+    "pages/student/profile.html": [
+      "pages/student/css/student-v3.css",
+      "pages/student/images/logo.png",
+      "pages/student/dashboard.html",
+      "properties.html",
+      "pages/student/properties.html",
+      "pages/student/bookings.html",
+      "pages/student/payments.html",
+      "pages/student/messages.html",
+      "pages/student/notifications.html",
+      "pages/student/maintenance.html",
+      "pages/student/reviews.html",
+      "pages/student/documents.html",
+      "pages/student/analytics.html",
+      "pages/student/support.html",
+      "pages/student/profile.html",
+      "pages/student/settings.html",
+      "login.html",
+      "pages/student/js/student-profile.js"
+    ],
+    "pages/student/reviews.html": [
+      "pages/student/css/student-v3.css",
+      "pages/student/images/logo.png",
+      "pages/student/dashboard.html",
+      "properties.html",
+      "pages/student/properties.html",
+      "pages/student/bookings.html",
+      "pages/student/payments.html",
+      "pages/student/messages.html",
+      "pages/student/notifications.html",
+      "pages/student/maintenance.html",
+      "pages/student/reviews.html",
+      "pages/student/documents.html",
+      "pages/student/analytics.html",
+      "pages/student/support.html",
+      "pages/student/profile.html",
+      "pages/student/settings.html",
+      "login.html",
+      "pages/student/js/student-reviews.js"
+    ],
+    "pages/student/saved-properties.html": [
+      "pages/student/css/student-v3.css",
+      "pages/student/images/logo.png",
+      "pages/student/dashboard.html",
+      "properties.html",
+      "pages/student/properties.html",
+      "pages/student/bookings.html",
+      "pages/student/payments.html",
+      "pages/student/messages.html",
+      "pages/student/notifications.html",
+      "pages/student/maintenance.html",
+      "pages/student/reviews.html",
+      "pages/student/documents.html",
+      "pages/student/analytics.html",
+      "pages/student/support.html",
+      "pages/student/profile.html",
+      "pages/student/settings.html",
+      "login.html",
+      "pages/student/js/student-saved.js"
+    ],
+    "pages/student/settings.html": [
+      "pages/student/css/student-v3.css",
+      "pages/student/images/logo.png",
+      "pages/student/dashboard.html",
+      "properties.html",
+      "pages/student/properties.html",
+      "pages/student/bookings.html",
+      "pages/student/payments.html",
+      "pages/student/messages.html",
+      "pages/student/notifications.html",
+      "pages/student/maintenance.html",
+      "pages/student/reviews.html",
+      "pages/student/documents.html",
+      "pages/student/analytics.html",
+      "pages/student/support.html",
+      "pages/student/profile.html",
+      "pages/student/settings.html",
+      "login.html",
+      "pages/student/js/student-settings.js"
+    ],
+    "pages/student/success.html": [
+      "pages/student/css/theme.css",
+      "pages/student/css/success.css",
+      "pages/student/dashboard.html",
+      "pages/student/bookings.html",
+      "pages/student/js/success.js"
+    ],
+    "pages/student/support.html": [
+      "pages/student/css/student-v3.css",
+      "pages/student/images/logo.png",
+      "pages/student/dashboard.html",
+      "properties.html",
+      "pages/student/properties.html",
+      "pages/student/bookings.html",
+      "pages/student/payments.html",
+      "pages/student/messages.html",
+      "pages/student/notifications.html",
+      "pages/student/maintenance.html",
+      "pages/student/reviews.html",
+      "pages/student/documents.html",
+      "pages/student/analytics.html",
+      "pages/student/support.html",
+      "pages/student/profile.html",
+      "pages/student/settings.html",
+      "login.html",
+      "pages/student/js/student-support.js"
+    ],
+    "payment.html": [
+      "css/theme.css",
+      "css/payment.css",
+      "dashboard.html",
+      "images/logo.png",
+      "booking.html",
+      "images/property-placeholder.jpg",
+      "js/payment.js"
+    ],
+    "payments.html": [
+      "css/student-v3.css",
+      "images/logo.png",
+      "dashboard.html",
+      "properties.html",
+      "saved-properties.html",
+      "bookings.html",
+      "payments.html",
+      "messages.html",
+      "notifications.html",
+      "maintenance.html",
+      "reviews.html",
+      "documents.html",
+      "analytics.html",
+      "support.html",
+      "profile.html",
+      "settings.html",
+      "login.html",
+      "js/student-payments.js"
+    ],
+    "profile.html": [
+      "css/student-v3.css",
+      "images/logo.png",
+      "dashboard.html",
+      "properties.html",
+      "saved-properties.html",
+      "bookings.html",
+      "payments.html",
+      "messages.html",
+      "notifications.html",
+      "maintenance.html",
+      "reviews.html",
+      "documents.html",
+      "analytics.html",
+      "support.html",
+      "profile.html",
+      "settings.html",
+      "login.html",
+      "js/student-profile.js"
+    ],
+    "properties.html": [
+      "css/student-v3.css",
+      "images/logo.png",
+      "dashboard.html",
+      "properties.html",
+      "saved-properties.html",
+      "bookings.html",
+      "payments.html",
+      "messages.html",
+      "notifications.html",
+      "maintenance.html",
+      "reviews.html",
+      "documents.html",
+      "analytics.html",
+      "support.html",
+      "profile.html",
+      "settings.html",
+      "login.html",
+      "js/student-explore.js"
+    ],
+    "property-details.html": [
+      "css/student-v3.css",
+      "images/logo.png",
+      "dashboard.html",
+      "properties.html",
+      "saved-properties.html",
+      "bookings.html",
+      "payments.html",
+      "messages.html",
+      "notifications.html",
+      "maintenance.html",
+      "reviews.html",
+      "documents.html",
+      "analytics.html",
+      "support.html",
+      "profile.html",
+      "settings.html",
+      "login.html",
+      "js/student-property-details.js"
+    ],
+    "property.html": [
+      "properties.html"
+    ],
+    "register.html": [
+      "css/theme.css",
+      "css/style.css",
+      "css/auth.css",
+      "index.html",
+      "images/logo.png",
+      "login.html",
+      "js/register.js"
+    ],
+    "reviews.html": [
+      "css/student-v3.css",
+      "images/logo.png",
+      "dashboard.html",
+      "properties.html",
+      "saved-properties.html",
+      "bookings.html",
+      "payments.html",
+      "messages.html",
+      "notifications.html",
+      "maintenance.html",
+      "reviews.html",
+      "documents.html",
+      "analytics.html",
+      "support.html",
+      "profile.html",
+      "settings.html",
+      "login.html",
+      "js/student-reviews.js"
+    ],
+    "saved-properties.html": [
+      "css/student-v3.css",
+      "images/logo.png",
+      "dashboard.html",
+      "properties.html",
+      "saved-properties.html",
+      "bookings.html",
+      "payments.html",
+      "messages.html",
+      "notifications.html",
+      "maintenance.html",
+      "reviews.html",
+      "documents.html",
+      "analytics.html",
+      "support.html",
+      "profile.html",
+      "settings.html",
+      "login.html",
+      "js/student-saved.js"
+    ],
+    "settings.html": [
+      "css/student-v3.css",
+      "images/logo.png",
+      "dashboard.html",
+      "properties.html",
+      "saved-properties.html",
+      "bookings.html",
+      "payments.html",
+      "messages.html",
+      "notifications.html",
+      "maintenance.html",
+      "reviews.html",
+      "documents.html",
+      "analytics.html",
+      "support.html",
+      "profile.html",
+      "settings.html",
+      "login.html",
+      "js/student-settings.js"
+    ],
+    "signup.html": [
+      "register.html",
+      "0; url=register.html"
+    ],
+    "success.html": [
+      "css/theme.css",
+      "css/success.css",
+      "dashboard.html",
+      "bookings.html",
+      "js/success.js"
+    ],
+    "support.html": [
+      "css/student-v3.css",
+      "images/logo.png",
+      "dashboard.html",
+      "properties.html",
+      "saved-properties.html",
+      "bookings.html",
+      "payments.html",
+      "messages.html",
+      "notifications.html",
+      "maintenance.html",
+      "reviews.html",
+      "documents.html",
+      "analytics.html",
+      "support.html",
+      "profile.html",
+      "settings.html",
+      "login.html",
+      "js/student-support.js"
+    ],
+    "universities.html": [
+      "css/base.css",
+      "css/components.css",
+      "js/config.js",
+      "js/app.js"
+    ]
+  },
+  "broken": [
+    {
+      "from": "js/admin-dashboard.js",
+      "ref": "js/login.html"
+    },
+    {
+      "from": "js/app.js",
+      "ref": "js/js/config.js"
+    },
+    {
+      "from": "js/app.js",
+      "ref": "js/js/app.js"
+    },
+    {
+      "from": "js/app.js",
+      "ref": "js/index.html"
+    },
+    {
+      "from": "js/dashboard-new.js",
+      "ref": "js/assets/images/property-placeholder.jpg"
+    },
+    {
+      "from": "js/forgot-password.js",
+      "ref": "js/login.html"
+    },
+    {
+      "from": "js/image-utils.js",
+      "ref": "js/assets/images/property-placeholder.jpg"
+    },
+    {
+      "from": "js/image-utils.js",
+      "ref": "js/uploads/xxx.jpg"
+    },
+    {
+      "from": "js/index.js",
+      "ref": "js/assets/images/property-placeholder.jpg"
+    },
+    {
+      "from": "js/login.js",
+      "ref": "js/login.html"
+    },
+    {
+      "from": "js/navbar.js",
+      "ref": "js/index.html"
+    },
+    {
+      "from": "js/nearby.js",
+      "ref": "js/assets/images/property-placeholder.jpg"
+    },
+    {
+      "from": "js/owner-shell.js",
+      "ref": "js/login.html"
+    },
+    {
+      "from": "js/owner-shell.js",
+      "ref": "js/assets/logos/logo.png"
+    },
+    {
+      "from": "js/payment.js",
+      "ref": "js/bookings.html"
+    },
+    {
+      "from": "js/script.js",
+      "ref": "js/assets/images/property-placeholder.jpg"
+    },
+    {
+      "from": "js/script.js",
+      "ref": "js/index.html"
+    },
+    {
+      "from": "js/script.js",
+      "ref": "js/properties.html"
+    },
+    {
+      "from": "js/session.js",
+      "ref": "js/login.html"
+    },
+    {
+      "from": "js/student-booking.js",
+      "ref": "js/properties.html"
+    },
+    {
+      "from": "js/student-booking.js",
+      "ref": "js/assets/logos/logo.png"
+    },
+    {
+      "from": "js/student-booking.js",
+      "ref": "js/bookings.html"
+    },
+    {
+      "from": "js/student-bookings.js",
+      "ref": "js/properties.html"
+    },
+    {
+      "from": "js/student-bookings.js",
+      "ref": "js/assets/logos/logo.png"
+    },
+    {
+      "from": "js/student-dashboard.js",
+      "ref": "js/login.html"
+    },
+    {
+      "from": "js/student-dashboard.js",
+      "ref": "js/assets/logos/logo.png"
+    },
+    {
+      "from": "js/student-dashboard.js",
+      "ref": "js/bookings.html"
+    },
+    {
+      "from": "js/student-dashboard.js",
+      "ref": "js/notifications.html"
+    },
+    {
+      "from": "js/student-explore.js",
+      "ref": "js/assets/logos/logo.png"
+    },
+    {
+      "from": "js/student-property-details.js",
+      "ref": "js/properties.html"
+    },
+    {
+      "from": "js/student-property-details.js",
+      "ref": "js/assets/logos/logo.png"
+    },
+    {
+      "from": "js/student-saved.js",
+      "ref": "js/properties.html"
+    },
+    {
+      "from": "js/student-saved.js",
+      "ref": "js/assets/logos/logo.png"
+    },
+    {
+      "from": "js/student-settings.js",
+      "ref": "js/login.html"
+    },
+    {
+      "from": "js/student-utils.js",
+      "ref": "js/login.html"
+    },
+    {
+      "from": "js/student-utils.js",
+      "ref": "js/assets/logos/logo.png"
+    },
+    {
+      "from": "js/student-utils.js",
+      "ref": "js/notifications.html"
+    },
+    {
+      "from": "js/success.js",
+      "ref": "js/bookings.html"
+    },
+    {
+      "from": "pages/admin/dashboard.html",
+      "ref": "pages/admin/css/theme.css"
+    },
+    {
+      "from": "pages/admin/dashboard.html",
+      "ref": "pages/admin/css/dashboard-v2.css"
+    },
+    {
+      "from": "pages/admin/dashboard.html",
+      "ref": "pages/admin/images/logo.png"
+    },
+    {
+      "from": "pages/admin/dashboard.html",
+      "ref": "pages/admin/js/admin-dashboard.js"
+    },
+    {
+      "from": "pages/owner/add-property.html",
+      "ref": "pages/owner/css/owner-v3.css"
+    },
+    {
+      "from": "pages/owner/add-property.html",
+      "ref": "pages/owner/css/add-property.css"
+    },
+    {
+      "from": "pages/owner/add-property.html",
+      "ref": "pages/owner/images/logo.png"
+    },
+    {
+      "from": "pages/owner/add-property.html",
+      "ref": "pages/owner/js/add-property.js"
+    },
+    {
+      "from": "pages/owner/analytics.html",
+      "ref": "pages/owner/css/owner-v3.css"
+    },
+    {
+      "from": "pages/owner/analytics.html",
+      "ref": "pages/owner/images/logo.png"
+    },
+    {
+      "from": "pages/owner/analytics.html",
+      "ref": "pages/owner/js/owner-analytics.js"
+    },
+    {
+      "from": "pages/owner/bookings.html",
+      "ref": "pages/owner/css/owner-v3.css"
+    },
+    {
+      "from": "pages/owner/bookings.html",
+      "ref": "pages/owner/images/logo.png"
+    },
+    {
+      "from": "pages/owner/bookings.html",
+      "ref": "pages/owner/js/owner-bookings.js"
+    },
+    {
+      "from": "pages/owner/dashboard.html",
+      "ref": "pages/owner/css/owner-v3.css"
+    },
+    {
+      "from": "pages/owner/dashboard.html",
+      "ref": "pages/owner/images/logo.png"
+    },
+    {
+      "from": "pages/owner/dashboard.html",
+      "ref": "pages/owner/owner-messages.html"
+    },
+    {
+      "from": "pages/owner/dashboard.html",
+      "ref": "pages/owner/owner-analytics.html"
+    },
+    {
+      "from": "pages/owner/dashboard.html",
+      "ref": "pages/owner/owner-bookings.html"
+    },
+    {
+      "from": "pages/owner/dashboard.html",
+      "ref": "pages/owner/owner-reviews.html"
+    },
+    {
+      "from": "pages/owner/dashboard.html",
+      "ref": "pages/owner/owner-maintenance.html"
+    },
+    {
+      "from": "pages/owner/dashboard.html",
+      "ref": "pages/owner/owner-students.html"
+    },
+    {
+      "from": "pages/owner/dashboard.html",
+      "ref": "pages/owner/owner-notifications.html"
+    },
+    {
+      "from": "pages/owner/dashboard.html",
+      "ref": "pages/owner/owner-payments.html"
+    },
+    {
+      "from": "pages/owner/dashboard.html",
+      "ref": "pages/owner/owner-settings.html"
+    },
+    {
+      "from": "pages/owner/dashboard.html",
+      "ref": "pages/owner/js/owner-dashboard-v3.js"
+    },
+    {
+      "from": "pages/owner/maintenance.html",
+      "ref": "pages/owner/css/owner-v3.css"
+    },
+    {
+      "from": "pages/owner/maintenance.html",
+      "ref": "pages/owner/images/logo.png"
+    },
+    {
+      "from": "pages/owner/maintenance.html",
+      "ref": "pages/owner/js/owner-maintenance.js"
+    },
+    {
+      "from": "pages/owner/messages.html",
+      "ref": "pages/owner/css/owner-v3.css"
+    },
+    {
+      "from": "pages/owner/messages.html",
+      "ref": "pages/owner/images/logo.png"
+    },
+    {
+      "from": "pages/owner/messages.html",
+      "ref": "pages/owner/js/owner-messages.js"
+    },
+    {
+      "from": "pages/owner/notifications.html",
+      "ref": "pages/owner/css/owner-v3.css"
+    },
+    {
+      "from": "pages/owner/notifications.html",
+      "ref": "pages/owner/images/logo.png"
+    },
+    {
+      "from": "pages/owner/notifications.html",
+      "ref": "pages/owner/js/owner-notifications.js"
+    },
+    {
+      "from": "pages/owner/payments.html",
+      "ref": "pages/owner/css/owner-v3.css"
+    },
+    {
+      "from": "pages/owner/payments.html",
+      "ref": "pages/owner/images/logo.png"
+    },
+    {
+      "from": "pages/owner/payments.html",
+      "ref": "pages/owner/js/owner-payments.js"
+    },
+    {
+      "from": "pages/owner/properties.html",
+      "ref": "pages/owner/css/owner-v3.css"
+    },
+    {
+      "from": "pages/owner/properties.html",
+      "ref": "pages/owner/images/logo.png"
+    },
+    {
+      "from": "pages/owner/properties.html",
+      "ref": "pages/owner/js/owner-properties.js"
+    },
+    {
+      "from": "pages/owner/reviews.html",
+      "ref": "pages/owner/css/owner-v3.css"
+    },
+    {
+      "from": "pages/owner/reviews.html",
+      "ref": "pages/owner/images/logo.png"
+    },
+    {
+      "from": "pages/owner/reviews.html",
+      "ref": "pages/owner/js/owner-reviews.js"
+    },
+    {
+      "from": "pages/owner/settings.html",
+      "ref": "pages/owner/css/owner-v3.css"
+    },
+    {
+      "from": "pages/owner/settings.html",
+      "ref": "pages/owner/images/logo.png"
+    },
+    {
+      "from": "pages/owner/settings.html",
+      "ref": "pages/owner/js/owner-settings.js"
+    },
+    {
+      "from": "pages/owner/tenants.html",
+      "ref": "pages/owner/css/owner-v3.css"
+    },
+    {
+      "from": "pages/owner/tenants.html",
+      "ref": "pages/owner/images/logo.png"
+    },
+    {
+      "from": "pages/owner/tenants.html",
+      "ref": "pages/owner/js/owner-students.js"
+    },
+    {
+      "from": "pages/property/property.html",
+      "ref": "pages/property/css/student-v3.css"
+    },
+    {
+      "from": "pages/property/property.html",
+      "ref": "pages/property/images/logo.png"
+    },
+    {
+      "from": "pages/property/property.html",
+      "ref": "pages/property/dashboard.html"
+    },
+    {
+      "from": "pages/property/property.html",
+      "ref": "pages/property/properties.html"
+    },
+    {
+      "from": "pages/property/property.html",
+      "ref": "pages/property/bookings.html"
+    },
+    {
+      "from": "pages/property/property.html",
+      "ref": "pages/property/payments.html"
+    },
+    {
+      "from": "pages/property/property.html",
+      "ref": "pages/property/messages.html"
+    },
+    {
+      "from": "pages/property/property.html",
+      "ref": "pages/property/notifications.html"
+    },
+    {
+      "from": "pages/property/property.html",
+      "ref": "pages/property/maintenance.html"
+    },
+    {
+      "from": "pages/property/property.html",
+      "ref": "pages/property/reviews.html"
+    },
+    {
+      "from": "pages/property/property.html",
+      "ref": "pages/property/documents.html"
+    },
+    {
+      "from": "pages/property/property.html",
+      "ref": "pages/property/analytics.html"
+    },
+    {
+      "from": "pages/property/property.html",
+      "ref": "pages/property/support.html"
+    },
+    {
+      "from": "pages/property/property.html",
+      "ref": "pages/property/profile.html"
+    },
+    {
+      "from": "pages/property/property.html",
+      "ref": "pages/property/settings.html"
+    },
+    {
+      "from": "pages/property/property.html",
+      "ref": "pages/property/js/student-property-details.js"
+    },
+    {
+      "from": "pages/student/analytics.html",
+      "ref": "pages/student/css/student-v3.css"
+    },
+    {
+      "from": "pages/student/analytics.html",
+      "ref": "pages/student/images/logo.png"
+    },
+    {
+      "from": "pages/student/analytics.html",
+      "ref": "pages/student/properties.html"
+    },
+    {
+      "from": "pages/student/analytics.html",
+      "ref": "pages/student/js/student-analytics.js"
+    },
+    {
+      "from": "pages/student/booking-details.html",
+      "ref": "pages/student/css/student-v3.css"
+    },
+    {
+      "from": "pages/student/booking-details.html",
+      "ref": "pages/student/images/logo.png"
+    },
+    {
+      "from": "pages/student/booking-details.html",
+      "ref": "pages/student/properties.html"
+    },
+    {
+      "from": "pages/student/booking-details.html",
+      "ref": "pages/student/js/student-booking.js"
+    },
+    {
+      "from": "pages/student/bookings.html",
+      "ref": "pages/student/css/student-v3.css"
+    },
+    {
+      "from": "pages/student/bookings.html",
+      "ref": "pages/student/images/logo.png"
+    },
+    {
+      "from": "pages/student/bookings.html",
+      "ref": "pages/student/properties.html"
+    },
+    {
+      "from": "pages/student/bookings.html",
+      "ref": "pages/student/js/student-bookings.js"
+    },
+    {
+      "from": "pages/student/dashboard-new.html",
+      "ref": "pages/student/css/theme.css"
+    },
+    {
+      "from": "pages/student/dashboard-new.html",
+      "ref": "pages/student/css/dashboard-new.css"
+    },
+    {
+      "from": "pages/student/dashboard-new.html",
+      "ref": "pages/student/images/logo.png"
+    },
+    {
+      "from": "pages/student/dashboard-new.html",
+      "ref": "pages/student/properties.html"
+    },
+    {
+      "from": "pages/student/dashboard-new.html",
+      "ref": "pages/student/images/hero-room.png"
+    },
+    {
+      "from": "pages/student/dashboard-new.html",
+      "ref": "pages/student/js/dashboard-new.js"
+    },
+    {
+      "from": "pages/student/dashboard.html",
+      "ref": "pages/student/css/student-v3.css"
+    },
+    {
+      "from": "pages/student/dashboard.html",
+      "ref": "pages/student/images/logo.png"
+    },
+    {
+      "from": "pages/student/dashboard.html",
+      "ref": "pages/student/properties.html"
+    },
+    {
+      "from": "pages/student/dashboard.html",
+      "ref": "pages/student/js/student-dashboard.js"
+    },
+    {
+      "from": "pages/student/documents.html",
+      "ref": "pages/student/css/student-v3.css"
+    },
+    {
+      "from": "pages/student/documents.html",
+      "ref": "pages/student/images/logo.png"
+    },
+    {
+      "from": "pages/student/documents.html",
+      "ref": "pages/student/properties.html"
+    },
+    {
+      "from": "pages/student/documents.html",
+      "ref": "pages/student/js/student-documents.js"
+    },
+    {
+      "from": "pages/student/maintenance.html",
+      "ref": "pages/student/css/student-v3.css"
+    },
+    {
+      "from": "pages/student/maintenance.html",
+      "ref": "pages/student/images/logo.png"
+    },
+    {
+      "from": "pages/student/maintenance.html",
+      "ref": "pages/student/properties.html"
+    },
+    {
+      "from": "pages/student/maintenance.html",
+      "ref": "pages/student/js/student-maintenance.js"
+    },
+    {
+      "from": "pages/student/messages.html",
+      "ref": "pages/student/css/student-v3.css"
+    },
+    {
+      "from": "pages/student/messages.html",
+      "ref": "pages/student/images/logo.png"
+    },
+    {
+      "from": "pages/student/messages.html",
+      "ref": "pages/student/properties.html"
+    },
+    {
+      "from": "pages/student/messages.html",
+      "ref": "pages/student/js/student-messages.js"
+    },
+    {
+      "from": "pages/student/nearby.html",
+      "ref": "pages/student/css/theme.css"
+    },
+    {
+      "from": "pages/student/nearby.html",
+      "ref": "pages/student/css/dashboard-v2.css"
+    },
+    {
+      "from": "pages/student/nearby.html",
+      "ref": "pages/student/images/logo.png"
+    },
+    {
+      "from": "pages/student/nearby.html",
+      "ref": "pages/student/properties.html"
+    },
+    {
+      "from": "pages/student/nearby.html",
+      "ref": "pages/student/js/nearby.js"
+    },
+    {
+      "from": "pages/student/notifications.html",
+      "ref": "pages/student/css/student-v3.css"
+    },
+    {
+      "from": "pages/student/notifications.html",
+      "ref": "pages/student/images/logo.png"
+    },
+    {
+      "from": "pages/student/notifications.html",
+      "ref": "pages/student/properties.html"
+    },
+    {
+      "from": "pages/student/notifications.html",
+      "ref": "pages/student/js/student-notifications.js"
+    },
+    {
+      "from": "pages/student/payment.html",
+      "ref": "pages/student/css/theme.css"
+    },
+    {
+      "from": "pages/student/payment.html",
+      "ref": "pages/student/css/payment.css"
+    },
+    {
+      "from": "pages/student/payment.html",
+      "ref": "pages/student/booking.html"
+    },
+    {
+      "from": "pages/student/payment.html",
+      "ref": "pages/student/js/payment.js"
+    },
+    {
+      "from": "pages/student/payments.html",
+      "ref": "pages/student/css/student-v3.css"
+    },
+    {
+      "from": "pages/student/payments.html",
+      "ref": "pages/student/images/logo.png"
+    },
+    {
+      "from": "pages/student/payments.html",
+      "ref": "pages/student/properties.html"
+    },
+    {
+      "from": "pages/student/payments.html",
+      "ref": "pages/student/js/student-payments.js"
+    },
+    {
+      "from": "pages/student/profile.html",
+      "ref": "pages/student/css/student-v3.css"
+    },
+    {
+      "from": "pages/student/profile.html",
+      "ref": "pages/student/images/logo.png"
+    },
+    {
+      "from": "pages/student/profile.html",
+      "ref": "pages/student/properties.html"
+    },
+    {
+      "from": "pages/student/profile.html",
+      "ref": "pages/student/js/student-profile.js"
+    },
+    {
+      "from": "pages/student/reviews.html",
+      "ref": "pages/student/css/student-v3.css"
+    },
+    {
+      "from": "pages/student/reviews.html",
+      "ref": "pages/student/images/logo.png"
+    },
+    {
+      "from": "pages/student/reviews.html",
+      "ref": "pages/student/properties.html"
+    },
+    {
+      "from": "pages/student/reviews.html",
+      "ref": "pages/student/js/student-reviews.js"
+    },
+    {
+      "from": "pages/student/saved-properties.html",
+      "ref": "pages/student/css/student-v3.css"
+    },
+    {
+      "from": "pages/student/saved-properties.html",
+      "ref": "pages/student/images/logo.png"
+    },
+    {
+      "from": "pages/student/saved-properties.html",
+      "ref": "pages/student/properties.html"
+    },
+    {
+      "from": "pages/student/saved-properties.html",
+      "ref": "pages/student/js/student-saved.js"
+    },
+    {
+      "from": "pages/student/settings.html",
+      "ref": "pages/student/css/student-v3.css"
+    },
+    {
+      "from": "pages/student/settings.html",
+      "ref": "pages/student/images/logo.png"
+    },
+    {
+      "from": "pages/student/settings.html",
+      "ref": "pages/student/properties.html"
+    },
+    {
+      "from": "pages/student/settings.html",
+      "ref": "pages/student/js/student-settings.js"
+    },
+    {
+      "from": "pages/student/success.html",
+      "ref": "pages/student/css/theme.css"
+    },
+    {
+      "from": "pages/student/success.html",
+      "ref": "pages/student/css/success.css"
+    },
+    {
+      "from": "pages/student/success.html",
+      "ref": "pages/student/js/success.js"
+    },
+    {
+      "from": "pages/student/support.html",
+      "ref": "pages/student/css/student-v3.css"
+    },
+    {
+      "from": "pages/student/support.html",
+      "ref": "pages/student/images/logo.png"
+    },
+    {
+      "from": "pages/student/support.html",
+      "ref": "pages/student/properties.html"
+    },
+    {
+      "from": "pages/student/support.html",
+      "ref": "pages/student/js/student-support.js"
+    },
+    {
+      "from": "signup.html",
+      "ref": "0; url=register.html"
+    }
+  ],
+  "unreferencedFiles": [
+    "admin-dashboard.html",
+    "assets/images/google.png",
+    "contact.html",
+    "css/admin.css",
+    "css/booking.css",
+    "css/bookings.css",
+    "css/dashboard.css",
+    "css/landing.css",
+    "css/owner-dashboard.css",
+    "css/owner.css",
+    "css/property-details.css",
+    "css/property-upload.css",
+    "css/property.css",
+    "css/responsive.css",
+    "images/google.png",
+    "js/api.js",
+    "js/image-utils.js",
+    "js/index.js",
+    "js/main.js",
+    "owner-dashboard.html",
+    "pages/admin/bookings.html",
+    "pages/admin/contact.html",
+    "pages/admin/login.html",
+    "pages/admin/owners.html",
+    "pages/admin/properties.html",
+    "pages/admin/reports.html",
+    "pages/admin/settings.html",
+    "pages/admin/users.html",
+    "pages/owner/edit-property.html",
+    "pages/owner/rooms.html",
+    "pages/property/compare.html",
+    "pages/property/property-simple.html",
+    "pages/property/review.html",
+    "pages/student/booking-details.html",
+    "pages/student/saved-properties.html",
+    "pages/student/success.html",
+    "property-details.html",
+    "property.html",
+    "robots.txt",
+    "signup.html",
+    "sitemap.xml",
+    "success.html",
+    "universities.html"
+  ]
+}

@@ -56,10 +56,19 @@ const authLimiter = rateLimit({
 });
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
-app.use("/api/auth/admin/login", authLimiter);
-app.use("/api/auth/forgot-password", authLimiter);
-app.use("/api/auth/reset-password", authLimiter);
 app.use("/api/otp/send", authLimiter);
+
+// Stricter limit for highly sensitive admin + OTP-verification endpoints.
+const sensitiveLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 10,
+    message: { success: false, message: "Too many attempts. Please try again later." }
+});
+app.use("/api/auth/admin/login", sensitiveLimiter);
+app.use("/api/auth/forgot-password", sensitiveLimiter);
+app.use("/api/auth/verify-reset-otp", sensitiveLimiter);
+app.use("/api/auth/reset-password", sensitiveLimiter);
+app.use("/api/otp/verify", sensitiveLimiter);
 
 app.use(mongoSanitize());
 app.use(xssSanitizer());

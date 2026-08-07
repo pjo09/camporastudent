@@ -18,6 +18,10 @@ const BCRYPT_ROUNDS = 12;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{8,128}$/;
 
+// Security limits for OTP handling
+const MAX_OTP_ATTEMPTS = 5;         // failed verifications before invalidating the code
+const RESEND_COOLDOWN_SECONDS = 30; // must wait before requesting a new code
+
 function isValidEmail(email) {
     return EMAIL_REGEX.test(email);
 }
@@ -71,6 +75,19 @@ router.post("/send", async (req, res) => {
 
         const normalizedEmail = email.toLowerCase().trim();
 
+        // Enforce a resend cooldown so a single OTP is stable and spam is limited.
+        const existingOtp = await Otp.findOne({ email: normalizedEmail });
+        if (existingOtp) {
+            const elapsedSeconds = (Date.now() - new Date(existingOtp.lastSentAt).getTime()) / 1000;
+            const remaining = Math.ceil(RESEND_COOLDOWN_SECONDS - elapsedSeconds);
+            if (remaining > 0) {
+                return res.status(429).json({
+                    success: false,
+                    message: `Please wait ${remaining}s before requesting a new code.`
+                });
+            }
+        }
+
         // Generate 6-digit OTP
         const code = otpGenerator.generate(6, {
             upperCaseAlphabets: false,
@@ -85,7 +102,10 @@ router.post("/send", async (req, res) => {
         // Save new OTP with 5-minute expiry
         await Otp.create({
             email: normalizedEmail,
-            code
+            code,
+            attempts: 0,
+            used: false,
+            lastSentAt: new Date()
         });
 
         // Email HTML
@@ -165,21 +185,46 @@ const {
 
         const normalizedEmail = email.toLowerCase().trim();
 
-        // Find valid OTP
+        // Find the OTP record. `used` + `attempts` fields enforce single-use
+        // and a maximum number of failed guesses.
         const otp = await Otp.findOne({
             email: normalizedEmail,
             code
         });
 
         if (!otp) {
+            // Wrong code — count the failure against the most recent OTP for this email.
+            const latest = await Otp.findOne({ email: normalizedEmail });
+            if (latest) {
+                latest.attempts = (latest.attempts || 0) + 1;
+                await latest.save();
+                if (latest.attempts >= MAX_OTP_ATTEMPTS) {
+                    await Otp.deleteMany({ email: normalizedEmail });
+                    return res.status(400).json({
+                        success: false,
+                        message: "Too many invalid attempts. Please request a new code."
+                    });
+                }
+            }
             return res.status(400).json({
                 success: false,
                 message: "Invalid or expired OTP."
             });
         }
 
-        // Delete used OTP
-        await Otp.deleteMany({ email: normalizedEmail });
+        // Single-use enforcement — a code that was already redeemed cannot be reused.
+        if (otp.used) {
+            return res.status(400).json({
+                success: false,
+                message: "This OTP has already been used. Please request a new code."
+            });
+        }
+
+        // If the code matched but attempts were previously logged, allow it —
+        // the match is authoritative. Mark as used (single-use).
+        otp.used = true;
+        otp.attempts = 0;
+        await otp.save();
 
         let user = await User.findOne({ email: normalizedEmail });
 

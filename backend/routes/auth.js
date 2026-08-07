@@ -21,6 +21,10 @@ const VALID_ROLES = ["student", "owner"];
 // Password policy: min 8 chars, at least 1 uppercase, 1 lowercase, 1 digit, 1 special char
 const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{8,128}$/;
 
+// OTP security limits shared by /forgot-password, /verify-reset-otp and /reset-password.
+const MAX_OTP_ATTEMPTS = 5;         // failed verifications before invalidating the code
+const RESEND_COOLDOWN_SECONDS = 30; // must wait before requesting a new code
+
 // The ONLY email allowed to access the admin dashboard.
 // Kept in one place so both /login and /admin/login enforce the same rule.
 const ADMIN_EMAIL =
@@ -439,6 +443,16 @@ router.post("/forgot-password", async (req, res) => {
             return respondSuccess(res, 200, "If an account exists with this email, a reset link has been sent.");
         }
 
+        // Resend cooldown — prevents OTP spam and keeps the flow stable.
+        const existingOtp = await Otp.findOne({ email });
+        if (existingOtp) {
+            const elapsedSeconds = (Date.now() - new Date(existingOtp.lastSentAt).getTime()) / 1000;
+            const remaining = Math.ceil(RESEND_COOLDOWN_SECONDS - elapsedSeconds);
+            if (remaining > 0) {
+                return respondError(res, 429, `Please wait ${remaining}s before requesting a new code.`);
+            }
+        }
+
         // Generate a 6-digit OTP
         const code = otpGenerator.generate(6, {
             upperCaseAlphabets: false,
@@ -450,7 +464,7 @@ router.post("/forgot-password", async (req, res) => {
         // Replace any existing OTP for this email (single active reset)
         await Otp.deleteMany({ email });
 
-        await Otp.create({ email, code });
+        await Otp.create({ email, code, attempts: 0, used: false, lastSentAt: new Date() });
 
         const html = `
         <div style="font-family:Arial;padding:30px">
@@ -476,8 +490,59 @@ router.post("/forgot-password", async (req, res) => {
 });
 
 // ==========================================
+// POST /api/auth/verify-reset-otp
+// Step 2 of password reset: validate the OTP in isolation, before the user
+// is allowed to set a new password. Enforces single-use + max attempts.
+// ==========================================
+
+router.post("/verify-reset-otp", async (req, res) => {
+    try {
+        const email = req.body.email && req.body.email.toLowerCase().trim();
+        const { code } = req.body;
+
+        if (!email || !isValidEmail(email)) {
+            return respondError(res, 400, "Please provide a valid email address.");
+        }
+        if (!code) {
+            return respondError(res, 400, "OTP code is required.");
+        }
+
+        const otp = await Otp.findOne({ email, code });
+
+        if (!otp) {
+            // Wrong code — count the failure against the most recent OTP for this email.
+            const latest = await Otp.findOne({ email });
+            if (latest) {
+                latest.attempts = (latest.attempts || 0) + 1;
+                await latest.save();
+                if (latest.attempts >= MAX_OTP_ATTEMPTS) {
+                    await Otp.deleteMany({ email });
+                    return respondError(res, 400, "Too many invalid attempts. Please request a new code.");
+                }
+            }
+            return respondError(res, 400, "Invalid or expired OTP. Please request a new code.");
+        }
+
+        if (otp.used) {
+            return respondError(res, 400, "This OTP has already been used. Please request a new code.");
+        }
+
+        // Mark as used now so the reset-password step cannot reuse it.
+        otp.used = true;
+        otp.attempts = 0;
+        await otp.save();
+
+        return respondSuccess(res, 200, "Code verified successfully. You can now set a new password.");
+
+    } catch (err) {
+        console.error("Verify Reset OTP Error:", err);
+        return respondError(res, 500, err.message || "Unable to verify code. Please try again.");
+    }
+});
+
+// ==========================================
 // POST /api/auth/reset-password
-// Step 2 of password reset: verify OTP + set a new password (hashing it).
+// Step 3 of password reset: verify OTP + set a new password (hashing it).
 // ==========================================
 
 router.post("/reset-password", async (req, res) => {
@@ -499,9 +564,11 @@ router.post("/reset-password", async (req, res) => {
         }
 
         // Find and validate the OTP (also enforces expiry via TTL index).
-        const otp = await Otp.findOne({ email, code });
+        // The OTP must have been marked `used` by verify-reset-otp first,
+        // which guarantees the email owner genuinely verified the code.
+        const otp = await Otp.findOne({ email, code, used: true });
         if (!otp) {
-            return respondError(res, 400, "Invalid or expired OTP. Please request a new code.");
+            return respondError(res, 400, "Invalid or expired OTP. Please verify your code first.");
         }
 
         const user = await User.findOne({ email });
