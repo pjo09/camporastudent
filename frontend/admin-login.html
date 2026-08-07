@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Campora | Admin Login</title>
+
+<meta name="description" content="Secure Admin Login to Campora">
+
+<meta name="robots" content="noindex, nofollow">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+<link rel="stylesheet" href="./css/theme.css">
+
+<link rel="stylesheet" href="./css/style.css">
+
+<link rel="stylesheet" href="./css/auth.css">
+
+</head>
+
+<body class="auth-page">
+
+<!-- Swaps a broken logo image for a clean gradient monogram badge -->
+<script>
+function handleLogoError(el){
+    el.onerror = null;
+    var fallback = document.createElement("div");
+    fallback.className = "logo-fallback" +
+        (el.classList.contains("footer-logo-img") ? " logo-fallback-sm" : "");
+    fallback.textContent = "C";
+    el.replaceWith(fallback);
+}
+</script>
+
+<!-- ================= BACKGROUND ================= -->
+
+<div class="background">
+
+<div class="blur blur1"></div>
+
+<div class="blur blur2"></div>
+
+<div class="blur blur3"></div>
+
+</div>
+
+<header class="auth-navbar">
+
+<div class="container nav-container">
+
+<a href="index.html" class="brand">
+
+<img src="./images/logo.png" alt="Campora" class="brand-logo" onerror="handleLogoError(this)">
+
+<div>
+
+<h2>Campora</h2>
+
+<p>Find Your Campus Home</p>
+
+</div>
+
+</a>
+
+<div class="nav-actions">
+
+<a href="index.html" class="nav-link">Home</a>
+
+<a href="login.html" class="nav-btn">User Login</a>
+
+</div>
+
+</div>
+
+</header>
+
+<!-- ================= MAIN ================= -->
+
+<main class="container">
+
+<!-- ================= LEFT ================= -->
+
+<section class="left-panel">
+
+<!-- Loading skeleton shown briefly on page load -->
+<div class="auth-skeleton" id="authSkeleton">
+    <div class="skeleton-line" style="width:140px;height:22px"></div>
+    <div class="skeleton-line" style="width:240px;height:44px"></div>
+    <div class="skeleton-line" style="width:100%;height:56px;margin-top:24px"></div>
+    <div class="skeleton-line" style="width:100%;height:56px;margin-top:12px"></div>
+    <div class="skeleton-line" style="width:100%;height:56px;margin-top:12px"></div>
+</div>
+
+<div class="auth-form-wrap" id="authFormWrap">
+
+<div class="badge admin-badge">
+
+<i class="fa-solid fa-shield-halved"></i> RESTRICTED AREA
+
+</div>
+
+<h1 class="admin-title">
+
+Admin Login
+
+</h1>
+
+<p class="subtitle">
+
+Authorized personnel only. Access is restricted to approved Campora administrators.
+
+</p>
+
+<!-- ================= ADMIN LOGIN FORM ================= -->
+
+<form id="adminLoginForm" novalidate>
+
+<div class="input-group">
+
+<label>Admin Email</label>
+
+<input id="adminEmail" type="email" placeholder="Enter admin email" autocomplete="username" required>
+
+</div>
+
+<div class="input-group">
+
+<label>Password</label>
+
+<div class="password-field">
+
+<input id="adminPassword" type="password" placeholder="Enter password" autocomplete="current-password" aria-label="Password" required>
+
+<button type="button" class="password-toggle" id="toggleAdminPassword" aria-label="Show password" tabindex="-1">
+
+<i class="fa-solid fa-eye"></i>
+
+</button>
+
+</div>
+
+</div>
+
+<button type="submit" class="primary-btn" id="adminLoginBtn">
+
+<span class="btn-label">Sign In</span>
+
+<span class="btn-spinner" aria-hidden="true"></span>
+
+</button>
+
+</form>
+
+<div class="admin-note">
+
+<i class="fa-solid fa-lock"></i> This portal is protected. Unauthorized access attempts are logged.
+
+</div>
+
+<!-- ================= STATUS ================= -->
+
+<div id="successMessage" class="success-message" role="status"></div>
+
+<div id="errorMessage" class="error-message" role="alert"></div>
+
+<p class="bottom-link">
+
+<a href="login.html" class="back-link"><i class="fa-solid fa-arrow-left"></i> Back to User Login</a>
+
+</p>
+
+</div>
+
+</section>
+
+<!-- ================= RIGHT PANEL ================= -->
+
+<section class="auth-side">
+
+<div class="feature-card">
+
+<h2>
+
+Administration
+
+</h2>
+
+<p>
+
+Campora's secure administration console for managing students, property owners, listings, bookings and platform analytics.
+
+</p>
+
+<div class="feature-list">
+
+<div><i class="fa-solid fa-user-shield"></i> Role-based access</div>
+
+<div><i class="fa-solid fa-route"></i> Audit logging</div>
+
+<div><i class="fa-solid fa-chart-line"></i> Platform analytics</div>
+
+<div><i class="fa-solid fa-building"></i> Property moderation</div>
+
+<div><i class="fa-solid fa-user-check"></i> Owner approval</div>
+
+<div><i class="fa-solid fa-gear"></i> System settings</div>
+
+</div>
+
+</div>
+
+</section>
+
+</main>
+
+<!-- ================= FOOTER ================= -->
+
+<footer class="auth-footer">
+
+<div class="footer-content">
+
+<div class="footer-logo">
+
+<img src="./images/logo.png" alt="Campora" class="footer-logo-img" onerror="handleLogoError(this)">
+
+<div>
+
+<h3>Campora</h3>
+
+<p>Find Your Campus Home</p>
+
+</div>
+
+</div>
+
+<p class="footer-text">© 2026 Campora. All Rights Reserved.</p>
+
+</div>
+
+</footer>
+
+<!-- ================= SCRIPTS ================= -->
+
+<script type="module" src="./js/session.js"></script>
+
+<script type="module" src="./js/admin-login.js"></script>
+
+</body>
+
+</html>

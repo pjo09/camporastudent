@@ -2,6 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 const jwt = require("jsonwebtoken");
+const bcrypt = require("bcryptjs");
 const otpGenerator = require("otp-generator");
 
 const Otp = require("../models/Otp");
@@ -13,6 +14,13 @@ const sendEmail = require("../utils/sendEmail");
 // ==========================================
 
 const JWT_EXPIRY = "7d";
+const BCRYPT_ROUNDS = 12;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{8,128}$/;
+
+function isValidEmail(email) {
+    return EMAIL_REGEX.test(email);
+}
 
 function generateToken(user) {
     return jwt.sign(
@@ -126,7 +134,7 @@ router.post("/send", async (req, res) => {
 
 router.post("/verify", async (req, res) => {
     try {
-        const {
+const {
             type,
             name,
             email,
@@ -137,6 +145,7 @@ router.post("/verify", async (req, res) => {
             year,
             businessName,
             city,
+            password,
             code
         } = req.body;
 
@@ -144,6 +153,13 @@ router.post("/verify", async (req, res) => {
             return res.status(400).json({
                 success: false,
                 message: "Email and OTP are required."
+            });
+        }
+
+        if (!isValidEmail(email)) {
+            return res.status(400).json({
+                success: false,
+                message: "Please provide a valid email address."
             });
         }
 
@@ -219,32 +235,49 @@ router.post("/verify", async (req, res) => {
             });
         }
 
-        if (!name || !name.trim()) {
+if (!name || !name.trim()) {
             return res.status(400).json({
                 success: false,
                 message: "Name is required for registration."
             });
         }
 
-        const isAdminEmail = normalizedEmail === process.env.ADMIN_EMAIL || normalizedEmail === "camporaforstudents@gmail.com";
-        const finalRole = isAdminEmail ? "admin" : (role || "student");
+        // Password is required for registration (password-based account + auto-login)
+        if (!password) {
+            return res.status(400).json({
+                success: false,
+                message: "Password is required."
+            });
+        }
+        if (!PASSWORD_REGEX.test(password)) {
+            return res.status(400).json({
+                success: false,
+                message: "Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number and a special character."
+            });
+        }
 
-        // Create user WITHOUT password (OTP-only users login via OTP)
+        const isAdmin = normalizedEmail === process.env.ADMIN_EMAIL || normalizedEmail === "camporaforstudents@gmail.com";
+        const finalRole = isAdmin ? "admin" : (role || "student");
+
+        // Hash the password so the account is password-based (and can auto-login)
+        const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
+
+        // Create user with a hashed password
         user = await User.create({
             name: name.trim(),
             email: normalizedEmail,
             phone: phone || "",
             role: finalRole,
             provider: "local",
-            authProvider: "otp",
-            password: null,
+            authProvider: "password",
+            password: hashedPassword,
             verified: true,
             college: college || "",
             course: course || "",
             year: year || "",
             businessName: businessName || "",
             city: city || "",
-            accountStatus: isAdminEmail ? "ACTIVE" : (finalRole === "owner" ? "PENDING" : "ACTIVE")
+            accountStatus: isAdmin ? "ACTIVE" : (finalRole === "owner" ? "PENDING" : "ACTIVE")
         });
 
         // Block pending owners from getting a token immediately

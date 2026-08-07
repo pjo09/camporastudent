@@ -8,7 +8,7 @@ const API_BASE = `${API}/otp`;
 
 export async function sendOTP(name, email) {
 
-    const response = await fetch(`${API}/send`, {
+    const response = await fetch(`${API_BASE}/send`, {
 
         method: "POST",
 
@@ -29,7 +29,7 @@ export async function sendOTP(name, email) {
 
 export async function verifyOTP(name, email, code, password) {
 
-    const response = await fetch(`${API}/verify`, {
+    const response = await fetch(`${API_BASE}/verify`, {
 
         method: "POST",
 

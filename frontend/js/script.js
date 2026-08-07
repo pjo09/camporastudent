@@ -2,7 +2,7 @@
 // CAMPORA LANDING PAGE — MODULAR ARCHITECTURE
 // =====================================================
 
-import { API } from "./config.js";
+import CONFIG, { API } from "./config.js";
 import { login, logout, getUser, getToken, redirectBasedOnRole } from "./session.js";
 
 // =====================================================
@@ -70,6 +70,8 @@ const App = (() => {
         AuthModal.init();
         Search.init();
         FAQ.init();
+        Showcase.init();
+        Waitlist.init();
         Animations.init();
 
         Properties.load();
@@ -406,7 +408,7 @@ const AuthModal = (() => {
     }
 
     function setup() {
-        const clientId = "45569590642-4mehsdjfru09l14mmslif775edv7jego.apps.googleusercontent.com";
+        const clientId = CONFIG.GOOGLE_CLIENT_ID || "45569590642-4mehsdjfru09l14mmslif775edv7jego.apps.googleusercontent.com";
 
         try {
             google.accounts.id.initialize({
@@ -443,7 +445,7 @@ const AuthModal = (() => {
     async function handleGoogle(response) {
         try {
             const role = currentRole || "student";
-            const data = await apiPost("/google", {
+            const data = await apiPost("/auth/google", {
                 credential: response.credential,
                 role
             });
@@ -879,6 +881,126 @@ if (reviews.length === 0) {
     }
 
 return { load };
+})();
+
+// =====================================================
+// SHOWCASE TABS
+// =====================================================
+
+const Showcase = (() => {
+    let inited = false;
+
+    function init() {
+        if (inited) return;
+        inited = true;
+
+        const tabs = document.querySelectorAll(".showcase-tab");
+        if (!tabs.length) return;
+
+        tabs.forEach((tab) => {
+            tab.addEventListener("click", () => {
+                const target = tab.dataset.showcase;
+                if (!target) return;
+
+                // Update tab state
+                tabs.forEach((t) => {
+                    const isActive = t.dataset.showcase === target;
+                    t.classList.toggle("active", isActive);
+                    t.setAttribute("aria-selected", isActive ? "true" : "false");
+                });
+
+                // Toggle panels
+                const panels = {
+                    students: $("showcaseStudents"),
+                    owners: $("showcaseOwners"),
+                    secure: $("showcaseSecure")
+                };
+
+                Object.entries(panels).forEach(([key, el]) => {
+                    if (el) el.style.display = key === target ? "grid" : "none";
+                });
+            });
+        });
+    }
+
+    return { init };
+})();
+
+// =====================================================
+// WAITLIST
+// =====================================================
+
+const Waitlist = (() => {
+    let inited = false;
+
+    function init() {
+        if (inited) return;
+        inited = true;
+
+        const form = $("waitlistForm");
+        if (!form) return;
+
+        form.addEventListener("submit", async (e) => {
+            e.preventDefault();
+
+            const email = $("waitlistEmail").value.trim();
+            const city = $("waitlistCity").value.trim();
+            const successBox = $("waitlistSuccess");
+            const errorBox = $("waitlistError");
+
+            if (errorBox) errorBox.style.display = "none";
+            if (successBox) successBox.style.display = "none";
+
+            if (!email || !email.includes("@")) {
+                if (errorBox) {
+                    errorBox.textContent = "Please enter a valid email address.";
+                    errorBox.style.display = "block";
+                }
+                return;
+            }
+            if (!city) {
+                if (errorBox) {
+                    errorBox.textContent = "Please enter your city.";
+                    errorBox.style.display = "block";
+                }
+                return;
+            }
+
+            const btn = form.querySelector("button[type='submit']");
+            if (btn) {
+                btn.disabled = true;
+                btn.textContent = "Joining...";
+            }
+
+            try {
+                // Attempt to store via contact API (non-critical)
+                try {
+                    await apiPost("/contact", {
+                        name: "Waitlist: " + city,
+                        email,
+                        subject: "Campora Waitlist — " + city,
+                        message: "Waitlist signup for city: " + city
+                    });
+                } catch (apiErr) {
+                    // Waitlist is best-effort; never block the user for backend errors
+                }
+
+                if (errorBox) errorBox.style.display = "none";
+                if (successBox) {
+                    successBox.style.display = "block";
+                    form.reset();
+                    successBox.scrollIntoView({ behavior: "smooth", block: "nearest" });
+                }
+            } finally {
+                if (btn) {
+                    btn.disabled = false;
+                    btn.textContent = "Join the Waitlist";
+                }
+            }
+        });
+    }
+
+    return { init };
 })();
 
 // =====================================================

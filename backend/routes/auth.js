@@ -3,7 +3,10 @@ const router = express.Router();
 
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+const otpGenerator = require("otp-generator");
 const User = require("../models/User");
+const Otp = require("../models/Otp");
+const sendEmail = require("../utils/sendEmail");
 const auth = require("../middleware/auth");
 
 // ==========================================
@@ -14,6 +17,18 @@ const JWT_EXPIRY = "7d";
 const BCRYPT_ROUNDS = 12;
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const VALID_ROLES = ["student", "owner"];
+
+// Password policy: min 8 chars, at least 1 uppercase, 1 lowercase, 1 digit, 1 special char
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{8,128}$/;
+
+// The ONLY email allowed to access the admin dashboard.
+// Kept in one place so both /login and /admin/login enforce the same rule.
+const ADMIN_EMAIL =
+    process.env.ADMIN_EMAIL || "camporaforstudents@gmail.com";
+
+function isAdminEmail(email) {
+    return email.toLowerCase() === ADMIN_EMAIL.toLowerCase();
+}
 
 // ==========================================
 // HELPERS
@@ -113,15 +128,12 @@ router.post("/register", async (req, res) => {
             return respondError(res, 400, "Please provide a valid email address.");
         }
 
-        // --- Validate password ---
+// --- Validate password ---
         if (!password) {
             return respondError(res, 400, "Password is required.");
         }
-        if (password.length < 6) {
-            return respondError(res, 400, "Password must be at least 6 characters.");
-        }
-        if (password.length > 128) {
-            return respondError(res, 400, "Password must not exceed 128 characters.");
+        if (!PASSWORD_REGEX.test(password)) {
+            return respondError(res, 400, "Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number and a special character.");
         }
 
         // --- Validate role ---
@@ -147,18 +159,18 @@ router.post("/register", async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
 // --- Create user ---
-        const isAdminEmail = email === process.env.ADMIN_EMAIL || email === "camporaforstudents@gmail.com";
+        const isAdmin = isAdminEmail(email);
 
         const user = await User.create({
             name: name.trim(),
             email,
             password: hashedPassword,
             phone: phone || "",
-            role: isAdminEmail ? "admin" : role,
+            role: isAdmin ? "admin" : role,
             provider: "local",
             authProvider: "password",
-            verified: isAdminEmail,
-            accountStatus: isAdminEmail ? "ACTIVE" : (role === "owner" ? "PENDING" : "ACTIVE")
+            verified: isAdmin,
+            accountStatus: isAdmin ? "ACTIVE" : (role === "owner" ? "PENDING" : "ACTIVE")
         });
 
         const safeUser = sanitizeUser(user);
@@ -214,9 +226,9 @@ router.post("/login", async (req, res) => {
             return respondError(res, 401, "No account found with this email address.");
         }
 
-        // --- Auto-promote admin email to ADMIN role ---
-        const isAdminEmail = email === process.env.ADMIN_EMAIL || email === "camporaforstudents@gmail.com";
-        if (isAdminEmail) {
+// --- Auto-promote admin email to ADMIN role (only the exact admin email) ---
+        const isAdmin = isAdminEmail(email);
+        if (isAdmin) {
             user.role = "admin";
             user.accountStatus = "ACTIVE";
             user.verified = true;
@@ -302,9 +314,215 @@ router.get("/me", auth, async (req, res) => {
             role: safeUser.role
         });
 
-    } catch (err) {
+} catch (err) {
         console.error("Get Profile Error:", err);
         return respondError(res, 500, err.message || "Failed to fetch user profile.");
+    }
+});
+
+// ==========================================
+// POST /api/auth/admin/login
+// Separate, restricted admin login.
+//
+// SECURITY RULE (enforced on the backend):
+//  - Only the exact admin email may access the admin dashboard.
+//  - For ANY other email we return a generic "Unauthorized Admin Access"
+//    message and do NOT reveal whether the account exists.
+//  - Only after the email check passes do we authenticate the password.
+// ==========================================
+
+router.post("/admin/login", async (req, res) => {
+    try {
+        const email = req.body.email && req.body.email.toLowerCase().trim();
+        const { password } = req.body;
+
+        // --- Validate email format ---
+        if (!email || !isValidEmail(email)) {
+            return respondError(res, 400, "Please provide a valid email address.");
+        }
+
+        // --- Admin-only email gate (first, before any auth / existence check) ---
+        if (!isAdminEmail(email)) {
+            return respondError(res, 403, "Unauthorized Admin Access");
+        }
+
+        // --- Validate password ---
+        if (!password) {
+            return respondError(res, 400, "Password is required.");
+        }
+
+        // --- Only the admin email reaches here. Find the admin account. ---
+        let admin = await User.findOne({ email });
+        if (!admin) {
+            // Do not reveal account existence; generic message.
+            return respondError(res, 401, "Unauthorized Admin Access");
+        }
+
+        // --- Block deactivated admin accounts ---
+        if (admin.accountStatus === "BANNED" || admin.accountStatus === "DELETED") {
+            return respondError(res, 403, "Your account has been deactivated. Please contact support.");
+        }
+
+        // --- Ensure the admin role is set (safe promotion) ---
+        if (admin.role !== "admin") {
+            admin.role = "admin";
+            admin.accountStatus = "ACTIVE";
+            admin.verified = true;
+            await admin.save();
+        }
+
+        // --- If no password is set, create one on first admin login ---
+        if (!admin.password) {
+            if (password.length < 8) {
+                return respondError(res, 400, "Password must be at least 8 characters.");
+            }
+            admin.password = await bcrypt.hash(password, BCRYPT_ROUNDS);
+            admin.authProvider = "password";
+            await admin.save();
+        }
+
+        // --- Authenticate password securely ---
+        const isMatch = await bcrypt.compare(password, admin.password);
+        if (!isMatch) {
+            return respondError(res, 401, "Incorrect password. Please try again.");
+        }
+
+        // --- Update last login ---
+        admin.lastLogin = new Date();
+        await admin.save();
+
+        // --- Audit log ---
+        const logAudit = require("../utils/auditLogger");
+        await logAudit({
+            userId: admin._id,
+            userEmail: admin.email,
+            role: "admin",
+            action: "ADMIN_LOGIN",
+            resource: "Auth",
+            req
+        });
+
+        const token = generateToken(admin);
+        const safeUser = sanitizeUser(admin);
+
+        return respondSuccess(res, 200, "Admin login successful.", {
+            token,
+            user: safeUser,
+            role: "admin"
+        });
+
+    } catch (err) {
+        console.error("Admin Login Error:", err);
+        return respondError(res, 500, err.message || "Admin login failed. Please try again.");
+    }
+});
+
+// ==========================================
+// POST /api/auth/forgot-password
+// Step 1 of password reset: generate + email an OTP for a registered account.
+// Returns a generic success message regardless of whether the email exists
+// (prevents account enumeration).
+// ==========================================
+
+router.post("/forgot-password", async (req, res) => {
+    try {
+        const email = req.body.email && req.body.email.toLowerCase().trim();
+
+        if (!email || !isValidEmail(email)) {
+            return respondError(res, 400, "Please provide a valid email address.");
+        }
+
+        const user = await User.findOne({ email });
+
+        // Generic response to avoid leaking which emails are registered.
+        if (!user) {
+            return respondSuccess(res, 200, "If an account exists with this email, a reset link has been sent.");
+        }
+
+        // Generate a 6-digit OTP
+        const code = otpGenerator.generate(6, {
+            upperCaseAlphabets: false,
+            lowerCaseAlphabets: false,
+            specialChars: false,
+            digits: true
+        });
+
+        // Replace any existing OTP for this email (single active reset)
+        await Otp.deleteMany({ email });
+
+        await Otp.create({ email, code });
+
+        const html = `
+        <div style="font-family:Arial;padding:30px">
+            <h2>Campora Password Reset</h2>
+            <p>Use the code below to reset your password:</p>
+            <div style="font-size:42px;font-weight:bold;color:#2563eb;letter-spacing:8px;margin:25px 0;">
+                ${code}
+            </div>
+            <p>This code is valid for <b>5 minutes</b>.</p>
+            <hr>
+            <p>If you did not request this, you can safely ignore this email.</p>
+        </div>
+        `;
+
+        await sendEmail(email, "Campora Password Reset", html);
+
+        return respondSuccess(res, 200, "If an account exists with this email, a reset link has been sent.");
+
+    } catch (err) {
+        console.error("Forgot Password Error:", err);
+        return respondError(res, 500, err.message || "Unable to send reset code. Please try again.");
+    }
+});
+
+// ==========================================
+// POST /api/auth/reset-password
+// Step 2 of password reset: verify OTP + set a new password (hashing it).
+// ==========================================
+
+router.post("/reset-password", async (req, res) => {
+    try {
+        const email = req.body.email && req.body.email.toLowerCase().trim();
+        const { code, password } = req.body;
+
+        if (!email || !isValidEmail(email)) {
+            return respondError(res, 400, "Please provide a valid email address.");
+        }
+        if (!code) {
+            return respondError(res, 400, "OTP code is required.");
+        }
+        if (!password) {
+            return respondError(res, 400, "New password is required.");
+        }
+        if (!PASSWORD_REGEX.test(password)) {
+            return respondError(res, 400, "Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number and a special character.");
+        }
+
+        // Find and validate the OTP (also enforces expiry via TTL index).
+        const otp = await Otp.findOne({ email, code });
+        if (!otp) {
+            return respondError(res, 400, "Invalid or expired OTP. Please request a new code.");
+        }
+
+        const user = await User.findOne({ email });
+        if (!user) {
+            return respondError(res, 404, "Account not found. Please register first.");
+        }
+
+        // Delete used OTP
+        await Otp.deleteMany({ email });
+
+        // Hash + set the new password
+        user.password = await bcrypt.hash(password, BCRYPT_ROUNDS);
+        user.authProvider = "password";
+        user.verified = true;
+        await user.save();
+
+        return respondSuccess(res, 200, "Password reset successful. You can now log in.");
+
+    } catch (err) {
+        console.error("Reset Password Error:", err);
+        return respondError(res, 500, err.message || "Unable to reset password. Please try again.");
     }
 });
 

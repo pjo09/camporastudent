@@ -13,7 +13,9 @@
 
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <link rel="stylesheet" href="./css/theme.css">
 
@@ -229,26 +231,55 @@ required
 
 </div>
 
-<div id="ownerFields" style="display:none;">
-    <!-- ================= OWNER DETAILS ================= -->
-
 <div class="input-group">
 
 <label>
 
-PG / Business Name
+Password
 
 </label>
 
+<div class="password-field">
+
 <input
 
-id="businessName"
+id="password"
 
-type="text"
+type="password"
 
-placeholder="Campora Residency"
+placeholder="Create a password"
+
+autocomplete="new-password"
+
+aria-label="Password"
+
+required
 
 >
+
+<button
+
+type="button"
+
+class="password-toggle"
+
+id="togglePassword"
+
+aria-label="Show password"
+
+tabindex="-1">
+
+<i class="fa-solid fa-eye"></i>
+
+</button>
+
+</div>
+
+<div class="password-hint">
+
+Min 8 chars with uppercase, lowercase, number &amp; special character.
+
+</div>
 
 </div>
 
@@ -256,19 +287,43 @@ placeholder="Campora Residency"
 
 <label>
 
-City
+Confirm Password
 
 </label>
 
+<div class="password-field">
+
 <input
 
-id="city"
+id="confirmPassword"
 
-type="text"
+type="password"
 
-placeholder="Jaipur"
+placeholder="Re-enter password"
+
+autocomplete="new-password"
+
+aria-label="Confirm password"
+
+required
 
 >
+
+<button
+
+type="button"
+
+class="password-toggle"
+
+id="toggleConfirmPassword"
+
+aria-label="Show password"
+
+tabindex="-1">
+
+<i class="fa-solid fa-eye"></i>
+
+</button>
 
 </div>
 
@@ -284,7 +339,9 @@ id="sendOtpBtn"
 
 class="primary-btn">
 
-Send OTP
+<span class="btn-label">Send OTP</span>
+
+<span class="btn-spinner" aria-hidden="true"></span>
 
 </button>
 
@@ -314,23 +371,19 @@ maxlength="6"
 
 placeholder="6-digit OTP"
 
+inputmode="numeric"
+
+autocomplete="one-time-code"
+
 >
 
 </div>
 
-<div class="timer">
+<div class="otp-timer-row">
 
-<span>
+<span class="otp-expiry">OTP expires in</span>
 
-OTP expires in
-
-</span>
-
-<span id="otpTimer">
-
-05:00
-
-</span>
+<span class="otp-timer" id="otpTimer">05:00</span>
 
 </div>
 
@@ -342,7 +395,9 @@ id="createAccountBtn"
 
 class="success-btn">
 
-Verify OTP & Create Account
+<span class="btn-label">Verify OTP & Create Account</span>
+
+<span class="btn-spinner" aria-hidden="true"></span>
 
 </button>
 

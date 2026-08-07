@@ -1,16 +1,15 @@
 // ==========================================
-// CAMPORA REGISTER - OTP + Google
+// CAMPORA REGISTER - OTP + Google + Password
 // ==========================================
 
 import { login, redirectBasedOnRole } from "./session.js";
-import { API } from "./config.js";
+import CONFIG, { API } from "./config.js";
 
 const API_BASE = API;
 
 // Form Elements
 const form = document.getElementById("registerForm");
 const role = document.getElementById("role");
-const ownerFields = document.getElementById("ownerFields");
 const sendOtpBtn = document.getElementById("sendOtpBtn");
 const otpSection = document.getElementById("otpSection");
 const successMessage = document.getElementById("successMessage");
@@ -30,21 +29,6 @@ if (roleFromURL === "owner") {
 }
 
 // ==========================================
-// SHOW CORRECT FIELDS BASED ON ROLE
-// ==========================================
-
-function updateRoleUI() {
-    if (role.value === "owner") {
-        ownerFields.style.display = "block";
-    } else {
-        ownerFields.style.display = "none";
-    }
-}
-
-updateRoleUI();
-role.addEventListener("change", updateRoleUI);
-
-// ==========================================
 // HELPERS
 // ==========================================
 
@@ -61,12 +45,66 @@ function showError(message) {
 }
 
 // ==========================================
+// PASSWORD SHOW / HIDE TOGGLE
+// ==========================================
+
+function setupPasswordToggle(inputId, toggleId) {
+    const input = document.getElementById(inputId);
+    const toggle = document.getElementById(toggleId);
+    if (!input || !toggle) return;
+
+    toggle.addEventListener("click", () => {
+        const isHidden = input.type === "password";
+        input.type = isHidden ? "text" : "password";
+        const icon = toggle.querySelector("i");
+        if (icon) icon.className = isHidden ? "fa-solid fa-eye-slash" : "fa-solid fa-eye";
+        toggle.setAttribute("aria-pressed", String(isHidden));
+    });
+}
+
+setupPasswordToggle("password", "togglePassword");
+setupPasswordToggle("confirmPassword", "toggleConfirmPassword");
+
+// ==========================================
+// BUTTON LOADING STATE
+// ==========================================
+
+function setButtonLoading(btn, isLoading, label) {
+    if (!btn) return;
+    const labelEl = btn.querySelector(".btn-label");
+    const spinner = btn.querySelector(".btn-spinner");
+    btn.disabled = isLoading;
+    if (labelEl) labelEl.textContent = label;
+    if (spinner) spinner.style.display = isLoading ? "block" : "none";
+}
+
+// ==========================================
+// VALIDATION
+// ==========================================
+
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+// Min 8 chars, at least 1 uppercase, 1 lowercase, 1 digit, 1 special
+const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{8,128}$/;
+
+function validatePassword(password) {
+    if (!password) return "Please create a password.";
+    if (password.length < 8) return "Password must be at least 8 characters.";
+    if (!/[A-Z]/.test(password)) return "Password must include an uppercase letter.";
+    if (!/[a-z]/.test(password)) return "Password must include a lowercase letter.";
+    if (!/\d/.test(password)) return "Password must include a number.";
+    if (!/[^A-Za-z0-9\s]/.test(password)) return "Password must include a special character.";
+    return null;
+}
+
+// ==========================================
 // SEND OTP
 // ==========================================
 
 sendOtpBtn.addEventListener("click", async () => {
     const name = document.getElementById("name").value.trim();
     const email = document.getElementById("email").value.trim();
+    const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
 
     if (!name) {
         showError("Please enter your full name.");
@@ -76,13 +114,21 @@ sendOtpBtn.addEventListener("click", async () => {
         showError("Please enter your email address.");
         return;
     }
-    if (!email.includes("@")) {
+    if (!EMAIL_REGEX.test(email)) {
         showError("Please enter a valid email address.");
         return;
     }
+    const pwdError = validatePassword(password);
+    if (pwdError) {
+        showError(pwdError);
+        return;
+    }
+    if (password !== confirmPassword) {
+        showError("Passwords do not match. Please try again.");
+        return;
+    }
 
-    sendOtpBtn.disabled = true;
-    sendOtpBtn.innerText = "Sending OTP...";
+    setButtonLoading(sendOtpBtn, true, "Sending OTP...");
 
     try {
         const response = await fetch(`${API}/otp/send`, {
@@ -104,8 +150,7 @@ sendOtpBtn.addEventListener("click", async () => {
     } catch (err) {
         showError(err.message || "Unable to send OTP.");
     } finally {
-        sendOtpBtn.disabled = false;
-        sendOtpBtn.innerText = "Send OTP";
+        setButtonLoading(sendOtpBtn, false, "Send OTP");
     }
 });
 
@@ -140,13 +185,20 @@ function startOtpTimer(seconds) {
 form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
+    const password = document.getElementById("password").value;
+    const confirmPassword = document.getElementById("confirmPassword").value;
+
+    if (password !== confirmPassword) {
+        showError("Passwords do not match. Please try again.");
+        return;
+    }
+
     const payload = {
         type: "register",
         name: document.getElementById("name").value.trim(),
         email: document.getElementById("email").value.trim(),
         role: role.value,
-        businessName: document.getElementById("businessName")?.value.trim() || "",
-        city: document.getElementById("city")?.value.trim() || "",
+        password,
         code: document.getElementById("otp").value.trim()
     };
 
@@ -160,8 +212,7 @@ form.addEventListener("submit", async (e) => {
     }
 
     const createBtn = document.getElementById("createAccountBtn");
-    createBtn.disabled = true;
-    createBtn.innerText = "Verifying...";
+    setButtonLoading(createBtn, true, "Verifying...");
 
     try {
         const response = await fetch(`${API}/otp/verify`, {
@@ -176,18 +227,19 @@ form.addEventListener("submit", async (e) => {
             throw new Error(data.message || "Verification failed.");
         }
 
-        // Save session using shared module
-        login(data.token, data.user, false);
+        // Save session using shared module (auto-login)
+        if (data.token && data.user) {
+            login(data.token, data.user, false);
+        }
 
         showSuccess("Account created successfully!");
 
-        setTimeout(() => redirectBasedOnRole(data.user.role), 1200);
+        setTimeout(() => redirectBasedOnRole(data.user ? data.user.role : "student"), 1200);
 
     } catch (err) {
         showError(err.message || "Verification failed.");
     } finally {
-        createBtn.disabled = false;
-        createBtn.innerText = "Verify OTP & Create Account";
+        setButtonLoading(createBtn, false, "Verify OTP & Create Account");
     }
 });
 
@@ -197,7 +249,7 @@ form.addEventListener("submit", async (e) => {
 
 window.handleGoogleRegister = async function (response) {
     try {
-        const res = await fetch(`${API}/google`, {
+        const res = await fetch(`${API}/auth/google`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({
@@ -240,7 +292,7 @@ window.handleGoogleRegister = async function (response) {
         // Check if already initialized (login.js may have done it)
         try {
             google.accounts.id.initialize({
-                client_id: "45569590642-4mehsdjfru09l14mmslif775edv7jego.apps.googleusercontent.com",
+                client_id: CONFIG.GOOGLE_CLIENT_ID || "45569590642-4mehsdjfru09l14mmslif775edv7jego.apps.googleusercontent.com",
                 callback: window.handleGoogleRegister
             });
         } catch (e) {
@@ -261,4 +313,3 @@ window.handleGoogleRegister = async function (response) {
         window.addEventListener("load", setup);
     }
 })();
-

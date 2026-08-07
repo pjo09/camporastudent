@@ -2,12 +2,14 @@
 // CAMPORA FRONTEND CONFIGURATION
 // =====================================================
 
-const CONFIG = {
-    // Development
-    API_BASE: "http://localhost:5000/api",
+const isProduction =
+    window.location.hostname !== "localhost" &&
+    window.location.hostname !== "127.0.0.1";
 
-    // Production
-    // API_BASE: "https://api.campora.in/api",
+const CONFIG = {
+    API_BASE: isProduction
+        ? "https://camporastudents2.onrender.com/api"
+        : "http://localhost:5000/api",
 
     REQUEST_TIMEOUT: 15000,
     UPLOAD_TIMEOUT: 60000,

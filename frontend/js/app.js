@@ -1,107 +1,137 @@
-import { initOTP } from "./otp.js";
-import { initNavbar } from "./navbar.js";
-import { initTheme } from "./theme.js";
-import { updateNavbar, logout } from "./session.js";
-import { sendOTP, verifyOTP, saveLogin } from "./otp-auth.js";
-import { API } from "./config.js";
+// ===============================================
+// CAMPORA FRONTEND — SHARED APP BOOTSTRAP
+// ===============================================
+// This is a CLASSIC (non-module) script loaded by
+// placeholder/stub pages (universities, forgot-password,
+// admin login, etc.) via:
+//   <script src="js/config.js"></script>
+//   <script src="js/app.js"></script>
+//
+// It reads the globals injected by config.js
+// (window.__CONFIG / window.__API) and provides a
+// small, dependency-free bootstrap so these pages
+// render without JS errors.
+// ===============================================
 
-export const API_BASE = API;
+(function () {
+  "use strict";
 
-function getEl(id){
+  // ===========================================
+  // CONFIG (injected by config.js)
+  // ===========================================
+  var CONFIG = window.__CONFIG || {};
+  var API = window.__API || CONFIG.API_BASE || "";
+
+  // ===========================================
+  // HELPERS
+  // ===========================================
+  function $(id) {
     return document.getElementById(id);
-}
+  }
 
-function applyTheme(){
+  // ===========================================
+  // FOOTER YEAR
+  // ===========================================
+  function setFooterYear() {
+    var year = $("year");
+    if (year) year.textContent = new Date().getFullYear();
+  }
 
-    const theme = localStorage.getItem("theme") || "dark";
+  // ===========================================
+  // THEME
+  // ===========================================
+  function applyTheme() {
+    var theme = localStorage.getItem("theme") || "dark";
+    document.body.classList.toggle("light", theme === "light");
+    document.body.classList.toggle("dark", theme === "dark");
 
-    document.body.classList.toggle("light", theme==="light");
-    document.body.classList.toggle("dark", theme==="dark");
+    var btn = $("themeToggle");
+    if (btn) btn.textContent = theme === "dark" ? "\uD83C\uDF19" : "\u2600\uFE0F";
+  }
 
-    const btn = getEl("themeToggle");
+  function bindThemeToggle() {
+    var btn = $("themeToggle");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      var current = localStorage.getItem("theme") || "dark";
+      var next = current === "dark" ? "light" : "dark";
+      localStorage.setItem("theme", next);
+      applyTheme();
+    });
+  }
 
-    if(btn){
+  // ===========================================
+  // NAVBAR AUTH STATE
+  // ===========================================
+  function updateNavbar() {
+    var token = localStorage.getItem("camporaToken") || sessionStorage.getItem("camporaToken");
+    var loginBtn = $("navLogin");
+    var registerBtn = $("navRegister");
+    var dashboardBtn = $("navDashboard");
+    var logoutBtn = $("navLogout");
 
-        btn.textContent = theme==="dark" ? "🌙" : "☀️";
-
+    if (token) {
+      if (loginBtn) loginBtn.style.display = "none";
+      if (registerBtn) registerBtn.style.display = "none";
+      if (dashboardBtn) dashboardBtn.style.display = "inline-flex";
+      if (logoutBtn) logoutBtn.style.display = "inline-flex";
+    } else {
+      if (loginBtn) loginBtn.style.display = "inline-flex";
+      if (registerBtn) registerBtn.style.display = "inline-flex";
+      if (dashboardBtn) dashboardBtn.style.display = "none";
+      if (logoutBtn) logoutBtn.style.display = "none";
     }
+  }
 
-}
+  // ===========================================
+  // MOBILE MENU
+  // ===========================================
+  function initMobileMenu() {
+    var toggle = $("menuToggle");
+    var menu = $("mobileMenu");
+    if (!toggle || !menu) return;
 
-function bindThemeToggle(){
-
-    const btn = getEl("themeToggle");
-
-    if(!btn) return;
-
-    btn.addEventListener("click",()=>{
-
-        const current = localStorage.getItem("theme") || "dark";
-
-        const next = current==="dark" ? "light" : "dark";
-
-        localStorage.setItem("theme",next);
-
-        applyTheme();
-
+    toggle.addEventListener("click", function () {
+      var active = menu.classList.toggle("active");
+      toggle.setAttribute("aria-expanded", active ? "true" : "false");
     });
 
-}
+    menu.querySelectorAll("a, button").forEach(function (el) {
+      el.addEventListener("click", function () {
+        menu.classList.remove("active");
+        toggle.setAttribute("aria-expanded", "false");
+      });
+    });
+  }
 
-function ensureFooterYear(){
+  // ===========================================
+  // LOGOUT
+  // ===========================================
+  function bindLogout() {
+    var btn = $("navLogout");
+    if (!btn) return;
+    btn.addEventListener("click", function () {
+      localStorage.removeItem("camporaToken");
+      localStorage.removeItem("camporaUser");
+      localStorage.removeItem("camporaRole");
+      sessionStorage.removeItem("camporaToken");
+      sessionStorage.removeItem("camporaUser");
+      window.location.href = "index.html";
+    });
+  }
 
-    const year = getEl("year");
+  // ===========================================
+  // BOOTSTRAP
+  // ===========================================
+  document.addEventListener("DOMContentLoaded", function () {
+    applyTheme();
+    bindThemeToggle();
+    setFooterYear();
+    updateNavbar();
+    initMobileMenu();
+    bindLogout();
 
-    if(year){
-
-        year.textContent = new Date().getFullYear();
-
-    }
-
-}
-
-document.addEventListener("DOMContentLoaded",()=>{
-
-    initTheme();
-
-    initNavbar();
-
-    if (document.getElementById("registerForm")) {
-    initOTP();
-}
-
-});
-/* ==========================================
-   CAMPORA PREMIUM INTRO
-========================================== */
-
-const intro = document.getElementById("introScreen");
-const typing = document.getElementById("typingText");
-const loading = document.getElementById("loadingBar");
-
-if (!intro || !typing || !loading) {
-    console.log("Intro elements not found.");
-} else {
-
-    const message = "Hi 👋 Welcome to Campora";
-
-    let i = 0;
-
-    function type() {
-        if (i < message.length) {
-            typing.innerHTML += message.charAt(i);
-            i++;
-            setTimeout(type, 70);
-        }
-    }
-
-    type();
-
-    setTimeout(() => {
-        loading.style.width = "100%";
-    }, 500);
-
-    setTimeout(() => {
-        intro.classList.add("hide");
-    }, 5500);
-}
+    // Expose globals for any inline scripts on these pages.
+    window.App = { API: API, CONFIG: CONFIG };
+  });
+})();

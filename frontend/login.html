@@ -15,7 +15,9 @@
 
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
 <link rel="stylesheet" href="./css/theme.css">
 
@@ -81,7 +83,7 @@ Home
 
 </a>
 
-<a href="signup.html" class="nav-btn">
+<a href="register.html" class="nav-btn">
 
 Create Account
 
@@ -101,6 +103,16 @@ Create Account
 
 <section class="left-panel">
 
+<!-- Loading skeleton shown briefly on page load -->
+<div class="auth-skeleton" id="authSkeleton">
+    <div class="skeleton-line" style="width:120px;height:22px"></div>
+    <div class="skeleton-line" style="width:220px;height:44px"></div>
+    <div class="skeleton-line" style="width:100%;height:56px;margin-top:24px"></div>
+    <div class="skeleton-line" style="width:100%;height:56px;margin-top:12px"></div>
+    <div class="skeleton-line" style="width:100%;height:56px;margin-top:12px"></div>
+</div>
+
+<div class="auth-form-wrap" id="authFormWrap">
 <div class="badge">
 
 WELCOME BACK
@@ -135,7 +147,7 @@ OR
 
 <!-- ================= PASSWORD LOGIN ================= -->
 
-<form id="loginForm">
+<form id="loginForm" novalidate>
 
 <div class="input-group">
 
@@ -153,6 +165,8 @@ type="email"
 
 placeholder="Enter your email"
 
+autocomplete="email"
+
 >
 
 </div>
@@ -165,6 +179,8 @@ Password
 
 </label>
 
+<div class="password-field">
+
 <input
 
 id="loginPassword"
@@ -173,11 +189,33 @@ type="password"
 
 placeholder="Enter password"
 
+autocomplete="current-password"
+
+aria-label="Password"
+
 >
+
+<button
+
+type="button"
+
+class="password-toggle"
+
+id="toggleLoginPassword"
+
+aria-label="Show password"
+
+tabindex="-1">
+
+<i class="fa-solid fa-eye"></i>
+
+</button>
 
 </div>
 
-                        <div class="remember-row">
+</div>
+
+<div class="remember-row">
 
 <label>
 
@@ -187,9 +225,9 @@ Remember Me
 
 </label>
 
-<a href="signup.html">
+<a href="forgot-password.html">
 
-Create account
+Forgot Password?
 
 </a>
 
@@ -199,13 +237,27 @@ Create account
 
 type="submit"
 
-class="primary-btn">
+class="primary-btn"
 
-Login
+id="loginBtn">
+
+<span class="btn-label">Login</span>
+
+<span class="btn-spinner" aria-hidden="true"></span>
 
 </button>
 
 </form>
+
+<div class="auth-links">
+
+<a href="admin-login.html" class="admin-link">
+
+<i class="fa-solid fa-shield-halved"></i> Admin Login
+
+</a>
+
+</div>
 
 <!-- ================= OTP LOGIN ================= -->
 
@@ -235,6 +287,8 @@ type="email"
 
 placeholder="Enter your email for OTP"
 
+autocomplete="email"
+
 >
 
 </div>
@@ -247,7 +301,9 @@ id="sendOtpBtn"
 
 class="primary-btn">
 
-Send OTP
+<span class="btn-label">Send OTP</span>
+
+<span class="btn-spinner" aria-hidden="true"></span>
 
 </button>
 
@@ -277,7 +333,19 @@ maxlength="6"
 
 placeholder="6-digit OTP"
 
+inputmode="numeric"
+
+autocomplete="one-time-code"
+
 >
+
+</div>
+
+<div class="otp-timer-row">
+
+<span class="otp-expiry">OTP expires in</span>
+
+<span class="otp-timer" id="otpTimer">05:00</span>
 
 </div>
 
@@ -289,7 +357,9 @@ id="verifyBtn"
 
 class="success-btn">
 
-Verify OTP
+<span class="btn-label">Verify OTP</span>
+
+<span class="btn-spinner" aria-hidden="true"></span>
 
 </button>
 
@@ -301,7 +371,9 @@ Verify OTP
 
 id="successMessage"
 
-class="success-message">
+class="success-message"
+
+role="status">
 
 </div>
 
@@ -309,7 +381,9 @@ class="success-message">
 
 id="errorMessage"
 
-class="error-message">
+class="error-message"
+
+role="alert">
 
 </div>
 
@@ -317,13 +391,14 @@ class="error-message">
 
 Don't have an account?
 
-<a href="signup.html">
+<a href="register.html">
 
-Register
+Create Account
 
 </a>
 
 </p>
+</div>
 
 </section>
 

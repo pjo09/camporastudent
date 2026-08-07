@@ -1,12 +1,10 @@
 require("dotenv").config();
 
-const mongoose = require("mongoose");
+const State = require("../../models/State");
+const City = require("../../models/City");
+const College = require("../../models/College");
 
-const State = require("../models/State");
-const City = require("../models/City");
-const College = require("../models/College");
-
-const connectDB = require("../config/db");
+const connectDB = require("../../config/db");
 
 async function seedIndia(){
 

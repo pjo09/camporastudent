@@ -3,7 +3,7 @@
 // ===============================================
 
 import { login, logout as sessionLogout, redirectBasedOnRole } from "./session.js";
-import { API } from "./config.js";
+import CONFIG, { API } from "./config.js";
 
 const API_BASE = API;
 
@@ -31,6 +31,57 @@ function showSuccess(message) {
         successBox.innerText = message;
         successBox.style.display = "block";
     }
+}
+
+// ===============================================
+// LOADING SKELETON — hides once page is ready
+// ===============================================
+
+(function initSkeleton() {
+    const hide = () => {
+        const skeleton = $("authSkeleton");
+        const wrap = $("authFormWrap");
+        if (skeleton) skeleton.style.display = "none";
+        if (wrap) wrap.style.display = "block";
+    };
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", hide);
+    } else {
+        hide();
+    }
+})();
+
+// ===============================================
+// PASSWORD SHOW / HIDE TOGGLE
+// ===============================================
+
+function setupPasswordToggle(inputId, toggleId) {
+    const input = $(inputId);
+    const toggle = $(toggleId);
+    if (!input || !toggle) return;
+
+    toggle.addEventListener("click", () => {
+        const isHidden = input.type === "password";
+        input.type = isHidden ? "text" : "password";
+        const icon = toggle.querySelector("i");
+        if (icon) icon.className = isHidden ? "fa-solid fa-eye-slash" : "fa-solid fa-eye";
+        toggle.setAttribute("aria-pressed", String(isHidden));
+    });
+}
+
+setupPasswordToggle("loginPassword", "toggleLoginPassword");
+
+// ===============================================
+// BUTTON LOADING STATE
+// ===============================================
+
+function setButtonLoading(btn, isLoading, label) {
+    if (!btn) return;
+    const labelEl = btn.querySelector(".btn-label");
+    const spinner = btn.querySelector(".btn-spinner");
+    btn.disabled = isLoading;
+    if (labelEl) labelEl.textContent = isLoading ? label : (btn.dataset.originalLabel || label);
+    if (spinner) spinner.style.display = isLoading ? "block" : "none";
 }
 
 // ===============================================
@@ -73,10 +124,13 @@ if (loginForm) {
     loginForm.addEventListener("submit", loginUser);
 }
 
+// Simple email validation regex
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 async function loginUser(e) {
     e.preventDefault();
 
-    const btn = loginForm.querySelector("button[type='submit']");
+    const btn = $("loginBtn");
     const email = $("loginEmail").value.trim();
     const password = $("loginPassword").value;
     const remember = rememberMeCheckbox ? rememberMeCheckbox.checked : false;
@@ -86,14 +140,17 @@ async function loginUser(e) {
         showError("Please enter your email address.");
         return;
     }
+    if (!EMAIL_REGEX.test(email)) {
+        showError("Please enter a valid email address.");
+        return;
+    }
     if (!password) {
         showError("Please enter your password.");
         return;
     }
 
     // Loading state
-    btn.disabled = true;
-    btn.innerText = "Signing In...";
+    setButtonLoading(btn, true, "Signing In...");
 
     try {
         const response = await fetch(`${API}/auth/login`, {
@@ -120,8 +177,7 @@ async function loginUser(e) {
         console.error("Login Error:", err);
         showError(err.message);
     } finally {
-        btn.disabled = false;
-        btn.innerText = "Login";
+        setButtonLoading(btn, false, "Login");
     }
 }
 
@@ -141,6 +197,27 @@ if (verifyOtpBtnEl) {
     verifyOtpBtnEl.addEventListener("click", verifyOTP);
 }
 
+// OTP countdown timer
+let otpInterval = null;
+
+function startOtpTimer(seconds) {
+    clearInterval(otpInterval);
+    const timer = $("otpTimer");
+    let remaining = seconds;
+
+    otpInterval = setInterval(() => {
+        const min = String(Math.floor(remaining / 60)).padStart(2, "0");
+        const sec = String(remaining % 60).padStart(2, "0");
+        if (timer) timer.innerText = `${min}:${sec}`;
+        remaining--;
+
+        if (remaining < 0) {
+            clearInterval(otpInterval);
+            if (timer) timer.innerText = "Expired";
+        }
+    }, 1000);
+}
+
 // SEND OTP
 async function sendOTP() {
     const email = $("otpEmail").value.trim();
@@ -149,13 +226,12 @@ async function sendOTP() {
         showError("Please enter your email address.");
         return;
     }
-    if (!email.includes("@")) {
+    if (!EMAIL_REGEX.test(email)) {
         showError("Please enter a valid email address.");
         return;
     }
 
-    sendOtpBtn.disabled = true;
-    sendOtpBtn.innerText = "Sending...";
+    setButtonLoading(sendOtpBtn, true, "Sending...");
 
     try {
         const response = await fetch(`${API}/otp/send`, {
@@ -173,13 +249,13 @@ async function sendOTP() {
         // Show OTP input section
         if (otpSection) otpSection.style.display = "block";
         showSuccess("OTP sent to " + email);
+        startOtpTimer(300);
 
     } catch (err) {
         console.error("Send OTP Error:", err);
         showError(err.message);
     } finally {
-        sendOtpBtn.disabled = false;
-        sendOtpBtn.innerText = "Send OTP";
+        setButtonLoading(sendOtpBtn, false, "Send OTP");
     }
 }
 
@@ -194,8 +270,7 @@ async function verifyOTP() {
         return;
     }
 
-    verifyOtpBtnEl.disabled = true;
-    verifyOtpBtnEl.innerText = "Verifying...";
+    setButtonLoading(verifyOtpBtnEl, true, "Verifying...");
 
     try {
         const response = await fetch(`${API}/otp/verify`, {
@@ -221,8 +296,7 @@ async function verifyOTP() {
         console.error("Verify OTP Error:", err);
         showError(err.message);
     } finally {
-        verifyOtpBtnEl.disabled = false;
-        verifyOtpBtnEl.innerText = "Verify OTP";
+        setButtonLoading(verifyOtpBtnEl, false, "Verify OTP");
     }
 }
 
@@ -232,7 +306,7 @@ async function verifyOTP() {
 
 window.handleGoogleLogin = async function (response) {
     try {
-        const res = await fetch(`${API}/google`, {
+        const res = await fetch(`${API}/auth/google`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ credential: response.credential })
@@ -270,7 +344,7 @@ window.handleGoogleLogin = async function (response) {
         }
 
         google.accounts.id.initialize({
-            client_id: "45569590642-4mehsdjfru09l14mmslif775edv7jego.apps.googleusercontent.com",
+            client_id: CONFIG.GOOGLE_CLIENT_ID || "45569590642-4mehsdjfru09l14mmslif775edv7jego.apps.googleusercontent.com",
             callback: window.handleGoogleLogin
         });
 
@@ -291,4 +365,3 @@ window.handleGoogleLogin = async function (response) {
         window.addEventListener("load", setup);
     }
 })();
-
