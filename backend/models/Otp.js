@@ -12,6 +12,15 @@ const otpSchema = new mongoose.Schema({
         type: String,
         required: true
     },
+    // Distinguishes the flow this OTP belongs to: "register" (default)
+    // for new-account verification/login, or "reset" for password reset.
+    // Defaults to "register" so pre-existing OTP documents remain fully
+    // compatible with existing register/login verification flows.
+    purpose: {
+        type: String,
+        enum: ["register", "reset"],
+        default: "register"
+    },
     // Number of failed verification attempts against this OTP.
     attempts: {
         type: Number,

@@ -31,7 +31,7 @@ app.use(helmet({
             styleSrcAttr: ["'unsafe-inline'"],
             imgSrc: ["'self'", "data:", "https://res.cloudinary.com", "https://*.cloudinary.com", "https://*.googleusercontent.com"],
             fontSrc: ["'self'", "https://fonts.gstatic.com", "https://cdnjs.cloudflare.com"],
-            connectSrc: ["'self'", "http://localhost:5000", "http://127.0.0.1:5000", "http://localhost:5500", "http://127.0.0.1:5500", "https://camporastudents2.onrender.com", "https://camporastudents.vercel.app", "https://accounts.google.com", "https://www.googleapis.com", "ws:", "wss:"],
+            connectSrc: ["'self'", "http://localhost:5000", "http://127.0.0.1:5000", "http://localhost:5500", "http://127.0.0.1:5500", "http://localhost:3000", "http://127.0.0.1:3000", "https://camporastudent.onrender.com", "https://camporastudent.vercel.app", "https://accounts.google.com", "https://www.googleapis.com", "ws:", "wss:"],
             frameSrc: ["'self'", "https://www.google.com", "https://accounts.google.com"],
             objectSrc: ["'none'"],
             baseUri: ["'self'"],
@@ -56,9 +56,17 @@ const authLimiter = rateLimit({
 });
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
-app.use("/api/otp/send", authLimiter);
 
-// Stricter limit for highly sensitive admin + OTP-verification endpoints.
+// Softer OTP-send limit — the cooldown in the route already throttles
+// individual emails, so this only needs to stop wholesale abuse.
+const otpSendLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    message: { success: false, message: "Too many OTP requests. Please try again later." }
+});
+app.use("/api/otp/send", otpSendLimiter);
+
+// Stricter limit for highly sensitive admin + password-reset endpoints.
 const sensitiveLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
@@ -68,7 +76,16 @@ app.use("/api/auth/admin/login", sensitiveLimiter);
 app.use("/api/auth/forgot-password", sensitiveLimiter);
 app.use("/api/auth/verify-reset-otp", sensitiveLimiter);
 app.use("/api/auth/reset-password", sensitiveLimiter);
-app.use("/api/otp/verify", sensitiveLimiter);
+
+// Dedicated OTP-verify limiter. Verification attempts are already capped
+// per-OTP (max 5) inside the route itself, so this only guards against
+// wholesale abuse and must NOT block legitimate register/login/OTP flows.
+const otpVerifyLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 30,
+    message: { success: false, message: "Too many OTP verification attempts. Please try again later." }
+});
+app.use("/api/otp/verify", otpVerifyLimiter);
 
 app.use(mongoSanitize());
 app.use(xssSanitizer());
@@ -79,8 +96,7 @@ const allowedOrigins = [
     "http://127.0.0.1:3000",
     "http://localhost:3000",
 
-    "https://camporastudents.vercel.app",
-    "https://camporastudents-iysqx341r-pjo09s-projects.vercel.app"
+    "https://camporastudent.vercel.app"
 ];
 
 app.use(cors({

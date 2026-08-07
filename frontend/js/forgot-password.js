@@ -209,10 +209,13 @@ function startResendCountdown(seconds) {
     }, 1000);
 }
 
-// Resend handler
+// Resend handler — prevent duplicate concurrent requests with a flag
+let isResending = false;
 $("resendBtn").addEventListener("click", async () => {
-    if (!resetEmail) return;
-    setButtonLoading($("resendBtn"), true, "Sending...");
+    if (!resetEmail || isResending) return;
+    isResending = true;
+    const btn = $("resendBtn");
+    setButtonLoading(btn, true, "Sending...");
     try {
         const response = await fetch(`${API}/auth/forgot-password`, {
             method: "POST",
@@ -224,12 +227,18 @@ $("resendBtn").addEventListener("click", async () => {
             throw new Error(data.message || "Unable to resend code.");
         }
         showSuccess("A new code has been sent to your email.");
+        // Reset button state: the countdown will disable it, so we leave
+        // it in loading state until startResendCountdown takes over.
+        setButtonLoading(btn, false, "Resend code");
         startOtpTimer(300);
         startResendCountdown(30);
     } catch (err) {
         showError(err.message);
+        // Re-enable on error so the user can retry
+        setButtonLoading(btn, false, "Resend code");
+        btn.disabled = false;
     } finally {
-        setButtonLoading($("resendBtn"), false, "Resend code");
+        isResending = false;
     }
 });
 
@@ -248,9 +257,19 @@ $("verifyResetBtn").addEventListener("click", async () => {
     setButtonLoading(btn, true, "Verifying...");
 
     try {
-        // Verify the OTP exists via the reset endpoint (validates + sets new password later).
-        // We validate the OTP here by checking with a lightweight call.
-        // (The reset-password endpoint performs full validation.)
+        // Verify the OTP against the backend before advancing to step 3.
+        const response = await fetch(`${API}/auth/verify-reset-otp`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ email: resetEmail, code })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok || !data.success) {
+            throw new Error(data.message || "Unable to verify code.");
+        }
+
         showStep(3);
         showSuccess("Code verified. Please set your new password.");
     } catch (err) {

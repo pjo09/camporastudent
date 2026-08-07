@@ -1,42 +1,42 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://camporastudents.vercel.app/</loc>
+    <loc>https://camporastudent.vercel.app/</loc>
     <changefreq>daily</changefreq>
     <priority>1.0</priority>
   </url>
   <url>
-    <loc>https://camporastudents.vercel.app/properties.html</loc>
+    <loc>https://camporastudent.vercel.app/properties.html</loc>
     <changefreq>daily</changefreq>
     <priority>0.9</priority>
   </url>
   <url>
-    <loc>https://camporastudents.vercel.app/universities.html</loc>
+    <loc>https://camporastudent.vercel.app/universities.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.8</priority>
   </url>
   <url>
-    <loc>https://camporastudents.vercel.app/nearby.html</loc>
+    <loc>https://camporastudent.vercel.app/nearby.html</loc>
     <changefreq>weekly</changefreq>
     <priority>0.7</priority>
   </url>
   <url>
-    <loc>https://camporastudents.vercel.app/contact.html</loc>
+    <loc>https://camporastudent.vercel.app/contact.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.6</priority>
   </url>
   <url>
-    <loc>https://camporastudents.vercel.app/login.html</loc>
+    <loc>https://camporastudent.vercel.app/login.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://camporastudents.vercel.app/register.html</loc>
+    <loc>https://camporastudent.vercel.app/register.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>
   <url>
-    <loc>https://camporastudents.vercel.app/support.html</loc>
+    <loc>https://camporastudent.vercel.app/support.html</loc>
     <changefreq>monthly</changefreq>
     <priority>0.5</priority>
   </url>

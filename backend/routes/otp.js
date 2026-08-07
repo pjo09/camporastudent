@@ -99,10 +99,13 @@ router.post("/send", async (req, res) => {
         // Delete any existing OTPs for this email
         await Otp.deleteMany({ email: normalizedEmail });
 
-        // Save new OTP with 5-minute expiry
+        // Save new OTP with 5-minute expiry.
+        // Explicit purpose "register" so a registration code can never be
+        // redeemed in a password-reset flow (and vice versa).
         await Otp.create({
             email: normalizedEmail,
             code,
+            purpose: "register",
             attempts: 0,
             used: false,
             lastSentAt: new Date()
@@ -183,13 +186,32 @@ const {
             });
         }
 
-        const normalizedEmail = email.toLowerCase().trim();
+const normalizedEmail = email.toLowerCase().trim();
+
+        // ================================
+        // OTP LOGIN — DISABLED (temporarily)
+        // ================================
+        // OTP-based login has been removed from the active authentication
+        // flow. Users authenticate with email + password or Google.
+        // The handler below this guard (registration) and the /send endpoint
+        // remain intact for future re-enablement.
+        // NOTE: Forgot-password OTPs are handled separately under
+        // /api/auth/forgot-password and continue to work normally.
+        if (type === "login") {
+            return res.status(400).json({
+                success: false,
+                message: "OTP login is currently disabled. Please sign in with your password or Google."
+            });
+        }
 
         // Find the OTP record. `used` + `attempts` fields enforce single-use
         // and a maximum number of failed guesses.
+        // Only "register" purpose OTPs can be redeemed here (default documents
+        // created before the purpose field are treated as "register").
         const otp = await Otp.findOne({
             email: normalizedEmail,
-            code
+            code,
+            purpose: { $in: ["register", null, { $exists: false }] }
         });
 
         if (!otp) {

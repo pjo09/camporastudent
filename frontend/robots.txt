@@ -12,5 +12,5 @@ Disallow: /dashboard.html
 Disallow: /payment.html
 Disallow: /success.html
 
-Sitemap: https://camporastudents.vercel.app/sitemap.xml
+Sitemap: https://camporastudent.vercel.app/sitemap.xml
 

@@ -1,5 +1,5 @@
 // ==========================================
-// CAMPORA REGISTER - OTP + Google + Password
+// CAMPORA REGISTER - Google + Password
 // ==========================================
 
 import { login, redirectBasedOnRole } from "./session.js";
@@ -10,10 +10,26 @@ const API_BASE = API;
 // Form Elements
 const form = document.getElementById("registerForm");
 const role = document.getElementById("role");
-const sendOtpBtn = document.getElementById("sendOtpBtn");
-const otpSection = document.getElementById("otpSection");
 const successMessage = document.getElementById("successMessage");
 const errorMessage = document.getElementById("errorMessage");
+
+// ==========================================
+// LOADING SKELETON — hides once page is ready
+// ==========================================
+
+(function initSkeleton() {
+    const hide = () => {
+        const skeleton = document.getElementById("authSkeleton");
+        const wrap = document.getElementById("authFormWrap");
+        if (skeleton) skeleton.style.display = "none";
+        if (wrap) wrap.style.display = "block";
+    };
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", hide);
+    } else {
+        hide();
+    }
+})();
 
 // ==========================================
 // PRESELECT ROLE FROM URL
@@ -97,10 +113,12 @@ function validatePassword(password) {
 }
 
 // ==========================================
-// SEND OTP
+// REGISTER & AUTO LOGIN
 // ==========================================
 
-sendOtpBtn.addEventListener("click", async () => {
+form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+
     const name = document.getElementById("name").value.trim();
     const email = document.getElementById("email").value.trim();
     const password = document.getElementById("password").value;
@@ -128,94 +146,18 @@ sendOtpBtn.addEventListener("click", async () => {
         return;
     }
 
-    setButtonLoading(sendOtpBtn, true, "Sending OTP...");
-
-    try {
-        const response = await fetch(`${API}/otp/send`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ name, email })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok || !data.success) {
-            throw new Error(data.message || "Unable to send OTP.");
-        }
-
-        otpSection.style.display = "block";
-        showSuccess("OTP sent successfully. Please check your email.");
-        startOtpTimer(300);
-
-    } catch (err) {
-        showError(err.message || "Unable to send OTP.");
-    } finally {
-        setButtonLoading(sendOtpBtn, false, "Send OTP");
-    }
-});
-
-// ==========================================
-// OTP TIMER
-// ==========================================
-
-let otpInterval = null;
-
-function startOtpTimer(seconds) {
-    clearInterval(otpInterval);
-    const timer = document.getElementById("otpTimer");
-    let remaining = seconds;
-
-    otpInterval = setInterval(() => {
-        const min = String(Math.floor(remaining / 60)).padStart(2, "0");
-        const sec = String(remaining % 60).padStart(2, "0");
-        timer.innerText = `${min}:${sec}`;
-        remaining--;
-
-        if (remaining < 0) {
-            clearInterval(otpInterval);
-            timer.innerText = "Expired";
-        }
-    }, 1000);
-}
-
-// ==========================================
-// VERIFY OTP & CREATE ACCOUNT
-// ==========================================
-
-form.addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const password = document.getElementById("password").value;
-    const confirmPassword = document.getElementById("confirmPassword").value;
-
-    if (password !== confirmPassword) {
-        showError("Passwords do not match. Please try again.");
-        return;
-    }
-
     const payload = {
-        type: "register",
-        name: document.getElementById("name").value.trim(),
-        email: document.getElementById("email").value.trim(),
+        name,
+        email,
         role: role.value,
-        password,
-        code: document.getElementById("otp").value.trim()
+        password
     };
 
-    if (!payload.name) {
-        showError("Please enter your full name.");
-        return;
-    }
-    if (!payload.code || payload.code.length !== 6) {
-        showError("Please enter the 6-digit OTP.");
-        return;
-    }
-
     const createBtn = document.getElementById("createAccountBtn");
-    setButtonLoading(createBtn, true, "Verifying...");
+    setButtonLoading(createBtn, true, "Creating Account...");
 
     try {
-        const response = await fetch(`${API}/otp/verify`, {
+        const response = await fetch(`${API}/auth/register`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify(payload)
@@ -224,22 +166,29 @@ form.addEventListener("submit", async (e) => {
         const data = await response.json();
 
         if (!response.ok || !data.success) {
-            throw new Error(data.message || "Verification failed.");
+            throw new Error(data.message || "Registration failed.");
+        }
+
+        // Owner accounts awaiting approval do not get a token yet.
+        if (!data.token || !data.user) {
+            showSuccess(data.message || "Account created! Your account is waiting for admin approval.");
+            setTimeout(() => {
+                window.location.href = "login.html";
+            }, 1800);
+            return;
         }
 
         // Save session using shared module (auto-login)
-        if (data.token && data.user) {
-            login(data.token, data.user, false);
-        }
+        login(data.token, data.user, false);
 
-        showSuccess("Account created successfully!");
+        showSuccess("Account created successfully! Redirecting...");
 
-        setTimeout(() => redirectBasedOnRole(data.user ? data.user.role : "student"), 1200);
+        setTimeout(() => redirectBasedOnRole(data.user.role), 1200);
 
     } catch (err) {
-        showError(err.message || "Verification failed.");
+        showError(err.message || "Registration failed.");
     } finally {
-        setButtonLoading(createBtn, false, "Verify OTP & Create Account");
+        setButtonLoading(createBtn, false, "Create Account");
     }
 });
 

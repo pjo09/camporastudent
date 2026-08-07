@@ -1,0 +1,23 @@
+=== AUTH HARDENING E2E ===
+
+✅ Admin login denied email → generic message — Unauthorized Admin Access
+✅ Admin login missing password rejected — Password is required.
+❌ Forgot password (unknown email) generic 200 — Too many attempts. Please try again later.
+❌ Verify-reset-otp invalid code rejected — Too many attempts. Please try again later.
+✅ Student register weak password rejected — Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number and a special character.
+✅ Student register (strong pwd) success — Registration successful.
+✅ Duplicate student email → 409 — An account with this email already exists.
+✅ Owner register → PENDING (no token) — Registration successful. Your account is waiting for admin approval.
+✅ Owner login while PENDING blocked — Your account is waiting for admin approval.
+✅ Student login (correct pwd) success — Login successful.
+✅ Student login (wrong pwd) → 401 — Incorrect password. Please try again.
+✅ GET /me with valid token works — User profile fetched successfully.
+✅ GET /me with invalid token → 401 — Invalid or expired token.
+❌ OTP send (1st) success — API key is invalid
+✅ OTP resend cooldown enforced (429) — Please wait 30s before requesting a new code.
+❌ OTP invalid code rejected — Too many attempts. Please try again later.
+❌ OTP missing code → 400 — Too many attempts. Please try again later.
+❌ Forgot password (existing student) success — Too many attempts. Please try again later.
+❌ Reset password (no valid OTP) rejected — Too many attempts. Please try again later.
+
+=== RESULTS: 12 passed, 7 failed ===

@@ -8,7 +8,7 @@ const isProduction =
 
 const CONFIG = {
     API_BASE: isProduction
-        ? "https://camporastudents2.onrender.com/api"
+        ? "https://camporastudent.onrender.com/api"
         : "http://localhost:5000/api",
 
     REQUEST_TIMEOUT: 15000,

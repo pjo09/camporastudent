@@ -256,7 +256,7 @@ router.post("/login", async (req, res) => {
         if (!user.password) {
             const providerMsg = user.authProvider === "google"
                 ? "This account uses Google sign-in. Please use Google login."
-                : "This account was created via OTP. Please use OTP login or reset your password.";
+                : "This account was registered without a password. Please use Forgot Password to set one.";
             return respondError(res, 400, providerMsg);
         }
 
@@ -464,7 +464,8 @@ router.post("/forgot-password", async (req, res) => {
         // Replace any existing OTP for this email (single active reset)
         await Otp.deleteMany({ email });
 
-        await Otp.create({ email, code, attempts: 0, used: false, lastSentAt: new Date() });
+        // purpose "reset" prevents this code being redeemed in a register/login flow.
+        await Otp.create({ email, code, purpose: "reset", attempts: 0, used: false, lastSentAt: new Date() });
 
         const html = `
         <div style="font-family:Arial;padding:30px">
@@ -507,11 +508,13 @@ router.post("/verify-reset-otp", async (req, res) => {
             return respondError(res, 400, "OTP code is required.");
         }
 
-        const otp = await Otp.findOne({ email, code });
+        // Only "reset" purpose OTPs are valid for the password-reset flow,
+        // preventing a registration code from being reused here.
+        const otp = await Otp.findOne({ email, code, purpose: "reset" });
 
         if (!otp) {
-            // Wrong code — count the failure against the most recent OTP for this email.
-            const latest = await Otp.findOne({ email });
+            // Wrong code — count the failure against the most recent reset OTP for this email.
+            const latest = await Otp.findOne({ email, purpose: "reset" });
             if (latest) {
                 latest.attempts = (latest.attempts || 0) + 1;
                 await latest.save();
@@ -563,10 +566,11 @@ router.post("/reset-password", async (req, res) => {
             return respondError(res, 400, "Password must be at least 8 characters and include an uppercase letter, a lowercase letter, a number and a special character.");
         }
 
-        // Find and validate the OTP (also enforces expiry via TTL index).
-        // The OTP must have been marked `used` by verify-reset-otp first,
-        // which guarantees the email owner genuinely verified the code.
-        const otp = await Otp.findOne({ email, code, used: true });
+        // Find and validate the reset OTP (also enforces expiry via TTL index).
+        // Must be `purpose: "reset"` and have been marked `used` by
+        // verify-reset-otp first, which guarantees the email owner genuinely
+        // verified the code and prevents cross-flow reuse.
+        const otp = await Otp.findOne({ email, code, purpose: "reset", used: true });
         if (!otp) {
             return respondError(res, 400, "Invalid or expired OTP. Please verify your code first.");
         }
