@@ -1,0 +1,387 @@
+campora\backend\app.js:210:    // Mongoose Cast Error (Bad ObjectId)
+campora\backend\models\AuditLog.js:5:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\Booking.js:5:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\Booking.js:11:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\Booking.js:22:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\City.js:6:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\College.js:6:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\College.js:12:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\Invoice.js:10:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\Invoice.js:17:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\Invoice.js:24:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\Invoice.js:31:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\Maintenance.js:10:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\Maintenance.js:17:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\Maintenance.js:24:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\Maintenance.js:68:            type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\Message.js:11:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\Message.js:18:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\Message.js:25:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\Message.js:63:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\Message.js:76:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\Message.js:114:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\Notification.js:7:        type:mongoose.Schema.Types.ObjectId,
+campora\backend\models\Property.js:6:        type:mongoose.Schema.Types.ObjectId,
+campora\backend\models\Review.js:7:        type:mongoose.Schema.Types.ObjectId,
+campora\backend\models\Review.js:17:        type:mongoose.Schema.Types.ObjectId,
+campora\backend\models\User.js:109:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\User.js:113:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\models\User.js:117:        type: mongoose.Schema.Types.ObjectId,
+campora\backend\node_modules\bson\lib\bson.bundle.js:89:    objectId: 7,
+campora\backend\node_modules\bson\lib\bson.bundle.js:1195:        args[1] = inspect === defaultInspect ? `new ObjectId(${args[1]})` : args[1];
+campora\backend\node_modules\bson\lib\bson.bundle.js:2598:class ObjectId extends BSONValue {
+campora\backend\node_modules\bson\lib\bson.bundle.js:2600:        return 'ObjectId';
+campora\backend\node_modules\bson\lib\bson.bundle.js:2635:            this.buffer = ObjectId.generate();
+campora\backend\node_modules\bson\lib\bson.bundle.js:2641:            if (ObjectId.validateHexString(workingId)) {
+campora\backend\node_modules\bson\lib\bson.bundle.js:2643:                if (ObjectId.cacheHexString) {
+campora\backend\node_modules\bson\lib\bson.bundle.js:2660:        if (ObjectId.cacheHexString) {
+campora\backend\node_modules\bson\lib\bson.bundle.js:2679:        if (ObjectId.cacheHexString) {
+campora\backend\node_modules\bson\lib\bson.bundle.js:2685:        if (ObjectId.cacheHexString) {
+campora\backend\node_modules\bson\lib\bson.bundle.js:2691:        return (ObjectId.index = (ObjectId.index + 1) % 0x1000000);
+campora\backend\node_modules\bson\lib\bson.bundle.js:2697:        const inc = ObjectId.getInc();
+campora\backend\node_modules\bson\lib\bson.bundle.js:2725:            variable._bsontype === 'ObjectId');
+campora\backend\node_modules\bson\lib\bson.bundle.js:2731:        if (ObjectId.is(otherId)) {
+campora\backend\node_modules\bson\lib\bson.bundle.js:2751:        return new ObjectId();
+campora\backend\node_modules\bson\lib\bson.bundle.js:2773:        return new ObjectId(buffer);
+campora\backend\node_modules\bson\lib\bson.bundle.js:2779:        return new ObjectId(ByteUtils.fromHex(hexString));
+campora\backend\node_modules\bson\lib\bson.bundle.js:2785:        return new ObjectId(ByteUtils.fromBase64(base64));
+campora\backend\node_modules\bson\lib\bson.bundle.js:2791:            return ObjectId.validateHexString(id);
+campora\backend\node_modules\bson\lib\bson.bundle.js:2793:            new ObjectId(id);
+campora\backend\node_modules\bson\lib\bson.bundle.js:2806:        return new ObjectId(doc.$oid);
+campora\backend\node_modules\bson\lib\bson.bundle.js:2809:        return ObjectId.cacheHexString && __idCache.has(this);
+campora\backend\node_modules\bson\lib\bson.bundle.js:2813:        return `new ObjectId(${inspect(this.toHexString(), options)})`;
+campora\backend\node_modules\bson\lib\bson.bundle.js:2880:            else if (value._bsontype === 'ObjectId') {
+campora\backend\node_modules\bson\lib\bson.bundle.js:3362:            value = new ObjectId(oid);
+campora\backend\node_modules\bson\lib\bson.bundle.js:3653:            const oid = new ObjectId(oidBuffer);
+campora\backend\node_modules\bson\lib\bson.bundle.js:3795:function serializeObjectId(buffer, key, value, index) {
+campora\backend\node_modules\bson\lib\bson.bundle.js:4107:            if (tag === 'ObjectId') {
+campora\backend\node_modules\bson\lib\bson.bundle.js:4108:                index = serializeObjectId(buffer, key, value, index);
+campora\backend\node_modules\bson\lib\bson.bundle.js:4194:    $oid: ObjectId,
+campora\backend\node_modules\bson\lib\bson.bundle.js:4393:    ObjectId: (o) => new ObjectId(o),
+campora\backend\node_modules\bson\lib\bson.bundle.js:4505:    objectId: 7,
+campora\backend\node_modules\bson\lib\bson.bundle.js:4574:        else if (type === BSONElementType.objectId) {
+campora\backend\node_modules\bson\lib\bson.bundle.js:4701:ObjectId: ObjectId,
+campora\backend\node_modules\bson\lib\bson.bundle.js:4735:exports.ObjectId = ObjectId;
+campora\backend\node_modules\core-js\internals\internal-metadata.js:20:    objectID: 'O' + id++, // object ID
+campora\backend\node_modules\core-js\internals\internal-metadata.js:36:  } return it[METADATA].objectID;
+campora\backend\node_modules\mongoose\index.js:41:module.exports.ObjectId = mongoose.ObjectId;
+campora\backend\node_modules\mongoose\index.js:42:module.exports.isValidObjectId = mongoose.isValidObjectId;
+campora\backend\node_modules\mongoose\index.js:43:module.exports.isObjectIdOrHexString = mongoose.isObjectIdOrHexString;
+campora\backend\node_modules\mongoose\lib\aggregate.js:47: *     // Do this instead to cast to an ObjectId
+campora\backend\node_modules\mongoose\lib\aggregate.js:48: *     new Aggregate([{ $match: { _id: new mongoose.Types.ObjectId('00000000000000000000000a') } }]);
+campora\backend\node_modules\mongoose\lib\cast\objectid.js:4:const ObjectId = require('../types/objectid');
+campora\backend\node_modules\mongoose\lib\cast\objectid.js:6:module.exports = function castObjectId(value) {
+campora\backend\node_modules\mongoose\lib\cast\objectid.js:11:  if (isBsonType(value, 'ObjectId')) {
+campora\backend\node_modules\mongoose\lib\cast\objectid.js:16:    if (isBsonType(value._id, 'ObjectId')) {
+campora\backend\node_modules\mongoose\lib\cast\objectid.js:20:      return new ObjectId(value._id.toString());
+campora\backend\node_modules\mongoose\lib\cast\objectid.js:25:    return new ObjectId(value.toString());
+campora\backend\node_modules\mongoose\lib\cast\objectid.js:28:  return new ObjectId(value);
+campora\backend\node_modules\mongoose\lib\document.js:1529:      // all to ObjectIds re: #8443
+campora\backend\node_modules\mongoose\lib\document.js:4100:  if (hasOnlyPrimitiveValues && !options.flattenObjectIds) {
+campora\backend\node_modules\mongoose\lib\document.js:4350: * @param {boolean} [options.flattenObjectIds=false] if true, convert any ObjectIds in the result to 24 character hex strings.
+campora\backend\node_modules\mongoose\lib\document.js:4354: * @return {object} document as a plain old JavaScript object (POJO). This object may contain ObjectIds, Maps, Dates, mongodb.Binary, Buffers, and other non-POJO values.
+campora\backend\node_modules\mongoose\lib\document.js:4645: * @param {boolean} [options.flattenObjectIds=false] if true, convert any ObjectIds in the result to 24 character hex strings.
+campora\backend\node_modules\mongoose\lib\document.js:4806: *     doc.populated('stories'); // Array of ObjectIds
+campora\backend\node_modules\mongoose\lib\document.js:4808: *     doc.populated('fans'); // Array of ObjectIds
+campora\backend\node_modules\mongoose\lib\document.js:4938: * @return {Array|ObjectId|number|Buffer|string|undefined}
+campora\backend\node_modules\mongoose\lib\document.js:5761:      || isBsonType(v, 'ObjectId')
+campora\backend\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:10:const ObjectId = require('../../types/objectid');
+campora\backend\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:116:      opId = new ObjectId();
+campora\backend\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:123:        opId = new ObjectId();
+campora\backend\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:330:function formatObjectId(x, key) {
+campora\backend\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:331:  x[key] = inspectable('ObjectId("' + x[key].toHexString() + '")');
+campora\backend\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:356:  } else if (constructorName === 'ObjectId') {
+campora\backend\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:357:    x = inspectable('ObjectId("' + x.toHexString() + '")');
+campora\backend\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:385:        } else if (_constructorName === 'ObjectId') {
+campora\backend\node_modules\mongoose\lib\drivers\node-mongodb-native\collection.js:386:          formatObjectId(x, key);
+campora\backend\node_modules\mongoose\lib\helpers\clone.js:4:const ObjectId = require('../types/objectid');
+campora\backend\node_modules\mongoose\lib\helpers\clone.js:111:  if (isBsonType(obj, 'ObjectId')) {
+campora\backend\node_modules\mongoose\lib\helpers\clone.js:112:    if (options?.flattenObjectIds) {
+campora\backend\node_modules\mongoose\lib\helpers\clone.js:115:    return new ObjectId(obj.id);
+campora\backend\node_modules\mongoose\lib\helpers\common.js:122:      !isBsonType(val, 'ObjectId') &&
+campora\backend\node_modules\mongoose\lib\helpers\discriminator\areDiscriminatorValuesEqual.js:12:  if (isBsonType(a, 'ObjectId') && isBsonType(b, 'ObjectId')) {
+campora\backend\node_modules\mongoose\lib\helpers\discriminator\mergeDiscriminatorSchema.js:5:const ObjectId = require('../../types/objectid');
+campora\backend\node_modules\mongoose\lib\helpers\discriminator\mergeDiscriminatorSchema.js:75:        } else if (isBsonType(from[key], 'ObjectId')) {
+campora\backend\node_modules\mongoose\lib\helpers\discriminator\mergeDiscriminatorSchema.js:76:          to[key] = new ObjectId(from[key]);
+campora\backend\node_modules\mongoose\lib\helpers\query\castUpdate.js:582:    // Ensures embedded documents get ObjectIds etc.
+campora\backend\node_modules\mongoose\lib\helpers\schema\addAutoId.js:5:  _obj._id[schema.options.typeKey] = 'ObjectId';
+campora\backend\node_modules\mongoose\lib\helpers\symbols.js:15:exports.objectIdSymbol = Symbol('mongoose#ObjectId');
+campora\backend\node_modules\mongoose\lib\model.js:300: *     await MyModel.findOne({ _id: 'Not a valid ObjectId' }).catch(noop);
+campora\backend\node_modules\mongoose\lib\model.js:425:        // nor would the ObjectId generated by mongodb necessarily
+campora\backend\node_modules\mongoose\lib\model.js:983: *     const employeeSchema = new Schema({ boss: ObjectId });
+campora\backend\node_modules\mongoose\lib\model.js:2113: * @param {object|ObjectId} filter
+campora\backend\node_modules\mongoose\lib\model.js:4432: *       pet: { type: mongoose.ObjectId, ref: 'Dog' }
+campora\backend\node_modules\mongoose\lib\model.js:4678:  // We defer populate so sift filtering can compare ObjectIds (not populated docs).
+campora\backend\node_modules\mongoose\lib\model.js:4765:  // until after sift filtering, otherwise sift compares ObjectIds against populated docs.
+campora\backend\node_modules\mongoose\lib\model.js:4794:  // ObjectIds against already-populated docs and fails to match.
+campora\backend\node_modules\mongoose\lib\mongoose.js:40:const objectIdHexRegexp = /^[0-9A-Fa-f]{24}$/;
+campora\backend\node_modules\mongoose\lib\mongoose.js:234: * - `objectIdGetter`: `true` by default. Mongoose adds a getter to MongoDB ObjectId's called `_id` that returns `this` for convenience with populate. Set this to false to remove the getter.
+campora\backend\node_modules\mongoose\lib\mongoose.js:299:    if (optionKey === 'objectIdGetter') {
+campora\backend\node_modules\mongoose\lib\mongoose.js:301:        Object.defineProperty(_mongoose.Types.ObjectId.prototype, '_id', {
+campora\backend\node_modules\mongoose\lib\mongoose.js:309:        delete _mongoose.Types.ObjectId.prototype._id;
+campora\backend\node_modules\mongoose\lib\mongoose.js:1035: * - [ObjectId](https://mongoosejs.com/docs/schematypes.html#objectids)
+campora\backend\node_modules\mongoose\lib\mongoose.js:1040: * Using this exposed access to the `ObjectId` type, we can construct ids on demand.
+campora\backend\node_modules\mongoose\lib\mongoose.js:1042: *     const ObjectId = mongoose.Types.ObjectId;
+campora\backend\node_modules\mongoose\lib\mongoose.js:1043: *     const id1 = new ObjectId;
+campora\backend\node_modules\mongoose\lib\mongoose.js:1079: * The Mongoose ObjectId [SchemaType](https://mongoosejs.com/docs/schematypes.html). Used for
+campora\backend\node_modules\mongoose\lib\mongoose.js:1081: * [MongoDB ObjectIds](https://www.mongodb.com/docs/manual/reference/method/ObjectId/).
+campora\backend\node_modules\mongoose\lib\mongoose.js:1082: * Do not use this to create a new ObjectId instance, use `mongoose.Types.ObjectId`
+campora\backend\node_modules\mongoose\lib\mongoose.js:1087: *     const childSchema = new Schema({ parentId: mongoose.ObjectId });
+campora\backend\node_modules\mongoose\lib\mongoose.js:1089: * @property ObjectId
+campora\backend\node_modules\mongoose\lib\mongoose.js:1093:Mongoose.prototype.ObjectId = SchemaTypes.ObjectId;
+campora\backend\node_modules\mongoose\lib\mongoose.js:1096: * Returns true if Mongoose can cast the given value to an ObjectId, or
+campora\backend\node_modules\mongoose\lib\mongoose.js:1101: *     mongoose.isValidObjectId(new mongoose.Types.ObjectId()); // true
+campora\backend\node_modules\mongoose\lib\mongoose.js:1102: *     mongoose.isValidObjectId('0123456789ab'); // true
+campora\backend\node_modules\mongoose\lib\mongoose.js:1103: *     mongoose.isValidObjectId(6); // true
+campora\backend\node_modules\mongoose\lib\mongoose.js:1104: *     mongoose.isValidObjectId(new User({ name: 'test' })); // true
+campora\backend\node_modules\mongoose\lib\mongoose.js:1106: *     mongoose.isValidObjectId({ test: 42 }); // false
+campora\backend\node_modules\mongoose\lib\mongoose.js:1108: * @method isValidObjectId
+campora\backend\node_modules\mongoose\lib\mongoose.js:1110: * @returns {boolean} true if `v` is something Mongoose can coerce to an ObjectId
+campora\backend\node_modules\mongoose\lib\mongoose.js:1114:Mongoose.prototype.isValidObjectId = function isValidObjectId(v) {
+campora\backend\node_modules\mongoose\lib\mongoose.js:1116:  return _mongoose.Types.ObjectId.isValid(v);
+campora\backend\node_modules\mongoose\lib\mongoose.js:1120: * Returns true if the given value is a Mongoose ObjectId (using `instanceof`) or if the
+campora\backend\node_modules\mongoose\lib\mongoose.js:1122: * of an ObjectId.
+campora\backend\node_modules\mongoose\lib\mongoose.js:1124: * This function is similar to `isValidObjectId()`, but considerably more strict, because
+campora\backend\node_modules\mongoose\lib\mongoose.js:1125: * `isValidObjectId()` will return `true` for _any_ value that Mongoose can convert to an
+campora\backend\node_modules\mongoose\lib\mongoose.js:1126: * ObjectId. That includes Mongoose documents, any string of length 12, and any number.
+campora\backend\node_modules\mongoose\lib\mongoose.js:1127: * `isObjectIdOrHexString()` returns true only for `ObjectId` instances or 24 character hex
+campora\backend\node_modules\mongoose\lib\mongoose.js:1132: *     mongoose.isObjectIdOrHexString(new mongoose.Types.ObjectId()); // true
+campora\backend\node_modules\mongoose\lib\mongoose.js:1133: *     mongoose.isObjectIdOrHexString('62261a65d66c6be0a63c051f'); // true
+campora\backend\node_modules\mongoose\lib\mongoose.js:1135: *     mongoose.isObjectIdOrHexString('0123456789ab'); // false
+campora\backend\node_modules\mongoose\lib\mongoose.js:1136: *     mongoose.isObjectIdOrHexString(6); // false
+campora\backend\node_modules\mongoose\lib\mongoose.js:1137: *     mongoose.isObjectIdOrHexString(new User({ name: 'test' })); // false
+campora\backend\node_modules\mongoose\lib\mongoose.js:1138: *     mongoose.isObjectIdOrHexString({ test: 42 }); // false
+campora\backend\node_modules\mongoose\lib\mongoose.js:1140: * @method isObjectIdOrHexString
+campora\backend\node_modules\mongoose\lib\mongoose.js:1142: * @returns {boolean} true if `v` is an ObjectId instance _or_ a 24 char hex string
+campora\backend\node_modules\mongoose\lib\mongoose.js:1146:Mongoose.prototype.isObjectIdOrHexString = function isObjectIdOrHexString(v) {
+campora\backend\node_modules\mongoose\lib\mongoose.js:1147:  return isBsonType(v, 'ObjectId') || (typeof v === 'string' && objectIdHexRegexp.test(v));
+campora\backend\node_modules\mongoose\lib\options\schemaObjectIdOptions.js:6: * The options defined on an ObjectId schematype.
+campora\backend\node_modules\mongoose\lib\options\schemaObjectIdOptions.js:10: *     const schema = new Schema({ testId: mongoose.ObjectId });
+campora\backend\node_modules\mongoose\lib\options\schemaObjectIdOptions.js:11: *     schema.path('testId').options; // SchemaObjectIdOptions instance
+campora\backend\node_modules\mongoose\lib\options\schemaObjectIdOptions.js:15: * @constructor SchemaObjectIdOptions
+campora\backend\node_modules\mongoose\lib\options\schemaObjectIdOptions.js:18:class SchemaObjectIdOptions extends SchemaTypeOptions {}
+campora\backend\node_modules\mongoose\lib\options\schemaObjectIdOptions.js:23: * If truthy, uses Mongoose's default built-in ObjectId path.
+campora\backend\node_modules\mongoose\lib\options\schemaObjectIdOptions.js:27: * @memberOf SchemaObjectIdOptions
+campora\backend\node_modules\mongoose\lib\options\schemaObjectIdOptions.js:32:Object.defineProperty(SchemaObjectIdOptions.prototype, 'auto', opts);
+campora\backend\node_modules\mongoose\lib\options\schemaObjectIdOptions.js:41: *         type: 'ObjectId',
+campora\backend\node_modules\mongoose\lib\options\schemaObjectIdOptions.js:53: * @memberOf SchemaObjectIdOptions
+campora\backend\node_modules\mongoose\lib\options\schemaObjectIdOptions.js:58:Object.defineProperty(SchemaObjectIdOptions.prototype, 'populate', opts);
+campora\backend\node_modules\mongoose\lib\options\schemaObjectIdOptions.js:64:module.exports = SchemaObjectIdOptions;
+campora\backend\node_modules\mongoose\lib\options.js:16:  flattenObjectIds: false,
+campora\backend\node_modules\mongoose\lib\plugins\sharding.js:3:const objectIdSymbol = require('../helpers/symbols').objectIdSymbol;
+campora\backend\node_modules\mongoose\lib\plugins\sharding.js:87:    } else if (val instanceof Date || val[objectIdSymbol]) {
+campora\backend\node_modules\mongoose\lib\query.js:2526: * @param {object|ObjectId} [filter] mongodb filter. If not specified, returns all documents.
+campora\backend\node_modules\mongoose\lib\query.js:2610:  } else if (this.model != null && source instanceof this.model.base.Types.ObjectId) {
+campora\backend\node_modules\mongoose\lib\schema\buffer.js:82: *     // Always convert to string when getting an ObjectId
+campora\backend\node_modules\mongoose\lib\schema\index.js:21:exports.ObjectId = require('./objectId');
+campora\backend\node_modules\mongoose\lib\schema\index.js:29:exports.Oid = exports.ObjectId;
+campora\backend\node_modules\mongoose\lib\schema\index.js:32:exports.ObjectID = exports.ObjectId;
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:7:const SchemaObjectIdOptions = require('../options/schemaObjectIdOptions');
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:9:const castObjectId = require('../cast/objectid');
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:11:const oid = require('../types/objectid');
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:19: * ObjectId SchemaType constructor.
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:29:function SchemaObjectId(key, options, _schemaOptions, parentSchema) {
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:33:    utils.warn('mongoose: To create a new ObjectId please try ' +
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:34:      '`Mongoose.Types.ObjectId` instead of using ' +
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:35:      '`Mongoose.Schema.Types.ObjectId`. Set the `suppressWarning` option if ' +
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:38:  SchemaType.call(this, key, options, 'ObjectId', parentSchema);
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:47:SchemaObjectId.schemaName = 'ObjectId';
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:49:SchemaObjectId.defaultOptions = {};
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:54:SchemaObjectId.prototype = Object.create(SchemaType.prototype);
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:55:SchemaObjectId.prototype.constructor = SchemaObjectId;
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:56:SchemaObjectId.prototype.OptionsConstructor = SchemaObjectIdOptions;
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:59: * Attaches a getter for all ObjectId instances
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:63: *     // Always convert to string when getting an ObjectId
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:64: *     mongoose.ObjectId.get(v => v.toString());
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:76:SchemaObjectId.get = SchemaType.get;
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:79: * Sets a default option for all ObjectId instances.
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:84: *     mongoose.Schema.Types.ObjectId.set('required', true);
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:86: *     const Order = mongoose.model('Order', new Schema({ userId: ObjectId }));
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:97:SchemaObjectId.set = SchemaType.set;
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:99:SchemaObjectId.setters = [];
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:102: * Adds an auto-generated ObjectId default if turnOn is true.
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:103: * @param {boolean} turnOn auto generated ObjectId defaults
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:108:SchemaObjectId.prototype.auto = function(turnOn) {
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:121:SchemaObjectId._checkRequired = v => isBsonType(v, 'ObjectId');
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:127:SchemaObjectId._cast = castObjectId;
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:130: * Get/set the function used to cast arbitrary values to objectids.
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:135: *     // char string is a valid ObjectId.
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:136: *     const original = mongoose.ObjectId.cast();
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:137: *     mongoose.ObjectId.cast(v => {
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:143: *     mongoose.ObjectId.cast(false);
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:152:SchemaObjectId.cast = function cast(caster) {
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:168:SchemaObjectId._defaultCaster = v => {
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:169:  if (!(isBsonType(v, 'ObjectId'))) {
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:170:    throw new Error(v + ' is not an instance of ObjectId');
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:194:SchemaObjectId.checkRequired = SchemaType.checkRequired;
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:205:SchemaObjectId.prototype.checkRequired = function checkRequired(value, doc) {
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:214:    SchemaObjectId.checkRequired();
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:220: * Casts to ObjectId
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:228:SchemaObjectId.prototype.cast = function(value, doc, init, prev, options) {
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:229:  if (!(isBsonType(value, 'ObjectId')) && SchemaType._isRef(this, value, doc, init)) {
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:231:    if ((getConstructorName(value) || '').toLowerCase() === 'objectid') {
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:240:  let castObjectId;
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:242:    castObjectId = this._castFunction;
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:244:    castObjectId = this.constructor.cast();
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:246:    castObjectId = SchemaObjectId.cast();
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:250:    return castObjectId(value);
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:252:    throw new CastError('ObjectId', value, this.path, error, this);
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:277: * @memberOf SchemaObjectId
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:282:Object.defineProperty(SchemaObjectId.prototype, '$conditionalHandlers', {
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:319:SchemaObjectId.prototype.toJSONSchema = function toJSONSchema(options) {
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:320:  const jsonSchema = this._createJSONSchemaTypeDefinition('string', 'objectId', options);
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:321:  // `bsonType: 'objectId'` already validates ObjectIds, so the regex is only useful
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:329:SchemaObjectId.prototype.autoEncryptionType = function autoEncryptionType() {
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:330:  return 'objectId';
+campora\backend\node_modules\mongoose\lib\schema\objectId.js:337:module.exports = SchemaObjectId;
+campora\backend\node_modules\mongoose\lib\schema.js:364: *         '_id'     : ObjectId
+campora\backend\node_modules\mongoose\lib\schema.js:1769:  } else if (type === Types.ObjectId) {
+campora\backend\node_modules\mongoose\lib\schema.js:1770:    name = 'ObjectId';
+campora\backend\node_modules\mongoose\lib\schema.js:1780:  // Special case re: gh-7049 because the bson `ObjectID` class' capitalization
+campora\backend\node_modules\mongoose\lib\schema.js:1782:  if (name === 'ObjectID') {
+campora\backend\node_modules\mongoose\lib\schema.js:1783:    name = 'ObjectId';
+campora\backend\node_modules\mongoose\lib\schema.js:3177: *     // { required: ['_id'], properties: { name: { bsonType: ['string', 'null'] }, _id: { bsonType: 'objectId' } } }
+campora\backend\node_modules\mongoose\lib\schema.js:3262: *     const ObjectId = mongoose.Schema.Types.ObjectId;
+campora\backend\node_modules\mongoose\lib\schema.js:3272: * - [ObjectId](https://mongoosejs.com/docs/schematypes.html#objectids) | Oid
+campora\backend\node_modules\mongoose\lib\schema.js:3293:exports.ObjectId = MongooseTypes.ObjectId;
+campora\backend\node_modules\mongoose\lib\schemaType.js:1063: *       userId: ObjectId,
+campora\backend\node_modules\mongoose\lib\schemaType.js:1072: *       userId: ObjectId,
+campora\backend\node_modules\mongoose\lib\schemaType.js:1110: * @see SchemaObjectId#checkRequired https://mongoosejs.com/docs/api/schemaobjectid.html#ObjectId.prototype.checkRequired()
+campora\backend\node_modules\mongoose\lib\schemaType.js:1248: *     const postSchema = new Schema({ user: mongoose.ObjectId });
+campora\backend\node_modules\mongoose\lib\schemaType.js:1256: *       user: { type: mongoose.ObjectId, ref: User }
+campora\backend\node_modules\mongoose\lib\schemaType.js:1295:      this.defaultValue.name === 'ObjectId' ||
+campora\backend\node_modules\mongoose\lib\schemaType.js:1296:      this.defaultValue.name === 'ObjectID'
+campora\backend\node_modules\mongoose\lib\schemaType.js:1307:    if (typeof ret === 'object' && ret != null && ret._bsontype !== 'ObjectId' && !this.options?.shared) {
+campora\backend\node_modules\mongoose\lib\types\array\methods\index.js:274:          isBsonType(value, 'ObjectId') || !utils.isObject(value)) {
+campora\backend\node_modules\mongoose\lib\types\array\methods\index.js:459:    } else if (isBsonType(values[0], 'ObjectId')) {
+campora\backend\node_modules\mongoose\lib\types\array\methods\index.js:460:      type = 'ObjectId';
+campora\backend\node_modules\mongoose\lib\types\array\methods\index.js:480:        case 'ObjectId':
+campora\backend\node_modules\mongoose\lib\types\array\methods\index.js:544:    if (isBsonType(obj, 'ObjectId')) {
+campora\backend\node_modules\mongoose\lib\types\array\methods\index.js:618:   *     doc.array.pull(ObjectId)
+campora\backend\node_modules\mongoose\lib\types\documentArray\methods\index.js:83:    // handle cast('string') or cast(ObjectId) etc.
+campora\backend\node_modules\mongoose\lib\types\documentArray\methods\index.js:87:        isBsonType(value, 'ObjectId') || !utils.isObject(value)) {
+campora\backend\node_modules\mongoose\lib\types\documentArray\methods\index.js:123:   * @param {ObjectId|string|number|Buffer} id
+campora\backend\node_modules\mongoose\lib\types\index.js:17:exports.ObjectId = require('./objectid');
+campora\backend\node_modules\mongoose\lib\types\map.js:56:    if (isBsonType(key, 'ObjectId')) {
+campora\backend\node_modules\mongoose\lib\types\map.js:70:   * ObjectIds as keys.
+campora\backend\node_modules\mongoose\lib\types\map.js:90:    if (isBsonType(key, 'ObjectId')) {
+campora\backend\node_modules\mongoose\lib\types\map.js:206:    if (isBsonType(key, 'ObjectId')) {
+campora\backend\node_modules\mongoose\lib\types\objectid.js:2: * ObjectId type constructor
+campora\backend\node_modules\mongoose\lib\types\objectid.js:6: *     const id = new mongoose.Types.ObjectId;
+campora\backend\node_modules\mongoose\lib\types\objectid.js:8: * @constructor ObjectId
+campora\backend\node_modules\mongoose\lib\types\objectid.js:13:const ObjectId = require('mongodb/lib/bson').ObjectId;
+campora\backend\node_modules\mongoose\lib\types\objectid.js:14:const objectIdSymbol = require('../helpers/symbols').objectIdSymbol;
+campora\backend\node_modules\mongoose\lib\types\objectid.js:21:Object.defineProperty(ObjectId.prototype, '_id', {
+campora\backend\node_modules\mongoose\lib\types\objectid.js:30: * Convenience `valueOf()` to allow comparing ObjectIds using double equals re: gh-7299
+campora\backend\node_modules\mongoose\lib\types\objectid.js:33:if (!Object.hasOwn(ObjectId.prototype, 'valueOf')) {
+campora\backend\node_modules\mongoose\lib\types\objectid.js:34:  ObjectId.prototype.valueOf = function objectIdValueOf() {
+campora\backend\node_modules\mongoose\lib\types\objectid.js:39:ObjectId.prototype[objectIdSymbol] = true;
+campora\backend\node_modules\mongoose\lib\types\objectid.js:41:module.exports = ObjectId;
+campora\backend\node_modules\mongoose\lib\utils.js:10:const ObjectId = require('./types/objectid');
+campora\backend\node_modules\mongoose\lib\utils.js:90:  if ((isBsonType(a, 'ObjectId') && isBsonType(b, 'ObjectId')) ||
+campora\backend\node_modules\mongoose\lib\utils.js:244: * Simplified version of `clone()` that only clones POJOs and arrays. Skips documents, dates, objectids, etc.
+campora\backend\node_modules\mongoose\lib\utils.js:336:        } else if (isBsonType(from[key], 'ObjectId')) {
+campora\backend\node_modules\mongoose\lib\utils.js:337:          to[key] = new ObjectId(from[key]);
+campora\backend\node_modules\mongoose\lib\utils.js:405: * ObjectId, etc.
+campora\backend\node_modules\mongoose\lib\utils.js:418: * class, like Array, Buffer, ObjectId, etc.
+campora\backend\node_modules\mongoose\lib\utils.js:526:  return isBsonType(v, 'ObjectId') || isBsonType(v, 'Decimal128') || v instanceof Buffer;
+campora\backend\node_modules\mongoose\lib\utils.js:840: * [ ObjectId("550988ba0c19d57f697dc45e"), ObjectId("550988ba0c19d57f697dc45e") ]
+campora\backend\node_modules\mongoose\lib\utils.js:841: *    => [ObjectId("550988ba0c19d57f697dc45e")]
+campora\backend\node_modules\mongoose\lib\utils.js:860:    } else if (isBsonType(item, 'ObjectId')) {
+campora\backend\node_modules\mongoose\lib\validOptions.js:23:  'objectIdGetter',
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\bson.js:3:exports.setUint32LE = exports.readUint8 = exports.readInt32LE = exports.UUID = exports.Timestamp = exports.serialize = exports.ObjectId = exports.NumberUtils = exports.MinKey = exports.MaxKey = exports.Long = exports.Int32 = exports.EJSON = exports.Double = exports.deserialize = exports.Decimal128 = exports.DBRef = exports.Code = exports.calculateObjectSize = exports.ByteUtils = exports.BSONType = exports.BSONSymbol = exports.BSONRegExp = exports.BSONError = exports.BSON = exports.Binary = void 0;
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\bson.js:30:Object.defineProperty(exports, "ObjectId", { enumerable: true, get: function () { return bson_2.ObjectId; } });
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\bulk\common.js:608:            forceServerObjectId: this.shouldForceServerObjectId()
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\bulk\common.js:663:            const forceServerObjectId = this.shouldForceServerObjectId();
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\bulk\common.js:668:            (0, utils_1.maybeAddIdToDocuments)(this.collection, document, { forceServerObjectId });
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\bulk\common.js:813:    shouldForceServerObjectId() {
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\bulk\common.js:814:        return (this.s.options.forceServerObjectId === true ||
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\bulk\common.js:815:            this.s.collection.db.options?.forceServerObjectId === true);
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\cmap\wire_protocol\on_demand\document.js:113:            case bson_1.BSONType.objectId:
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\cmap\wire_protocol\on_demand\document.js:114:                return new bson_1.ObjectId(this.bson.subarray(offset, offset + 12));
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:148:     * can be overridden by setting the **forceServerObjectId** flag.
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:159:     * can be overridden by setting the **forceServerObjectId** flag.
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\collection.js:198:     * can be overridden by setting the **forceServerObjectId** flag.
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\connection_string.js:638:    forceServerObjectId: {
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\db.js:33:    'forceServerObjectId',
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\db.js:106:            // Set up the primary key factory or fallback to ObjectId
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\gridfs\upload.js:50:        this.id = options.id ? options.id : new bson_1.ObjectId();
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\gridfs\upload.js:142:        _id: new bson_1.ObjectId(),
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\index.js:3:exports.MongoRuntimeError = exports.MongoParseError = exports.MongoOperationTimeoutError = exports.MongoOIDCError = exports.MongoNotConnectedError = exports.MongoNetworkTimeoutError = exports.MongoNetworkError = exports.MongoMissingDependencyError = exports.MongoMissingCredentialsError = exports.MongoKerberosError = exports.MongoInvalidArgumentError = exports.MongoGridFSStreamError = exports.MongoGridFSChunkError = exports.MongoGCPError = exports.MongoExpiredSessionError = exports.MongoError = exports.MongoDriverError = exports.MongoDecompressionError = exports.MongoCursorInUseError = exports.MongoCursorExhaustedError = exports.MongoCompatibilityError = exports.MongoClientClosedError = exports.MongoClientBulkWriteExecutionError = exports.MongoClientBulkWriteError = exports.MongoClientBulkWriteCursorError = exports.MongoChangeStreamError = exports.MongoBatchReExecutionError = exports.MongoAzureError = exports.MongoAWSError = exports.MongoAPIError = exports.ExplainableCursor = exports.ChangeStreamCursor = exports.ClientEncryption = exports.MongoBulkWriteError = exports.UUID = exports.Timestamp = exports.ObjectId = exports.MinKey = exports.MaxKey = exports.Long = exports.Int32 = exports.Double = exports.Decimal128 = exports.DBRef = exports.Code = exports.BSONType = exports.BSONSymbol = exports.BSONRegExp = exports.Binary = exports.BSON = void 0;
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\index.js:56:Object.defineProperty(exports, "ObjectId", { enumerable: true, get: function () { return bson_2.ObjectId; } });
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\mongo_logger.js:192:                        case 'ObjectId':
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\mongo_logger.js:369:            if (logObject.serviceId?._bsontype === 'ObjectId') {
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\operations\find.js:19:            throw new error_1.MongoInvalidArgumentError('Query filter must be a plain object or ObjectId');
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\operations\find.js:21:        // special case passing in an ObjectId as a filter
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\operations\find.js:22:        this.filter = filter != null && filter._bsontype === 'ObjectId' ? { _id: filter } : filter;
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\sdam\server_description.js:110:            ? (0, utils_1.compareObjectId)(this.electionId, other.electionId) === 0
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\sdam\topology_description.js:280:        const electionIdComparison = (0, utils_1.compareObjectId)(maxElectionId, serverDescription.electionId);
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\sdam\topology_description.js:305:                    (0, utils_1.compareObjectId)(maxElectionId, electionId) > 0) {
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\utils.js:37:exports.compareObjectId = compareObjectId;
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\utils.js:776:    // We prefer not to rely on ObjectId having a createPk method
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\utils.js:778:        return new bson_1.ObjectId();
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\utils.js:898: * Compare objectIds. `null` is always less
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\utils.js:903:function compareObjectId(oid1, oid2) {
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\utils.js:1055:    const forceServerObjectId = options.forceServerObjectId ?? collection.db.options?.forceServerObjectId ?? false;
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\utils.js:1056:    // no need to modify the docs if server sets the ObjectId
+campora\backend\node_modules\mongoose\node_modules\mongodb\lib\utils.js:1057:    if (forceServerObjectId) {
+campora\backend\node_modules\mquery\lib\env.js:11:           && 'function' == typeof ObjectId
+campora\backend\routes\admin.js:104:    return mongoose.Types.ObjectId.isValid(id);
+campora\backend\routes\bookings.js:11:function isValidObjectId(id) {
+campora\backend\routes\bookings.js:12:    return mongoose.Types.ObjectId.isValid(id);
+campora\backend\routes\bookings.js:331:        if (!isValidObjectId(id)) {
+campora\backend\routes\bookings.js:413:        if (!isValidObjectId(id)) {
+campora\backend\routes\owner-finance.js:17:function isValidObjectId(id) {
+campora\backend\routes\owner-finance.js:18:    return mongoose.Types.ObjectId.isValid(id);
+campora\backend\routes\owner-finance.js:129:        if (!isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid ID" });
+campora\backend\routes\owner-finance.js:146:        if (!isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid ID" });
+campora\backend\routes\owner-finance.js:188:        if (!isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid ID" });
+campora\backend\routes\owner-finance.js:207:        if (!isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid ID" });
+campora\backend\routes\owner-maintenance.js:15:function isValidObjectId(id) {
+campora\backend\routes\owner-maintenance.js:16:    return mongoose.Types.ObjectId.isValid(id);
+campora\backend\routes\owner-maintenance.js:70:        if (!propertyId || !isValidObjectId(propertyId)) {
+campora\backend\routes\owner-maintenance.js:103:        if (!isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid ID" });
+campora\backend\routes\owner-maintenance.js:120:        if (!isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid ID" });
+campora\backend\routes\owner-maintenance.js:160:        if (!isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid ID" });
+campora\backend\routes\owner-maintenance.js:186:        if (!isValidObjectId(req.params.id)) return res.status(400).json({ success: false, message: "Invalid ID" });
+campora\backend\routes\owner.js:44:function isValidObjectId(id) {
+campora\backend\routes\owner.js:46:    return mongoose.Types.ObjectId.isValid(id);
+campora\backend\routes\owner.js:661:        if (!isValidObjectId(req.params.id))
+campora\backend\routes\owner.js:699:        if (!isValidObjectId(req.params.id))
+campora\backend\routes\owner.js:777:        if (!isValidObjectId(req.params.id))
+campora\backend\routes\owner.js:1107:        if (!isValidObjectId(req.params.id)) {
+campora\backend\routes\owner.js:1454:        if (!isValidObjectId(req.params.id)) {
+campora\backend\routes\owner.js:1514:        if (!isValidObjectId(req.params.id)) {
+campora\backend\routes\owner.js:2209:        if (!isValidObjectId(req.params.id)) {
+campora\backend\routes\owner.js:2271:        if (!isValidObjectId(req.params.id)) {
+campora\backend\routes\owner.js:2320:        if (!isValidObjectId(req.params.id)) {
+campora\backend\routes\owner.js:2430:        if (!isValidObjectId(req.params.id)) {
+campora\backend\routes\payment.js:11:function isValidObjectId(id) {
+campora\backend\routes\payment.js:12:    return mongoose.Types.ObjectId.isValid(id);
+campora\backend\routes\payment.js:46:        if (!isValidObjectId(bookingId)) {
+campora\backend\routes\payment.js:200:            !isValidObjectId(bookingId) ||
+campora\backend\routes\properties.js:366:        // Validate ObjectId before querying
+campora\backend\routes\properties.js:367:        if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+campora\backend\routes\reviews.js:17:        // Validate ObjectId before querying
+campora\backend\routes\reviews.js:18:        if (!mongoose.Types.ObjectId.isValid(req.params.propertyId)) {
+campora\backend\routes\reviews.js:72:        if (!propertyId || !mongoose.Types.ObjectId.isValid(propertyId)) {
+campora\backend\routes\student-finance.js:15:function isValidObjectId(id) {
+campora\backend\routes\student-finance.js:16:    return mongoose.Types.ObjectId.isValid(id);
+campora\backend\routes\student-finance.js:54:        if (!isValidObjectId(req.params.id)) {
+campora\backend\routes\student-maintenance.js:15:function isValidObjectId(id) {
+campora\backend\routes\student-maintenance.js:16:    return mongoose.Types.ObjectId.isValid(id);
+campora\backend\routes\student-maintenance.js:57:        if (!propertyId || !isValidObjectId(propertyId)) {
+campora\backend\routes\student-maintenance.js:122:        if (!isValidObjectId(req.params.id)) {
+campora\backend\routes\student-maintenance.js:149:        if (!isValidObjectId(req.params.id)) {
+campora\backend\routes\student-messaging.js:16:function isValidObjectId(id) {
+campora\backend\routes\student-messaging.js:17:    return mongoose.Types.ObjectId.isValid(id);
+campora\backend\routes\student-messaging.js:52:        if (!ownerId || !isValidObjectId(ownerId)) {
+campora\backend\routes\student-messaging.js:89:        if (!isValidObjectId(req.params.id)) {
+campora\backend\routes\student-messaging.js:126:        if (!isValidObjectId(req.params.id)) {
+campora\backend\routes\student-messaging.js:182:        if (!isValidObjectId(req.params.id)) {
+campora\backend\routes\student.js:12:function isValidObjectId(id) {
+campora\backend\routes\student.js:13:    return mongoose.Types.ObjectId.isValid(id);
+campora\backend\routes\student.js:685:        if (!mongoose.isValidObjectId(studentId)) {
+campora\backend\routes\student.js:691:        const studentObjectId = new mongoose.Types.ObjectId(studentId);
+campora\backend\routes\student.js:736:                { $match: { studentId: studentObjectId } },
+campora\backend\routes\student.js:816:        if (!isValidObjectId(req.params.id)) {
