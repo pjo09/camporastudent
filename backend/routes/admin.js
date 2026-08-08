@@ -1533,21 +1533,14 @@ router.get("/properties", async (req, res) => {
 // PROPERTY DETAILS
 // ======================================================
 
-router.get("/properties/:id", async (req, res) => {
+router.get("/properties/:id", async (req, res, next) => {
 
     try {
 
         if (!validId(req.params.id)) {
 
-            return failure(
-
-                res,
-
-                "Invalid Property ID",
-
-                400
-
-            );
+            // Not a valid ObjectId — let a static route (e.g. /properties/occupancy) handle it
+            return next();
 
         }
 
@@ -3267,9 +3260,16 @@ router.get("/payments", async (req, res) => {
 // SINGLE PAYMENT
 // ======================================================
 
-router.get("/payments/:id", async (req, res) => {
+router.get("/payments/:id", async (req, res, next) => {
 
     try {
+
+        if (!validId(req.params.id)) {
+
+            // Not a valid ObjectId — let a static route (e.g. /payments/revenue) handle it
+            return next();
+
+        }
 
         const payment = await Booking.findById(req.params.id)
 
