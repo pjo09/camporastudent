@@ -117,9 +117,11 @@ function bindLogout() {
       localStorage.removeItem("camporaRemember");
       sessionStorage.removeItem("camporaToken");
       sessionStorage.removeItem("camporaUser");
-      sessionStorage.removeItem("camporaRole");
+sessionStorage.removeItem("camporaRole");
       // Redirect to the main landing page and remove this page from history.
       window.location.replace("https://camporastudent.vercel.app/");
+      // Also clear any stored user/session state in the other storage bucket.
+      sessionStorage.removeItem("camporaRemember");
     });
   }
 

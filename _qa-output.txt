@@ -1,0 +1,50 @@
+
+===== 360x800 =====
+Horizontal scroll: none
+nav-links visible: false | nav-actions visible: false
+menu-toggle display: flex
+Logo inside header: true
+Search within viewport: true (width 295)
+Hero title height: 81 | description height: 128
+Hamburger: {"beforeDisplay":"flex","afterOpenDisplay":"flex","opensInViewport":true,"closesOffscreen":true,"hiddenWhenClosed":true,"openTop":68,"openHeight":556,"openTransform":"matrix(1, 0, 0, 1, 0, 0)"}
+Overlaps: NONE
+
+===== 375x812 =====
+Horizontal scroll: none
+nav-links visible: false | nav-actions visible: false
+menu-toggle display: flex
+Logo inside header: true
+Search within viewport: true (width 309)
+Hero title height: 83 | description height: 128
+Hamburger: {"beforeDisplay":"flex","afterOpenDisplay":"flex","opensInViewport":true,"closesOffscreen":true,"hiddenWhenClosed":true,"openTop":68,"openHeight":556,"openTransform":"matrix(1, 0, 0, 1, 0, 0)"}
+Overlaps: NONE
+
+===== 390x844 =====
+Horizontal scroll: none
+nav-links visible: false | nav-actions visible: false
+menu-toggle display: flex
+Logo inside header: true
+Search within viewport: true (width 322)
+Hero title height: 86 | description height: 96
+Hamburger: {"beforeDisplay":"flex","afterOpenDisplay":"flex","opensInViewport":true,"closesOffscreen":true,"hiddenWhenClosed":true,"openTop":68,"openHeight":556,"openTransform":"matrix(1, 0, 0, 1, 0, 0)"}
+Overlaps: NONE
+
+===== 412x915 =====
+Horizontal scroll: none
+nav-links visible: false | nav-actions visible: false
+menu-toggle display: flex
+Logo inside header: true
+Search within viewport: true (width 342)
+Hero title height: 91 | description height: 96
+Hamburger: {"beforeDisplay":"flex","afterOpenDisplay":"flex","opensInViewport":true,"closesOffscreen":true,"hiddenWhenClosed":true,"openTop":68,"openHeight":556,"openTransform":"matrix(1, 0, 0, 1, 0, 0)"}
+Overlaps: NONE
+
+===== 768x1024 =====
+Horizontal scroll: none
+nav-links visible: false | nav-actions visible: false
+menu-toggle display: flex
+Logo inside header: true
+Search within viewport: true (width 677)
+Hero title height: 141 | description height: 64
+Hamburger: {"beforeDisplay":"flex","afterOpenDisplay":"flex","opensInViewport":true,"closesOffscreen":true,"hiddenWhenClosed":true,"openTop":68,"openHeight":556,"openTransform":"matrix(1, 0, 0, 1, 0, 0)"}
+Overlaps: NONE

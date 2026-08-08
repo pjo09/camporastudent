@@ -1,0 +1,6 @@
+QA ERROR: Error: net::ERR_FAILED at http://127.0.0.1:63356/index.html
+    at navigate (C:\project\campora\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:189:27)
+    at async Deferred.race (C:\project\campora\node_modules\puppeteer-core\lib\cjs\puppeteer\util\Deferred.js:36:20)
+    at async CdpFrame.goto (C:\project\campora\node_modules\puppeteer-core\lib\cjs\puppeteer\cdp\Frame.js:155:25)
+    at async CdpPage.goto (C:\project\campora\node_modules\puppeteer-core\lib\cjs\puppeteer\api\Page.js:580:20)
+    at async run (C:\project\campora\_qa-mobile.js:106:7)

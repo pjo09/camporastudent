@@ -1,4 +1,4 @@
-import { getToken, getUser, logout, redirectToLanding } from "./session.js";
+import { getToken, getUser, logout } from "./session.js";
 
 export function initNavbar() {
 
@@ -32,7 +32,6 @@ if (logoutBtn) {
         logoutBtn.onclick = function (e) {
             e.preventDefault();
             logout();
-            redirectToLanding();
         };
     }
 }

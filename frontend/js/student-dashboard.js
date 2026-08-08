@@ -18,9 +18,8 @@ function setupDropdown() {
 if (dropdownLogout) {
     dropdownLogout.addEventListener("click", (e) => {
       e.preventDefault();
-      import("./session.js").then(({ logout, redirectToLanding }) => {
+      import("./session.js").then(({ logout }) => {
         logout();
-        redirectToLanding();
       });
     });
   }

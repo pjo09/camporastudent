@@ -98,6 +98,11 @@ export function logout() {
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(USER_KEY);
     sessionStorage.removeItem(ROLE_KEY);
+
+// Always land on the Campora main landing page.
+    // Use replace() so the back button cannot return to a protected page
+    // with an old authenticated state.
+    window.location.replace(LANDING_URL);
 }
 
 // ===========================================

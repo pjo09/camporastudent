@@ -3,7 +3,7 @@
 // Central API helper, toast, session, sidebar, topbar
 // =====================================================
 
-import { getToken, getUser, protectPageByRole, logout as sessionLogout, redirectToLanding } from "./session.js";
+import { getToken, getUser, protectPageByRole, logout as sessionLogout } from "./session.js";
 import { API } from "./config.js";
 
 const API_BASE = API;
@@ -141,13 +141,21 @@ export function initShell() {
     }
   }
 
-  // Logout
+// Logout
   const logoutBtn = $("logoutBtn");
-if (logoutBtn) {
-    logoutBtn.addEventListener("click", () => {
+  if (logoutBtn) {
+    logoutBtn.addEventListener("click", (e) => {
+      e.preventDefault();
       sessionLogout();
-      showToast("Logged out", "info", 1500);
-      setTimeout(() => redirectToLanding(), 500);
+    });
+  }
+
+  // Profile dropdown logout link (fallback bind so it never navigates to login.html)
+  const dropdownLogout = $("dropdownLogout");
+  if (dropdownLogout) {
+    dropdownLogout.addEventListener("click", (e) => {
+      e.preventDefault();
+      sessionLogout();
     });
   }
 
