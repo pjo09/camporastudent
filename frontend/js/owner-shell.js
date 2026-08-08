@@ -3,7 +3,7 @@
 // All owner V3 pages import this module.
 // =====================================================
 
-import { getToken, getUser, protectPageByRole, logout as sessionLogout } from "./session.js";
+import { getToken, getUser, protectPageByRole, logout as sessionLogout, redirectToLanding } from "./session.js";
 import { API } from "./config.js";
 
 // =====================================================
@@ -307,9 +307,9 @@ function setupShellListeners() {
   const logoutBtn = $("logoutBtn");
   const profileLogoutBtn = $("profileLogoutBtn");
 
-  const handleLogout = () => {
+const handleLogout = () => {
     sessionLogout();
-    window.location.href = "login.html";
+    redirectToLanding();
   };
 
   logoutBtn?.addEventListener("click", handleLogout);

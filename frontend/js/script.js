@@ -3,7 +3,7 @@
 // =====================================================
 
 import CONFIG, { API } from "./config.js";
-import { login, logout, getUser, getToken, redirectBasedOnRole } from "./session.js";
+import { login, logout, getUser, getToken, redirectBasedOnRole, redirectToLanding } from "./session.js";
 
 // =====================================================
 // SHARED HELPERS
@@ -162,11 +162,11 @@ const Navbar = (() => {
         }
 
         // Logout button
-        const logoutBtn = $("navLogout");
+const logoutBtn = $("navLogout");
         if (logoutBtn) {
             logoutBtn.addEventListener("click", () => {
                 logout();
-                window.location.href = "index.html";
+                redirectToLanding();
             });
         }
 

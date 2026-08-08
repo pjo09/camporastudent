@@ -20,6 +20,65 @@ const app = express();
 configureDnsResolvers();
 connectDB();
 
+// ===============================================
+// CORS — MUST be registered FIRST so that OPTIONS
+// preflight is answered before auth, RBAC, or
+// rate-limiting middleware can intercept it.
+// Single centralized configuration (no duplicates).
+// ===============================================
+
+// Explicit allowlist of known production + development origins.
+const ALLOWED_ORIGINS = [
+    "https://camporastudent.vercel.app",
+    "http://localhost:3000",
+    "http://localhost:5000",
+    "http://localhost:5500",
+    "http://127.0.0.1:3000",
+    "http://127.0.0.1:5000",
+    "http://127.0.0.1:5500"
+];
+
+app.use(cors({
+    origin(origin, callback) {
+        // Allow non-browser / server-to-server / health-check requests (no Origin header)
+        if (!origin) {
+            return callback(null, true);
+        }
+
+        // Explicit allowlist (exact match)
+        if (ALLOWED_ORIGINS.includes(origin)) {
+            return callback(null, true);
+        }
+
+        // Vercel preview deployments: https://<project>-<hash>-<scope>.vercel.app
+        if (/^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/.test(origin)) {
+            return callback(null, true);
+        }
+
+        // Render preview deployments: https://<service>-<hash>.onrender.com
+        if (/^https:\/\/[a-zA-Z0-9-]+\.onrender\.com$/.test(origin)) {
+            return callback(null, true);
+        }
+
+        return callback(new Error("Not allowed by CORS"));
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With"],
+    preflightContinue: false,
+    optionsSuccessStatus: 204
+}));
+
+// Guarantee EVERY OPTIONS request returns a successful empty response,
+// even if it does not carry standard preflight headers. This sits directly
+// after CORS and before any auth/RBAC/rate-limit middleware.
+app.use((req, res, next) => {
+    if (req.method === "OPTIONS") {
+        return res.sendStatus(204);
+    }
+    return next();
+});
+
 app.use(helmet({
     contentSecurityPolicy: {
         useDefaults: true,
@@ -89,42 +148,6 @@ app.use("/api/otp/verify", otpVerifyLimiter);
 
 app.use(mongoSanitize());
 app.use(xssSanitizer());
-
-app.use(cors({
-    origin(origin, callback) {
-
-        // Allow requests with no origin (Postman, server-to-server, health checks)
-        if (!origin) {
-            return callback(null, true);
-        }
-
-        // Allow all localhost development origins (any port)
-        if (origin.startsWith("http://localhost") || origin.startsWith("http://127.0.0.1")) {
-            return callback(null, true);
-        }
-
-        // Allow all Vercel deployments (production + preview URLs)
-        if (origin.includes("vercel.app")) {
-            return callback(null, true);
-        }
-
-        // Allow all Render deployments (production + preview URLs)
-        if (origin.includes("onrender.com")) {
-            return callback(null, true);
-        }
-
-        return callback(new Error("Not allowed by CORS"));
-    },
-
-    credentials: true,
-    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
-    allowedHeaders: [
-        "Content-Type",
-        "Authorization",
-        "X-Requested-With",
-        "Accept"
-    ]
-}));
 
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true, limit: "10mb" }));

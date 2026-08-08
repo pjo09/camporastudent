@@ -7,6 +7,9 @@ const USER_KEY = "camporaUser";
 const ROLE_KEY = "camporaRole";
 const REMEMBER_KEY = "camporaRemember";
 
+// Production landing page — the single destination after logout.
+const LANDING_URL = "https://camporastudent.vercel.app/";
+
 // ===========================================
 // STORAGE HELPERS
 // ===========================================
@@ -95,6 +98,19 @@ export function logout() {
     sessionStorage.removeItem(TOKEN_KEY);
     sessionStorage.removeItem(USER_KEY);
     sessionStorage.removeItem(ROLE_KEY);
+}
+
+// ===========================================
+// REDIRECT TO MAIN LANDING PAGE
+// Use after session has been cleared. Uses
+// window.location.replace so the protected
+// page is removed from history — the browser
+// back button can no longer reopen a dashboard
+// using a stale authenticated state.
+// ===========================================
+
+export function redirectToLanding() {
+    window.location.replace(LANDING_URL);
 }
 
 // ===========================================

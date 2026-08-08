@@ -3,7 +3,7 @@
 // Full integration with admin API
 // =====================================================
 
-import { getToken, getUser, protectPageByRole, logout as sessionLogout } from "./session.js";
+import { getToken, getUser, protectPageByRole, logout as sessionLogout, redirectToLanding } from "./session.js";
 import { API } from "./config.js";
 
 const API_BASE = API;
@@ -141,10 +141,10 @@ function setupEventListeners() {
   // Refresh
   DOM.refreshBtn?.addEventListener("click", () => { loadAllTabs(); updateLastUpdate(); });
 
-  // Logout
+// Logout
   DOM.logoutBtn?.addEventListener("click", () => {
     sessionLogout();
-    window.location.href = "login.html";
+    redirectToLanding();
   });
 
   // Mobile menu

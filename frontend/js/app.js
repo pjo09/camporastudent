@@ -107,16 +107,19 @@
   // ===========================================
   // LOGOUT
   // ===========================================
-  function bindLogout() {
+function bindLogout() {
     var btn = $("navLogout");
     if (!btn) return;
     btn.addEventListener("click", function () {
       localStorage.removeItem("camporaToken");
       localStorage.removeItem("camporaUser");
       localStorage.removeItem("camporaRole");
+      localStorage.removeItem("camporaRemember");
       sessionStorage.removeItem("camporaToken");
       sessionStorage.removeItem("camporaUser");
-      window.location.href = "index.html";
+      sessionStorage.removeItem("camporaRole");
+      // Redirect to the main landing page and remove this page from history.
+      window.location.replace("https://camporastudent.vercel.app/");
     });
   }
 

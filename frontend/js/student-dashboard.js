@@ -15,12 +15,13 @@ function setupDropdown() {
   const profileBtn = $("profileBtn");
   const dropdown = $("profileDropdown");
   const dropdownLogout = $("dropdownLogout");
-  if (dropdownLogout) {
+if (dropdownLogout) {
     dropdownLogout.addEventListener("click", (e) => {
       e.preventDefault();
-      const { logout } = import("./session.js");
-      logout();
-      window.location.href = "login.html";
+      import("./session.js").then(({ logout, redirectToLanding }) => {
+        logout();
+        redirectToLanding();
+      });
     });
   }
   if (profileBtn && dropdown) {

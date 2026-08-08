@@ -677,9 +677,18 @@ user.password = await bcrypt.hash(newPassword, 10);
 
 router.get("/dashboard-v3", auth, requireRole("student"), async (req, res) => {
 
-    try {
+try {
 
         const studentId = req.user.id;
+
+        // --- Safely validate the student ID before any DB query ---
+        if (!mongoose.isValidObjectId(studentId)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid student identifier."
+            });
+        }
+        const studentObjectId = new mongoose.Types.ObjectId(studentId);
 
         const Maintenance = require("../models/Maintenance");
         const Invoice = require("../models/Invoice");
@@ -723,8 +732,8 @@ router.get("/dashboard-v3", auth, requireRole("student"), async (req, res) => {
 
             Notification.countDocuments({ receiverId: studentId, isRead: false }),
 
-            MessageConversation.aggregate([
-                { $match: { studentId: mongoose.Types.ObjectId(studentId) } },
+MessageConversation.aggregate([
+                { $match: { studentId: studentObjectId } },
                 { $group: { _id: null, total: { $sum: "$unreadByStudent" } } }
             ]).then(r => (r[0] && r[0].total) || 0),
 

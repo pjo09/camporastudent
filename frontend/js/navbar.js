@@ -1,4 +1,4 @@
-import { getToken, getUser, logout } from "./session.js";
+import { getToken, getUser, logout, redirectToLanding } from "./session.js";
 
 export function initNavbar() {
 
@@ -28,11 +28,11 @@ export function initNavbar() {
         if (userName) userName.style.display = "none";
     }
 
-    if (logoutBtn) {
+if (logoutBtn) {
         logoutBtn.onclick = function (e) {
             e.preventDefault();
             logout();
-            window.location.href = "index.html";
+            redirectToLanding();
         };
     }
 }

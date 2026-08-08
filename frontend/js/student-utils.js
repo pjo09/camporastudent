@@ -3,7 +3,7 @@
 // Central API helper, toast, session, sidebar, topbar
 // =====================================================
 
-import { getToken, getUser, protectPageByRole, logout as sessionLogout } from "./session.js";
+import { getToken, getUser, protectPageByRole, logout as sessionLogout, redirectToLanding } from "./session.js";
 import { API } from "./config.js";
 
 const API_BASE = API;
@@ -90,7 +90,7 @@ export function timeAgo(input) {
 // =====================================================
 
 export function imageUrl(path) {
-  if (!path) return "./assets/logos/logo.png";
+  if (!path) return "/assets/logos/logo.png";
   if (path.startsWith("http") || path.startsWith("data:")) return path;
   return `${API_BASE.replace("/api", "")}/${path.replace(/^\/+/, "")}`;
 }
@@ -143,11 +143,11 @@ export function initShell() {
 
   // Logout
   const logoutBtn = $("logoutBtn");
-  if (logoutBtn) {
+if (logoutBtn) {
     logoutBtn.addEventListener("click", () => {
       sessionLogout();
       showToast("Logged out", "info", 1500);
-      setTimeout(() => (window.location.href = "login.html"), 500);
+      setTimeout(() => redirectToLanding(), 500);
     });
   }
 

@@ -2,7 +2,7 @@
 // CAMPORA AUTHENTICATION - LOGIN PAGE
 // ===============================================
 
-import { login, logout as sessionLogout, redirectBasedOnRole } from "./session.js";
+import { login, logout as sessionLogout, redirectBasedOnRole, redirectToLanding } from "./session.js";
 import CONFIG, { API } from "./config.js";
 
 const API_BASE = API;
@@ -110,7 +110,7 @@ function setButtonLoading(btn, isLoading, label) {
 
 window.logout = function () {
     sessionLogout();
-    window.location.href = "login.html";
+    redirectToLanding();
 };
 
 // ===============================================
