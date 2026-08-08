@@ -52,11 +52,11 @@ list.innerHTML = `<div class="sv3-empty"><i class="fa-solid fa-calendar-check"><
     const loc = prop.city ? `${prop.city}${prop.state ? ", " + prop.state : ""}` : "";
     const status = b.bookingStatus || b.status || "pending";
     const color = ["confirmed", "checked-in"].includes(status) ? "success" : ["cancelled", "checked-out"].includes(status) ? "danger" : status === "pending" ? "warning" : "info";
-    const img = prop.images && prop.images.length ? imageUrl(prop.images[0]) : "./assets/logos/logo.png";
+    const img = prop.images && prop.images.length ? imageUrl(prop.images[0]) : "/assets/logos/logo.png";
     const canPay = status === "pending" || status === "confirmed";
     return `
       <div class="sv3-list-item">
-        <img src="${img}" alt="" style="width:56px;height:56px;border-radius:14px;object-fit:cover;flex-shrink:0" onerror="this.src='./assets/logos/logo.png'">
+        <img src="${img}" alt="" style="width:56px;height:56px;border-radius:14px;object-fit:cover;flex-shrink:0" onerror="this.src='/assets/logos/logo.png'">
         <div class="sv3-list-item-body">
           <div class="sv3-list-item-title">${esc(name)}</div>
           <div class="sv3-list-item-sub">${loc ? esc(loc) + " · " : ""}${b.checkIn ? "Move-in " + new Date(b.checkIn).toLocaleDateString() : ""} · ${timeAgo(b.createdAt)}</div>

@@ -26,7 +26,7 @@ card.className="property-card";
 
 card.innerHTML=`
 
-<img src="${property.images?.[0] || "./assets/images/property-placeholder.jpg"}">
+<img src="${property.images?.[0] || "/assets/images/property-placeholder.jpg"}">
 
 <div class="property-content">
 

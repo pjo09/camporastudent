@@ -25,11 +25,11 @@ grid.innerHTML = `<div class="sv3-empty" style="grid-column:1/-1"><i class="fa-s
       const loc = p.city ? `${p.city}${p.state ? ", " + p.state : ""}` : "Location not specified";
       const rent = p.rent || p.price || 0;
       const rating = p.averageRating || 0;
-      const img = p.images && p.images.length ? imageUrl(p.images[0]) : "./assets/logos/logo.png";
+      const img = p.images && p.images.length ? imageUrl(p.images[0]) : "/assets/logos/logo.png";
       return `
 <div class="sv3-property-card" onclick="window.location.href='/pages/property/property.html?id=${p._id}'" role="article" aria-label="${esc(name)}">
           <div class="sv3-property-image">
-            <img src="${img}" alt="${esc(name)}" loading="lazy" onerror="this.src='./assets/logos/logo.png'">
+            <img src="${img}" alt="${esc(name)}" loading="lazy" onerror="this.src='/assets/logos/logo.png'">
             <button class="sv3-save-btn" onclick="event.stopPropagation();window.removeSaved('${p._id}', this)" aria-label="Remove from saved" title="Remove"><i class="fa-solid fa-heart" style="color:#f87171"></i></button>
           </div>
           <div class="sv3-property-body">

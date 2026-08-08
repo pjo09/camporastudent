@@ -105,12 +105,12 @@ function renderProperties(properties) {
     const loc = p.city ? `${p.city}${p.state ? ", " + p.state : ""}` : "Location not specified";
     const rent = p.rent || p.price || 0;
     const rating = p.averageRating || 0;
-    const img = p.images && p.images.length ? imageUrl(p.images[0]) : "./assets/logos/logo.png";
+    const img = p.images && p.images.length ? imageUrl(p.images[0]) : "/assets/logos/logo.png";
     const badge = p.verified ? "Verified" : p.featured ? "Featured" : "";
     return `
 <div class="sv3-property-card" onclick="window.location.href='/pages/property/property.html?id=${p._id}'" role="article" aria-label="${esc(name)}">
         <div class="sv3-property-image">
-          <img src="${img}" alt="${esc(name)}" loading="lazy" onerror="this.src='./assets/logos/logo.png'">
+          <img src="${img}" alt="${esc(name)}" loading="lazy" onerror="this.src='/assets/logos/logo.png'">
           ${badge ? `<span class="sv3-property-badge">${badge}</span>` : ""}
           <button class="sv3-save-btn" onclick="event.stopPropagation();window.toggleSave('${p._id}', this)" aria-label="Save ${esc(name)}"><i class="fa-${p.isSaved ? "solid" : "regular"} fa-heart"></i></button>
         </div>

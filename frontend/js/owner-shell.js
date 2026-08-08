@@ -154,7 +154,7 @@ function sidebarHTML(currentPage) {
 <aside class="v3-sidebar" id="sidebar">
   <div>
     <a href="/pages/owner/dashboard.html" class="v3-sidebar-logo">
-      <img src="./assets/logos/logo.png" class="v3-logo-img" alt="Campora">
+      <img src="/assets/logos/logo.png" class="v3-logo-img" alt="Campora">
       <div class="v3-logo-text"><h2>Campora</h2><p>Owner Dashboard</p></div>
     </a>
     <nav class="v3-nav" aria-label="Owner navigation">${items}</nav>

@@ -6,21 +6,21 @@ const demoProperties = [
 title:"Sunrise Residency",
 location:"VIT Vellore",
 price:"₹9,500",
-image:"./assets/images/property-placeholder.jpg"
+image:"/assets/images/property-placeholder.jpg"
 },
 
 {
 title:"Urban Nest",
 location:"Manipal University",
 price:"₹12,000",
-image:"./assets/images/property-placeholder.jpg"
+image:"/assets/images/property-placeholder.jpg"
 },
 
 {
 title:"Campus Stay",
 location:"SRM Chennai",
 price:"₹8,500",
-image:"./assets/images/property-placeholder.jpg"
+image:"/assets/images/property-placeholder.jpg"
 }
 
 ];

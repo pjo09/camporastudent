@@ -64,7 +64,7 @@ function renderProperty(p) {
   const loc = p.city ? `${p.city}${p.state ? ", " + p.state : ""}` : "Location not specified";
   const rent = p.rent || p.price || 0;
   const rating = p.averageRating || 0;
-  const img = p.images && p.images.length ? imageUrl(p.images[0]) : "./assets/logos/logo.png";
+  const img = p.images && p.images.length ? imageUrl(p.images[0]) : "/assets/logos/logo.png";
 
   if ($("propertyName")) $("propertyName").textContent = name;
   if ($("propertyLocation")) $("propertyLocation").textContent = loc;
@@ -72,7 +72,7 @@ function renderProperty(p) {
   if ($("propertyRating")) $("propertyRating").innerHTML = rating > 0 ? `<i class="fa-solid fa-star"></i> ${rating.toFixed(1)} ${p.totalReviews ? `(${p.totalReviews})` : ""}` : "New listing";
   if ($("propertyDescription")) $("propertyDescription").textContent = p.description || "No description available.";
   const imgEl = $("propertyImage");
-  if (imgEl) { imgEl.src = img; imgEl.onerror = () => { imgEl.src = "./assets/logos/logo.png"; }; }
+  if (imgEl) { imgEl.src = img; imgEl.onerror = () => { imgEl.src = "/assets/logos/logo.png"; }; }
 
   // Chips
   const chips = $("propertyChips");

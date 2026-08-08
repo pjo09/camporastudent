@@ -16,7 +16,7 @@ const IMAGE_BASE = API.replace(/\/api\/?$/, "") + "/";
  * @param {string} fallback - local fallback image
  * @returns {string} usable <img src>
  */
-export function getImageUrl(path, fallback = "./assets/images/property-placeholder.jpg") {
+export function getImageUrl(path, fallback = "/assets/images/property-placeholder.jpg") {
   if (!path) return fallback;
 
   // Already absolute URL (Cloudinary / http(s) / data: / blob:)
