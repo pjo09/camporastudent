@@ -9,9 +9,9 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
-    <link rel="stylesheet" href="./css/theme.css" />
-    <link rel="stylesheet" href="./css/dashboard-v2.css" />
-    <link rel="icon" href="./images/logo.png" type="image/png" />
+    <link rel="stylesheet" href="../../css/theme.css" />
+    <link rel="stylesheet" href="../../css/dashboard-v2.css" />
+    <link rel="icon" href="../../images/logo.png" type="image/png" />
     <style>
         .nearby-layout{display:grid;grid-template-columns:1fr 400px;gap:28px;min-height:70vh}
         .map-container{height:100%;min-height:500px;border-radius:24px;overflow:hidden;background:rgba(255,255,255,.06)}
@@ -40,11 +40,11 @@
 <div id="toastContainer" class="toast-container" aria-live="polite" aria-atomic="true"></div>
 
 <aside class="sidebar" id="sidebar">
-    <div class="sidebar-top"><a href="dashboard.html" class="sidebar-logo"><img src="./images/logo.png" class="logo-img" alt="Campora"><div class="logo-text"><h2>Campora</h2><p>Student Dashboard</p></div></a></div>
+    <div class="sidebar-top"><a href="dashboard.html" class="sidebar-logo"><img src="../../images/logo.png" class="logo-img" alt="Campora"><div class="logo-text"><h2>Campora</h2><p>Student Dashboard</p></div></a></div>
     <nav class="sidebar-nav">
         <a class="nav-item" href="dashboard.html"><i class="fa-solid fa-house"></i><span>Dashboard</span></a>
         <a class="nav-item" href="../property/property.html"><i class="fa-solid fa-magnifying-glass"></i><span>Explore</span></a>
-        <a class="nav-item" href="saved-../../properties.html"><i class="fa-solid fa-heart"></i><span>Saved</span></a>
+        <a class="nav-item" href="saved-properties.html"><i class="fa-solid fa-heart"></i><span>Saved</span></a>
         <a class="nav-item" href="bookings.html"><i class="fa-solid fa-calendar-check"></i><span>Bookings</span></a>
         <a class="nav-item active" href="nearby.html"><i class="fa-solid fa-map-location-dot"></i><span>Nearby</span></a>
         <a class="nav-item" href="messages.html"><i class="fa-solid fa-comments"></i><span>Messages</span></a>
@@ -65,7 +65,7 @@
         <div class="top-right">
             <button class="icon-btn" id="notificationBtn" type="button" aria-label="Notifications"><i class="fa-solid fa-bell"></i></button>
             <button class="profile" id="profileBtn" type="button" aria-label="Profile menu">
-                <img src="./images/logo.png" id="avatar" alt="Profile" />
+                <img src="../../images/logo.png" id="avatar" alt="Profile" />
                 <div><h4 id="username">Loading...</h4><p>Student</p></div>
             </button>
         </div>
@@ -116,7 +116,7 @@
     <a href="settings.html" class="bottom-nav-item"><i class="fa-solid fa-gear"></i><span>Settings</span></a>
 </nav>
 <div id="sidebarBackdrop" class="sidebar-backdrop" hidden></div>
-<script type="module" src="./js/nearby.js"></script>
+<script type="module" src="../../js/nearby.js"></script>
 </body>
 </html>
 

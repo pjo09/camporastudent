@@ -9,7 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-    <link rel="stylesheet" href="./css/owner-v3.css">
+    <link rel="stylesheet" href="../../css/owner-v3.css">
     <style>
         .chat-layout { display: grid; grid-template-columns: 320px 1fr; gap: 20px; height: calc(100vh - 140px); min-height: 500px; }
         .chat-list { overflow-y: auto; }
@@ -25,7 +25,7 @@
         .chat-input-bar input { flex:1; }
         @media(max-width:768px){ .chat-layout{ grid-template-columns:1fr; } .chat-list{ max-height:300px; } }
     </style>
-    <link rel="icon" href="./images/logo.png" type="image/png">
+    <link rel="icon" href="../../images/logo.png" type="image/png">
 </head>
 <body class="v3-body">
 
@@ -72,9 +72,9 @@
 <div id="sidebarBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998" hidden></div>
 
 <script type="module">
-import { initShell } from "./js/owner-shell.js";
+import { initShell } from "../../js/owner-shell.js";
 initShell("Messages");
 </script>
-<script type="module" src="./js/owner-messages.js"></script>
+<script type="module" src="../../js/owner-messages.js"></script>
 </body>
 </html>

@@ -463,7 +463,8 @@
     ],
     "js/register.js": [
       "js/session.js",
-      "js/config.js"
+      "js/config.js",
+      "js/login.html"
     ],
     "js/script.js": [
       "js/config.js",
@@ -726,10 +727,10 @@
       "js/app.js"
     ],
     "pages/admin/dashboard.html": [
-      "pages/admin/css/theme.css",
-      "pages/admin/css/dashboard-v2.css",
-      "pages/admin/images/logo.png",
-      "pages/admin/js/admin-dashboard.js"
+      "css/theme.css",
+      "css/dashboard-v2.css",
+      "images/logo.png",
+      "js/admin-dashboard.js"
     ],
     "pages/admin/login.html": [
       "css/base.css",
@@ -768,36 +769,36 @@
       "js/app.js"
     ],
     "pages/owner/add-property.html": [
-      "pages/owner/css/owner-v3.css",
-      "pages/owner/css/add-property.css",
-      "pages/owner/images/logo.png",
-      "pages/owner/js/add-property.js"
+      "css/owner-v3.css",
+      "css/add-property.css",
+      "images/logo.png",
+      "js/add-property.js"
     ],
     "pages/owner/analytics.html": [
-      "pages/owner/css/owner-v3.css",
-      "pages/owner/images/logo.png",
-      "pages/owner/js/owner-analytics.js"
+      "css/owner-v3.css",
+      "images/logo.png",
+      "js/owner-analytics.js"
     ],
     "pages/owner/bookings.html": [
-      "pages/owner/css/owner-v3.css",
-      "pages/owner/images/logo.png",
-      "pages/owner/js/owner-bookings.js"
+      "css/owner-v3.css",
+      "images/logo.png",
+      "js/owner-bookings.js"
     ],
     "pages/owner/dashboard.html": [
-      "pages/owner/css/owner-v3.css",
-      "pages/owner/images/logo.png",
+      "css/owner-v3.css",
+      "images/logo.png",
       "pages/owner/add-property.html",
-      "pages/owner/owner-messages.html",
-      "pages/owner/owner-analytics.html",
+      "pages/owner/messages.html",
+      "pages/owner/analytics.html",
       "pages/owner/properties.html",
-      "pages/owner/owner-bookings.html",
-      "pages/owner/owner-reviews.html",
-      "pages/owner/owner-maintenance.html",
-      "pages/owner/owner-students.html",
-      "pages/owner/owner-notifications.html",
-      "pages/owner/owner-payments.html",
-      "pages/owner/owner-settings.html",
-      "pages/owner/js/owner-dashboard-v3.js"
+      "pages/owner/bookings.html",
+      "pages/owner/reviews.html",
+      "pages/owner/maintenance.html",
+      "pages/owner/tenants.html",
+      "pages/owner/notifications.html",
+      "pages/owner/payments.html",
+      "pages/owner/settings.html",
+      "js/owner-dashboard-v3.js"
     ],
     "pages/owner/edit-property.html": [
       "css/base.css",
@@ -806,35 +807,35 @@
       "js/app.js"
     ],
     "pages/owner/maintenance.html": [
-      "pages/owner/css/owner-v3.css",
-      "pages/owner/images/logo.png",
-      "pages/owner/js/owner-maintenance.js"
+      "css/owner-v3.css",
+      "images/logo.png",
+      "js/owner-maintenance.js"
     ],
     "pages/owner/messages.html": [
-      "pages/owner/css/owner-v3.css",
-      "pages/owner/images/logo.png",
-      "pages/owner/js/owner-messages.js"
+      "css/owner-v3.css",
+      "images/logo.png",
+      "js/owner-messages.js"
     ],
     "pages/owner/notifications.html": [
-      "pages/owner/css/owner-v3.css",
-      "pages/owner/images/logo.png",
-      "pages/owner/js/owner-notifications.js"
+      "css/owner-v3.css",
+      "images/logo.png",
+      "js/owner-notifications.js"
     ],
     "pages/owner/payments.html": [
-      "pages/owner/css/owner-v3.css",
-      "pages/owner/images/logo.png",
-      "pages/owner/js/owner-payments.js"
+      "css/owner-v3.css",
+      "images/logo.png",
+      "js/owner-payments.js"
     ],
     "pages/owner/properties.html": [
-      "pages/owner/css/owner-v3.css",
-      "pages/owner/images/logo.png",
+      "css/owner-v3.css",
+      "images/logo.png",
       "pages/owner/add-property.html",
-      "pages/owner/js/owner-properties.js"
+      "js/owner-properties.js"
     ],
     "pages/owner/reviews.html": [
-      "pages/owner/css/owner-v3.css",
-      "pages/owner/images/logo.png",
-      "pages/owner/js/owner-reviews.js"
+      "css/owner-v3.css",
+      "images/logo.png",
+      "js/owner-reviews.js"
     ],
     "pages/owner/rooms.html": [
       "css/base.css",
@@ -843,14 +844,14 @@
       "js/app.js"
     ],
     "pages/owner/settings.html": [
-      "pages/owner/css/owner-v3.css",
-      "pages/owner/images/logo.png",
-      "pages/owner/js/owner-settings.js"
+      "css/owner-v3.css",
+      "images/logo.png",
+      "js/owner-settings.js"
     ],
     "pages/owner/tenants.html": [
-      "pages/owner/css/owner-v3.css",
-      "pages/owner/images/logo.png",
-      "pages/owner/js/owner-students.js"
+      "css/owner-v3.css",
+      "images/logo.png",
+      "js/owner-students.js"
     ],
     "pages/property/compare.html": [
       "css/base.css",
@@ -862,24 +863,24 @@
       "properties.html"
     ],
     "pages/property/property.html": [
-      "pages/property/css/student-v3.css",
-      "pages/property/images/logo.png",
-      "pages/property/dashboard.html",
+      "css/student-v3.css",
+      "images/logo.png",
+      "pages/student/dashboard.html",
       "properties.html",
       "pages/property/properties.html",
-      "pages/property/bookings.html",
-      "pages/property/payments.html",
-      "pages/property/messages.html",
-      "pages/property/notifications.html",
-      "pages/property/maintenance.html",
-      "pages/property/reviews.html",
-      "pages/property/documents.html",
-      "pages/property/analytics.html",
-      "pages/property/support.html",
-      "pages/property/profile.html",
-      "pages/property/settings.html",
+      "pages/student/bookings.html",
+      "pages/student/payments.html",
+      "pages/student/messages.html",
+      "pages/student/notifications.html",
+      "pages/student/maintenance.html",
+      "pages/student/reviews.html",
+      "pages/student/documents.html",
+      "pages/student/analytics.html",
+      "pages/student/support.html",
+      "pages/student/profile.html",
+      "pages/student/settings.html",
       "login.html",
-      "pages/property/js/student-property-details.js"
+      "js/student-property-details.js"
     ],
     "pages/property/review.html": [
       "css/base.css",
@@ -888,11 +889,11 @@
       "js/app.js"
     ],
     "pages/student/analytics.html": [
-      "pages/student/css/student-v3.css",
-      "pages/student/images/logo.png",
+      "css/student-v3.css",
+      "images/logo.png",
       "pages/student/dashboard.html",
       "properties.html",
-      "pages/student/properties.html",
+      "pages/student/saved-properties.html",
       "pages/student/bookings.html",
       "pages/student/payments.html",
       "pages/student/messages.html",
@@ -905,14 +906,14 @@
       "pages/student/profile.html",
       "pages/student/settings.html",
       "login.html",
-      "pages/student/js/student-analytics.js"
+      "js/student-analytics.js"
     ],
     "pages/student/booking-details.html": [
-      "pages/student/css/student-v3.css",
-      "pages/student/images/logo.png",
+      "css/student-v3.css",
+      "images/logo.png",
       "pages/student/dashboard.html",
       "properties.html",
-      "pages/student/properties.html",
+      "pages/student/saved-properties.html",
       "pages/student/bookings.html",
       "pages/student/payments.html",
       "pages/student/messages.html",
@@ -925,14 +926,14 @@
       "pages/student/profile.html",
       "pages/student/settings.html",
       "login.html",
-      "pages/student/js/student-booking.js"
+      "js/student-booking.js"
     ],
     "pages/student/bookings.html": [
-      "pages/student/css/student-v3.css",
-      "pages/student/images/logo.png",
+      "css/student-v3.css",
+      "images/logo.png",
       "pages/student/dashboard.html",
       "properties.html",
-      "pages/student/properties.html",
+      "pages/student/saved-properties.html",
       "pages/student/bookings.html",
       "pages/student/payments.html",
       "pages/student/messages.html",
@@ -945,15 +946,15 @@
       "pages/student/profile.html",
       "pages/student/settings.html",
       "login.html",
-      "pages/student/js/student-bookings.js"
+      "js/student-bookings.js"
     ],
     "pages/student/dashboard-new.html": [
-      "pages/student/css/theme.css",
-      "pages/student/css/dashboard-new.css",
-      "pages/student/images/logo.png",
+      "css/theme.css",
+      "css/dashboard-new.css",
+      "images/logo.png",
       "pages/student/dashboard-new.html",
       "properties.html",
-      "pages/student/properties.html",
+      "pages/student/saved-properties.html",
       "pages/student/bookings.html",
       "pages/student/messages.html",
       "pages/student/nearby.html",
@@ -961,15 +962,15 @@
       "pages/student/payment.html",
       "pages/student/profile.html",
       "pages/student/settings.html",
-      "pages/student/images/hero-room.png",
-      "pages/student/js/dashboard-new.js"
+      "images/hero-room.png",
+      "js/dashboard-new.js"
     ],
     "pages/student/dashboard.html": [
-      "pages/student/css/student-v3.css",
-      "pages/student/images/logo.png",
+      "css/student-v3.css",
+      "images/logo.png",
       "pages/student/dashboard.html",
       "properties.html",
-      "pages/student/properties.html",
+      "pages/student/saved-properties.html",
       "pages/student/bookings.html",
       "pages/student/payments.html",
       "pages/student/messages.html",
@@ -982,14 +983,14 @@
       "pages/student/profile.html",
       "pages/student/settings.html",
       "login.html",
-      "pages/student/js/student-dashboard.js"
+      "js/student-dashboard.js"
     ],
     "pages/student/documents.html": [
-      "pages/student/css/student-v3.css",
-      "pages/student/images/logo.png",
+      "css/student-v3.css",
+      "images/logo.png",
       "pages/student/dashboard.html",
       "properties.html",
-      "pages/student/properties.html",
+      "pages/student/saved-properties.html",
       "pages/student/bookings.html",
       "pages/student/payments.html",
       "pages/student/messages.html",
@@ -1002,14 +1003,14 @@
       "pages/student/profile.html",
       "pages/student/settings.html",
       "login.html",
-      "pages/student/js/student-documents.js"
+      "js/student-documents.js"
     ],
     "pages/student/maintenance.html": [
-      "pages/student/css/student-v3.css",
-      "pages/student/images/logo.png",
+      "css/student-v3.css",
+      "images/logo.png",
       "pages/student/dashboard.html",
       "properties.html",
-      "pages/student/properties.html",
+      "pages/student/saved-properties.html",
       "pages/student/bookings.html",
       "pages/student/payments.html",
       "pages/student/messages.html",
@@ -1022,14 +1023,14 @@
       "pages/student/profile.html",
       "pages/student/settings.html",
       "login.html",
-      "pages/student/js/student-maintenance.js"
+      "js/student-maintenance.js"
     ],
     "pages/student/messages.html": [
-      "pages/student/css/student-v3.css",
-      "pages/student/images/logo.png",
+      "css/student-v3.css",
+      "images/logo.png",
       "pages/student/dashboard.html",
       "properties.html",
-      "pages/student/properties.html",
+      "pages/student/saved-properties.html",
       "pages/student/bookings.html",
       "pages/student/payments.html",
       "pages/student/messages.html",
@@ -1042,29 +1043,29 @@
       "pages/student/profile.html",
       "pages/student/settings.html",
       "login.html",
-      "pages/student/js/student-messages.js"
+      "js/student-messages.js"
     ],
     "pages/student/nearby.html": [
-      "pages/student/css/theme.css",
-      "pages/student/css/dashboard-v2.css",
-      "pages/student/images/logo.png",
+      "css/theme.css",
+      "css/dashboard-v2.css",
+      "images/logo.png",
       "pages/student/dashboard.html",
       "pages/property/property.html",
-      "pages/student/properties.html",
+      "pages/student/saved-properties.html",
       "pages/student/bookings.html",
       "pages/student/nearby.html",
       "pages/student/messages.html",
       "pages/student/notifications.html",
       "pages/student/profile.html",
       "pages/student/settings.html",
-      "pages/student/js/nearby.js"
+      "js/nearby.js"
     ],
     "pages/student/notifications.html": [
-      "pages/student/css/student-v3.css",
-      "pages/student/images/logo.png",
+      "css/student-v3.css",
+      "images/logo.png",
       "pages/student/dashboard.html",
       "properties.html",
-      "pages/student/properties.html",
+      "pages/student/saved-properties.html",
       "pages/student/bookings.html",
       "pages/student/payments.html",
       "pages/student/messages.html",
@@ -1077,23 +1078,23 @@
       "pages/student/profile.html",
       "pages/student/settings.html",
       "login.html",
-      "pages/student/js/student-notifications.js"
+      "js/student-notifications.js"
     ],
     "pages/student/payment.html": [
-      "pages/student/css/theme.css",
-      "pages/student/css/payment.css",
+      "css/theme.css",
+      "css/payment.css",
       "pages/student/dashboard.html",
       "images/logo.png",
-      "pages/student/booking.html",
+      "booking.html",
       "images/property-placeholder.jpg",
-      "pages/student/js/payment.js"
+      "js/payment.js"
     ],
     "pages/student/payments.html": [
-      "pages/student/css/student-v3.css",
-      "pages/student/images/logo.png",
+      "css/student-v3.css",
+      "images/logo.png",
       "pages/student/dashboard.html",
       "properties.html",
-      "pages/student/properties.html",
+      "pages/student/saved-properties.html",
       "pages/student/bookings.html",
       "pages/student/payments.html",
       "pages/student/messages.html",
@@ -1106,14 +1107,14 @@
       "pages/student/profile.html",
       "pages/student/settings.html",
       "login.html",
-      "pages/student/js/student-payments.js"
+      "js/student-payments.js"
     ],
     "pages/student/profile.html": [
-      "pages/student/css/student-v3.css",
-      "pages/student/images/logo.png",
+      "css/student-v3.css",
+      "images/logo.png",
       "pages/student/dashboard.html",
       "properties.html",
-      "pages/student/properties.html",
+      "pages/student/saved-properties.html",
       "pages/student/bookings.html",
       "pages/student/payments.html",
       "pages/student/messages.html",
@@ -1126,14 +1127,14 @@
       "pages/student/profile.html",
       "pages/student/settings.html",
       "login.html",
-      "pages/student/js/student-profile.js"
+      "js/student-profile.js"
     ],
     "pages/student/reviews.html": [
-      "pages/student/css/student-v3.css",
-      "pages/student/images/logo.png",
+      "css/student-v3.css",
+      "images/logo.png",
       "pages/student/dashboard.html",
       "properties.html",
-      "pages/student/properties.html",
+      "pages/student/saved-properties.html",
       "pages/student/bookings.html",
       "pages/student/payments.html",
       "pages/student/messages.html",
@@ -1146,14 +1147,14 @@
       "pages/student/profile.html",
       "pages/student/settings.html",
       "login.html",
-      "pages/student/js/student-reviews.js"
+      "js/student-reviews.js"
     ],
     "pages/student/saved-properties.html": [
-      "pages/student/css/student-v3.css",
-      "pages/student/images/logo.png",
+      "css/student-v3.css",
+      "images/logo.png",
       "pages/student/dashboard.html",
       "properties.html",
-      "pages/student/properties.html",
+      "pages/student/saved-properties.html",
       "pages/student/bookings.html",
       "pages/student/payments.html",
       "pages/student/messages.html",
@@ -1166,14 +1167,14 @@
       "pages/student/profile.html",
       "pages/student/settings.html",
       "login.html",
-      "pages/student/js/student-saved.js"
+      "js/student-saved.js"
     ],
     "pages/student/settings.html": [
-      "pages/student/css/student-v3.css",
-      "pages/student/images/logo.png",
+      "css/student-v3.css",
+      "images/logo.png",
       "pages/student/dashboard.html",
       "properties.html",
-      "pages/student/properties.html",
+      "pages/student/saved-properties.html",
       "pages/student/bookings.html",
       "pages/student/payments.html",
       "pages/student/messages.html",
@@ -1186,21 +1187,21 @@
       "pages/student/profile.html",
       "pages/student/settings.html",
       "login.html",
-      "pages/student/js/student-settings.js"
+      "js/student-settings.js"
     ],
     "pages/student/success.html": [
-      "pages/student/css/theme.css",
-      "pages/student/css/success.css",
+      "css/theme.css",
+      "css/success.css",
       "pages/student/dashboard.html",
       "pages/student/bookings.html",
-      "pages/student/js/success.js"
+      "js/success.js"
     ],
     "pages/student/support.html": [
-      "pages/student/css/student-v3.css",
-      "pages/student/images/logo.png",
+      "css/student-v3.css",
+      "images/logo.png",
       "pages/student/dashboard.html",
       "properties.html",
-      "pages/student/properties.html",
+      "pages/student/saved-properties.html",
       "pages/student/bookings.html",
       "pages/student/payments.html",
       "pages/student/messages.html",
@@ -1213,7 +1214,7 @@
       "pages/student/profile.html",
       "pages/student/settings.html",
       "login.html",
-      "pages/student/js/student-support.js"
+      "js/student-support.js"
     ],
     "payment.html": [
       "css/theme.css",
@@ -1476,6 +1477,10 @@
       "ref": "js/bookings.html"
     },
     {
+      "from": "js/register.js",
+      "ref": "js/login.html"
+    },
+    {
       "from": "js/script.js",
       "ref": "js/assets/images/property-placeholder.jpg"
     },
@@ -1568,564 +1573,8 @@
       "ref": "js/bookings.html"
     },
     {
-      "from": "pages/admin/dashboard.html",
-      "ref": "pages/admin/css/theme.css"
-    },
-    {
-      "from": "pages/admin/dashboard.html",
-      "ref": "pages/admin/css/dashboard-v2.css"
-    },
-    {
-      "from": "pages/admin/dashboard.html",
-      "ref": "pages/admin/images/logo.png"
-    },
-    {
-      "from": "pages/admin/dashboard.html",
-      "ref": "pages/admin/js/admin-dashboard.js"
-    },
-    {
-      "from": "pages/owner/add-property.html",
-      "ref": "pages/owner/css/owner-v3.css"
-    },
-    {
-      "from": "pages/owner/add-property.html",
-      "ref": "pages/owner/css/add-property.css"
-    },
-    {
-      "from": "pages/owner/add-property.html",
-      "ref": "pages/owner/images/logo.png"
-    },
-    {
-      "from": "pages/owner/add-property.html",
-      "ref": "pages/owner/js/add-property.js"
-    },
-    {
-      "from": "pages/owner/analytics.html",
-      "ref": "pages/owner/css/owner-v3.css"
-    },
-    {
-      "from": "pages/owner/analytics.html",
-      "ref": "pages/owner/images/logo.png"
-    },
-    {
-      "from": "pages/owner/analytics.html",
-      "ref": "pages/owner/js/owner-analytics.js"
-    },
-    {
-      "from": "pages/owner/bookings.html",
-      "ref": "pages/owner/css/owner-v3.css"
-    },
-    {
-      "from": "pages/owner/bookings.html",
-      "ref": "pages/owner/images/logo.png"
-    },
-    {
-      "from": "pages/owner/bookings.html",
-      "ref": "pages/owner/js/owner-bookings.js"
-    },
-    {
-      "from": "pages/owner/dashboard.html",
-      "ref": "pages/owner/css/owner-v3.css"
-    },
-    {
-      "from": "pages/owner/dashboard.html",
-      "ref": "pages/owner/images/logo.png"
-    },
-    {
-      "from": "pages/owner/dashboard.html",
-      "ref": "pages/owner/owner-messages.html"
-    },
-    {
-      "from": "pages/owner/dashboard.html",
-      "ref": "pages/owner/owner-analytics.html"
-    },
-    {
-      "from": "pages/owner/dashboard.html",
-      "ref": "pages/owner/owner-bookings.html"
-    },
-    {
-      "from": "pages/owner/dashboard.html",
-      "ref": "pages/owner/owner-reviews.html"
-    },
-    {
-      "from": "pages/owner/dashboard.html",
-      "ref": "pages/owner/owner-maintenance.html"
-    },
-    {
-      "from": "pages/owner/dashboard.html",
-      "ref": "pages/owner/owner-students.html"
-    },
-    {
-      "from": "pages/owner/dashboard.html",
-      "ref": "pages/owner/owner-notifications.html"
-    },
-    {
-      "from": "pages/owner/dashboard.html",
-      "ref": "pages/owner/owner-payments.html"
-    },
-    {
-      "from": "pages/owner/dashboard.html",
-      "ref": "pages/owner/owner-settings.html"
-    },
-    {
-      "from": "pages/owner/dashboard.html",
-      "ref": "pages/owner/js/owner-dashboard-v3.js"
-    },
-    {
-      "from": "pages/owner/maintenance.html",
-      "ref": "pages/owner/css/owner-v3.css"
-    },
-    {
-      "from": "pages/owner/maintenance.html",
-      "ref": "pages/owner/images/logo.png"
-    },
-    {
-      "from": "pages/owner/maintenance.html",
-      "ref": "pages/owner/js/owner-maintenance.js"
-    },
-    {
-      "from": "pages/owner/messages.html",
-      "ref": "pages/owner/css/owner-v3.css"
-    },
-    {
-      "from": "pages/owner/messages.html",
-      "ref": "pages/owner/images/logo.png"
-    },
-    {
-      "from": "pages/owner/messages.html",
-      "ref": "pages/owner/js/owner-messages.js"
-    },
-    {
-      "from": "pages/owner/notifications.html",
-      "ref": "pages/owner/css/owner-v3.css"
-    },
-    {
-      "from": "pages/owner/notifications.html",
-      "ref": "pages/owner/images/logo.png"
-    },
-    {
-      "from": "pages/owner/notifications.html",
-      "ref": "pages/owner/js/owner-notifications.js"
-    },
-    {
-      "from": "pages/owner/payments.html",
-      "ref": "pages/owner/css/owner-v3.css"
-    },
-    {
-      "from": "pages/owner/payments.html",
-      "ref": "pages/owner/images/logo.png"
-    },
-    {
-      "from": "pages/owner/payments.html",
-      "ref": "pages/owner/js/owner-payments.js"
-    },
-    {
-      "from": "pages/owner/properties.html",
-      "ref": "pages/owner/css/owner-v3.css"
-    },
-    {
-      "from": "pages/owner/properties.html",
-      "ref": "pages/owner/images/logo.png"
-    },
-    {
-      "from": "pages/owner/properties.html",
-      "ref": "pages/owner/js/owner-properties.js"
-    },
-    {
-      "from": "pages/owner/reviews.html",
-      "ref": "pages/owner/css/owner-v3.css"
-    },
-    {
-      "from": "pages/owner/reviews.html",
-      "ref": "pages/owner/images/logo.png"
-    },
-    {
-      "from": "pages/owner/reviews.html",
-      "ref": "pages/owner/js/owner-reviews.js"
-    },
-    {
-      "from": "pages/owner/settings.html",
-      "ref": "pages/owner/css/owner-v3.css"
-    },
-    {
-      "from": "pages/owner/settings.html",
-      "ref": "pages/owner/images/logo.png"
-    },
-    {
-      "from": "pages/owner/settings.html",
-      "ref": "pages/owner/js/owner-settings.js"
-    },
-    {
-      "from": "pages/owner/tenants.html",
-      "ref": "pages/owner/css/owner-v3.css"
-    },
-    {
-      "from": "pages/owner/tenants.html",
-      "ref": "pages/owner/images/logo.png"
-    },
-    {
-      "from": "pages/owner/tenants.html",
-      "ref": "pages/owner/js/owner-students.js"
-    },
-    {
-      "from": "pages/property/property.html",
-      "ref": "pages/property/css/student-v3.css"
-    },
-    {
-      "from": "pages/property/property.html",
-      "ref": "pages/property/images/logo.png"
-    },
-    {
-      "from": "pages/property/property.html",
-      "ref": "pages/property/dashboard.html"
-    },
-    {
       "from": "pages/property/property.html",
       "ref": "pages/property/properties.html"
-    },
-    {
-      "from": "pages/property/property.html",
-      "ref": "pages/property/bookings.html"
-    },
-    {
-      "from": "pages/property/property.html",
-      "ref": "pages/property/payments.html"
-    },
-    {
-      "from": "pages/property/property.html",
-      "ref": "pages/property/messages.html"
-    },
-    {
-      "from": "pages/property/property.html",
-      "ref": "pages/property/notifications.html"
-    },
-    {
-      "from": "pages/property/property.html",
-      "ref": "pages/property/maintenance.html"
-    },
-    {
-      "from": "pages/property/property.html",
-      "ref": "pages/property/reviews.html"
-    },
-    {
-      "from": "pages/property/property.html",
-      "ref": "pages/property/documents.html"
-    },
-    {
-      "from": "pages/property/property.html",
-      "ref": "pages/property/analytics.html"
-    },
-    {
-      "from": "pages/property/property.html",
-      "ref": "pages/property/support.html"
-    },
-    {
-      "from": "pages/property/property.html",
-      "ref": "pages/property/profile.html"
-    },
-    {
-      "from": "pages/property/property.html",
-      "ref": "pages/property/settings.html"
-    },
-    {
-      "from": "pages/property/property.html",
-      "ref": "pages/property/js/student-property-details.js"
-    },
-    {
-      "from": "pages/student/analytics.html",
-      "ref": "pages/student/css/student-v3.css"
-    },
-    {
-      "from": "pages/student/analytics.html",
-      "ref": "pages/student/images/logo.png"
-    },
-    {
-      "from": "pages/student/analytics.html",
-      "ref": "pages/student/properties.html"
-    },
-    {
-      "from": "pages/student/analytics.html",
-      "ref": "pages/student/js/student-analytics.js"
-    },
-    {
-      "from": "pages/student/booking-details.html",
-      "ref": "pages/student/css/student-v3.css"
-    },
-    {
-      "from": "pages/student/booking-details.html",
-      "ref": "pages/student/images/logo.png"
-    },
-    {
-      "from": "pages/student/booking-details.html",
-      "ref": "pages/student/properties.html"
-    },
-    {
-      "from": "pages/student/booking-details.html",
-      "ref": "pages/student/js/student-booking.js"
-    },
-    {
-      "from": "pages/student/bookings.html",
-      "ref": "pages/student/css/student-v3.css"
-    },
-    {
-      "from": "pages/student/bookings.html",
-      "ref": "pages/student/images/logo.png"
-    },
-    {
-      "from": "pages/student/bookings.html",
-      "ref": "pages/student/properties.html"
-    },
-    {
-      "from": "pages/student/bookings.html",
-      "ref": "pages/student/js/student-bookings.js"
-    },
-    {
-      "from": "pages/student/dashboard-new.html",
-      "ref": "pages/student/css/theme.css"
-    },
-    {
-      "from": "pages/student/dashboard-new.html",
-      "ref": "pages/student/css/dashboard-new.css"
-    },
-    {
-      "from": "pages/student/dashboard-new.html",
-      "ref": "pages/student/images/logo.png"
-    },
-    {
-      "from": "pages/student/dashboard-new.html",
-      "ref": "pages/student/properties.html"
-    },
-    {
-      "from": "pages/student/dashboard-new.html",
-      "ref": "pages/student/images/hero-room.png"
-    },
-    {
-      "from": "pages/student/dashboard-new.html",
-      "ref": "pages/student/js/dashboard-new.js"
-    },
-    {
-      "from": "pages/student/dashboard.html",
-      "ref": "pages/student/css/student-v3.css"
-    },
-    {
-      "from": "pages/student/dashboard.html",
-      "ref": "pages/student/images/logo.png"
-    },
-    {
-      "from": "pages/student/dashboard.html",
-      "ref": "pages/student/properties.html"
-    },
-    {
-      "from": "pages/student/dashboard.html",
-      "ref": "pages/student/js/student-dashboard.js"
-    },
-    {
-      "from": "pages/student/documents.html",
-      "ref": "pages/student/css/student-v3.css"
-    },
-    {
-      "from": "pages/student/documents.html",
-      "ref": "pages/student/images/logo.png"
-    },
-    {
-      "from": "pages/student/documents.html",
-      "ref": "pages/student/properties.html"
-    },
-    {
-      "from": "pages/student/documents.html",
-      "ref": "pages/student/js/student-documents.js"
-    },
-    {
-      "from": "pages/student/maintenance.html",
-      "ref": "pages/student/css/student-v3.css"
-    },
-    {
-      "from": "pages/student/maintenance.html",
-      "ref": "pages/student/images/logo.png"
-    },
-    {
-      "from": "pages/student/maintenance.html",
-      "ref": "pages/student/properties.html"
-    },
-    {
-      "from": "pages/student/maintenance.html",
-      "ref": "pages/student/js/student-maintenance.js"
-    },
-    {
-      "from": "pages/student/messages.html",
-      "ref": "pages/student/css/student-v3.css"
-    },
-    {
-      "from": "pages/student/messages.html",
-      "ref": "pages/student/images/logo.png"
-    },
-    {
-      "from": "pages/student/messages.html",
-      "ref": "pages/student/properties.html"
-    },
-    {
-      "from": "pages/student/messages.html",
-      "ref": "pages/student/js/student-messages.js"
-    },
-    {
-      "from": "pages/student/nearby.html",
-      "ref": "pages/student/css/theme.css"
-    },
-    {
-      "from": "pages/student/nearby.html",
-      "ref": "pages/student/css/dashboard-v2.css"
-    },
-    {
-      "from": "pages/student/nearby.html",
-      "ref": "pages/student/images/logo.png"
-    },
-    {
-      "from": "pages/student/nearby.html",
-      "ref": "pages/student/properties.html"
-    },
-    {
-      "from": "pages/student/nearby.html",
-      "ref": "pages/student/js/nearby.js"
-    },
-    {
-      "from": "pages/student/notifications.html",
-      "ref": "pages/student/css/student-v3.css"
-    },
-    {
-      "from": "pages/student/notifications.html",
-      "ref": "pages/student/images/logo.png"
-    },
-    {
-      "from": "pages/student/notifications.html",
-      "ref": "pages/student/properties.html"
-    },
-    {
-      "from": "pages/student/notifications.html",
-      "ref": "pages/student/js/student-notifications.js"
-    },
-    {
-      "from": "pages/student/payment.html",
-      "ref": "pages/student/css/theme.css"
-    },
-    {
-      "from": "pages/student/payment.html",
-      "ref": "pages/student/css/payment.css"
-    },
-    {
-      "from": "pages/student/payment.html",
-      "ref": "pages/student/booking.html"
-    },
-    {
-      "from": "pages/student/payment.html",
-      "ref": "pages/student/js/payment.js"
-    },
-    {
-      "from": "pages/student/payments.html",
-      "ref": "pages/student/css/student-v3.css"
-    },
-    {
-      "from": "pages/student/payments.html",
-      "ref": "pages/student/images/logo.png"
-    },
-    {
-      "from": "pages/student/payments.html",
-      "ref": "pages/student/properties.html"
-    },
-    {
-      "from": "pages/student/payments.html",
-      "ref": "pages/student/js/student-payments.js"
-    },
-    {
-      "from": "pages/student/profile.html",
-      "ref": "pages/student/css/student-v3.css"
-    },
-    {
-      "from": "pages/student/profile.html",
-      "ref": "pages/student/images/logo.png"
-    },
-    {
-      "from": "pages/student/profile.html",
-      "ref": "pages/student/properties.html"
-    },
-    {
-      "from": "pages/student/profile.html",
-      "ref": "pages/student/js/student-profile.js"
-    },
-    {
-      "from": "pages/student/reviews.html",
-      "ref": "pages/student/css/student-v3.css"
-    },
-    {
-      "from": "pages/student/reviews.html",
-      "ref": "pages/student/images/logo.png"
-    },
-    {
-      "from": "pages/student/reviews.html",
-      "ref": "pages/student/properties.html"
-    },
-    {
-      "from": "pages/student/reviews.html",
-      "ref": "pages/student/js/student-reviews.js"
-    },
-    {
-      "from": "pages/student/saved-properties.html",
-      "ref": "pages/student/css/student-v3.css"
-    },
-    {
-      "from": "pages/student/saved-properties.html",
-      "ref": "pages/student/images/logo.png"
-    },
-    {
-      "from": "pages/student/saved-properties.html",
-      "ref": "pages/student/properties.html"
-    },
-    {
-      "from": "pages/student/saved-properties.html",
-      "ref": "pages/student/js/student-saved.js"
-    },
-    {
-      "from": "pages/student/settings.html",
-      "ref": "pages/student/css/student-v3.css"
-    },
-    {
-      "from": "pages/student/settings.html",
-      "ref": "pages/student/images/logo.png"
-    },
-    {
-      "from": "pages/student/settings.html",
-      "ref": "pages/student/properties.html"
-    },
-    {
-      "from": "pages/student/settings.html",
-      "ref": "pages/student/js/student-settings.js"
-    },
-    {
-      "from": "pages/student/success.html",
-      "ref": "pages/student/css/theme.css"
-    },
-    {
-      "from": "pages/student/success.html",
-      "ref": "pages/student/css/success.css"
-    },
-    {
-      "from": "pages/student/success.html",
-      "ref": "pages/student/js/success.js"
-    },
-    {
-      "from": "pages/student/support.html",
-      "ref": "pages/student/css/student-v3.css"
-    },
-    {
-      "from": "pages/student/support.html",
-      "ref": "pages/student/images/logo.png"
-    },
-    {
-      "from": "pages/student/support.html",
-      "ref": "pages/student/properties.html"
-    },
-    {
-      "from": "pages/student/support.html",
-      "ref": "pages/student/js/student-support.js"
     },
     {
       "from": "signup.html",
@@ -2167,7 +1616,6 @@
     "pages/property/property-simple.html",
     "pages/property/review.html",
     "pages/student/booking-details.html",
-    "pages/student/saved-properties.html",
     "pages/student/success.html",
     "property-details.html",
     "property.html",
