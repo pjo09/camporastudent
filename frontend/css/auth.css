@@ -1,143 +1,50 @@
-/* =====================================================
-   CAMPORA PREMIUM AUTH — v2
-   Shared styles for register.html + login.html
-=====================================================
+/* Compact mobile dropdown for auth pages - scoped overrides */
+@media (max-width: 768px) {
+  /* Ensure hamburger is visible and sized */
+  .hamburger{display:flex}
 
-This file contains targeted header/hamburger fixes to address mobile clipping/overlap issues.
-*/
+  /* Mobile menu: compact dropdown anchored to right (200px) */
+  .mobile-menu{
+    display:none; /* closed by default */
+    position:fixed;
+    top:calc(var(--auth-header-height,72px) + 8px + env(safe-area-inset-top));
+    right:12px;
+    left:auto;
+    width:200px;
+    max-width:calc(100vw - 24px);
+    padding:8px;
+    box-sizing:border-box;
+    border-radius:12px;
+    z-index:9999;
+    background:rgba(8,14,30,.96);
+    border:1px solid rgba(255,255,255,.04);
+    box-shadow:0 18px 40px rgba(0,0,0,.6);
+    flex-direction:column;
+    overflow:auto;
+    max-height: calc(100vh - (var(--auth-header-height,72px) + 40px));
+  }
 
-:root{
-  --auth-blue:#2563eb;
-  --auth-blue-bright:#3b82f6;
-  --auth-purple:#7c3aed;
-  --auth-cyan:#0ea5e9;
-  --auth-glass:rgba(255,255,255,.07);
-  --auth-glass-brd:rgba(255,255,255,.10);
-  --auth-radius-lg:32px;
-  --auth-radius-md:18px;
-  --auth-ease:cubic-bezier(.16,1,.3,1);
-  --auth-header-height:72px; /* predictable header height for responsive offsets */
+  .mobile-menu.open{display:flex}
+
+  .mobile-menu .mobile-link{
+    min-height:44px;
+    padding:8px 12px;
+    display:flex;
+    align-items:center;
+    color:#eaf2ff;
+    text-decoration:none;
+    font-weight:700;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+    border-radius:8px;
+  }
+
+  .mobile-menu .mobile-link + .mobile-link{margin-top:6px}
+
+  .mobile-menu .mobile-link:hover,
+  .mobile-menu .mobile-link:focus{background:rgba(59,130,246,.08);color:#fff}
+
+  /* prevent nav-actions from wrapping or pushing hamburger out */
+  .nav-actions{align-items:center}
 }
-
-*{box-sizing:border-box;margin:0;padding:0;font-family:'Inter',sans-serif}
-html{scroll-behavior:smooth}
-
-body.auth-page{
-  min-height:100svh;
-  overflow-x:hidden;
-  background:#070d1a;
-  color:#fff;
-  position:relative;
-  padding-bottom: max(20px, env(safe-area-inset-bottom));
-}
-
-/* BACKGROUND */
-.background{position:fixed;inset:0;overflow:hidden;z-index:-5;background:radial-gradient(circle at 15% 10%,#2549a8 0%,transparent 42%),radial-gradient(circle at 85% 20%,#5b2d9c 0%,transparent 40%),radial-gradient(circle at 50% 100%,#0b3d66 0%,transparent 45%),linear-gradient(160deg,#060b17,#0a1428,#070d1a)}
-.blur{position:absolute;border-radius:50%;filter:blur(100px);opacity:.42;mix-blend-mode:screen;animation:float 12s ease-in-out infinite}
-.blur1{width:440px;height:440px;left:-130px;top:-90px;background:#2563eb}
-.blur2{width:360px;height:360px;right:-90px;top:110px;background:#7c3aed;animation-delay:2.2s}
-.blur3{width:320px;height:320px;bottom:-90px;left:38%;background:#0ea5e9;animation-delay:5.4s}
-@keyframes float{0%{transform:translateY(0) scale(1)}50%{transform:translateY(38px) scale(1.05)}100%{transform:translateY(0) scale(1)}}
-
-/* LOGO FALLBACK */
-.logo-fallback{width:52px;height:52px;border-radius:15px;background:linear-gradient(135deg,#2563eb,#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:800;font-size:24px;color:#fff;box-shadow:0 15px 35px rgba(59,130,246,.3);flex-shrink:0}
-.logo-fallback-sm{width:38px;height:38px;border-radius:11px;font-size:16px;box-shadow:none}
-
-/* NAVBAR */
-.auth-navbar{
-  position:fixed;
-  top:0;left:0;width:100%;z-index:1100;
-  min-height:var(--auth-header-height);
-  /* add horizontal padding to avoid collision with edges and notch */
-  padding: calc(env(safe-area-inset-top, 12px)) 12px;
-  display:flex;align-items:center;
-  background:rgba(8,14,30,.55);backdrop-filter:blur(22px) saturate(150%);
-  border-bottom:1px solid rgba(255,255,255,.08);
-  -webkit-backdrop-filter: blur(22px) saturate(150%);
-  isolation:isolate; /* create new stacking context */
-}
-.auth-navbar::after{content:"";position:absolute;left:0;bottom:-1px;width:100%;height:1px;background:linear-gradient(90deg,transparent,rgba(99,140,255,.55),transparent)}
-
-/* ensure nav container has a little inline padding so logo/hamburger don't touch edges */
-.nav-container{width:min(1400px,92%);margin:auto;display:flex;justify-content:space-between;align-items:center;gap:12px;padding-inline:6px}
-
-.brand{display:flex;align-items:center;gap:12px;text-decoration:none;color:#fff;transition:opacity .25s var(--auth-ease);z-index:1110}
-.brand:hover{opacity:.85}
-
-/* Force brand-logo to a consistent size and ensure background is clean */
-.brand-logo{width:44px;height:44px;border-radius:10px;object-fit:cover;background:transparent;display:block;box-shadow:0 12px 30px rgba(59,130,246,.22);border:1px solid rgba(255,255,255,.04)}
-.brand h2{margin:0;font-size:20px;font-weight:800;line-height:1}
-.brand p{margin-top:2px;font-size:12px;color:#8fa0c4}
-
-.nav-actions{display:flex;align-items:center;gap:12px}
-.nav-link{text-decoration:none;color:#dbe4ff;font-weight:600;font-size:14px;transition:color .25s}
-.nav-btn{padding:10px 18px;border-radius:12px;text-decoration:none;background:linear-gradient(135deg,#2563eb,#7c3aed);color:#fff;font-weight:700;font-size:14px;display:inline-block}
-
-/* HAMBURGER — ensure clear 44x44 touch target and visible icon */
-.hamburger{display:none;align-items:center;justify-content:center;width:44px;height:44px;border-radius:10px;border:1px solid rgba(255,255,255,.06);background:linear-gradient(180deg,rgba(255,255,255,.02),rgba(255,255,255,.01));color:#ffffff;cursor:pointer;font-size:18px;box-shadow:0 6px 18px rgba(0,0,0,.35);padding:0}
-.hamburger i{pointer-events:none;font-size:18px;color:inherit}
-.hamburger:focus{outline:2px solid rgba(59,130,246,.22);outline-offset:2px}
-
-/* Mobile menu panel: placed below header — include safe-area inset for top alignment */
-.mobile-menu{display:none;position:fixed;left:12px;right:12px;top:calc(var(--auth-header-height) + 8px + env(safe-area-inset-top));z-index:1005;background:linear-gradient(180deg, rgba(255,255,255,0.03), rgba(255,255,255,0.02));border:1px solid rgba(255,255,255,0.06);border-radius:14px;padding:12px;box-shadow:0 18px 50px rgba(0,0,0,.6)}
-.mobile-menu .mobile-link{display:block;padding:12px 14px;color:#e8f0ff;text-decoration:none;font-weight:700;border-radius:10px}
-.mobile-menu .mobile-link + .mobile-link{margin-top:8px}
-.mobile-menu .mobile-link:hover{background:rgba(59,130,246,.08);color:#fff}
-
-/* MAIN LAYOUT */
-main.container{width:min(1400px,92%);margin:0 auto;padding-top:calc(var(--auth-header-height) + 16px);padding-bottom:60px;display:grid;grid-template-columns:560px 1fr;gap:60px;align-items:center}
-
-/* AUTH CARD */
-.auth-card{width: min(calc(100% - 24px), 520px);max-width:520px;margin-inline:auto;box-sizing:border-box}
-.left-panel{position:relative;background:var(--auth-glass);backdrop-filter:blur(28px);border:1px solid var(--auth-glass-brd);border-radius:20px;padding:32px;box-shadow:0 35px 90px rgba(0,0,0,.4),inset 0 1px 0 rgba(255,255,255,.04);overflow:visible}
-.left-panel::before{content:"";position:absolute;top:0;left:0;right:0;height:1px;background:linear-gradient(90deg,transparent,rgba(120,160,255,.6),transparent)}
-
-.badge{display:inline-flex;align-items:center;gap:8px;padding:8px 16px;border-radius:32px;background:rgba(37,99,235,.12);color:#9fbfff;font-weight:700;margin-bottom:16px;font-size:12px}
-.left-panel h1{font-size:34px;line-height:1.08;margin-bottom:10px;font-weight:800;background:linear-gradient(120deg,#ffffff 30%,#a9c3ff 70%);-webkit-background-clip:text;background-clip:text;-webkit-text-fill-color:transparent}
-.subtitle{font-size:15px;color:#aab8d4;margin-bottom:18px;line-height:1.6}
-
-/* FORM */
-.input-group{display:flex;flex-direction:column;gap:8px;margin-bottom:16px;opacity:0;animation:fadeUp .5s var(--auth-ease) forwards}
-.input-group label{font-size:14px;font-weight:700;color:#dfe6f5}
-.input-group input,.input-group select{width:100%;min-height:48px;padding:0 16px;border-radius:12px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.10);color:#fff;font-size:15px;transition:border-color .2s,background .2s,box-shadow .2s}
-.input-group input::placeholder{color:#8393b5}
-.input-group input:focus,.input-group select:focus{outline:none;border-color:#3b82f6;background:rgba(255,255,255,.06);box-shadow:0 0 0 4px rgba(59,130,246,.12)}
-
-.password-field{position:relative;display:flex;align-items:center}
-.password-field input{padding-right:56px}
-.password-toggle{position:absolute;right:8px;top:50%;transform:translateY(-50%);width:44px;height:44px;border:none;background:transparent;color:#8fa0c4;cursor:pointer;font-size:16px;display:flex;align-items:center;justify-content:center;border-radius:8px}
-.password-toggle:hover{background:rgba(59,130,246,.06);color:#60a5fa}
-
-.remember-row{display:flex;justify-content:space-between;align-items:center;margin:0 0 18px;font-size:13.5px;color:#aab8d4;gap:8px}
-.remember-row label{display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:500}
-.remember-row input[type="checkbox"]{width:18px;height:18px;accent-color:#3b82f6}
-.remember-row a{color:#60a5fa;text-decoration:none;font-weight:600;white-space:nowrap}
-
-.divider{display:flex;align-items:center;margin:18px 0;color:#7d8bab;font-size:13px;font-weight:700;letter-spacing:.04em}
-.divider::before,.divider::after{content:"";flex:1;height:1px;background:rgba(255,255,255,.10)}
-.divider span{padding:0 12px}
-
-#googleButton{width:100%;display:flex;justify-content:center;margin-bottom:8px;min-height:44px}
-#googleButton>div,#googleButton iframe{width:100%!important}
-
-.primary-btn,.success-btn{position:relative;width:100%;min-height:48px;border:none;border-radius:12px;cursor:pointer;font-size:15.5px;font-weight:700;transition:transform .22s var(--auth-ease),box-shadow .22s var(--auth-ease);margin-top:6px;color:#fff;overflow:hidden}
-.primary-btn{background:linear-gradient(135deg,#2563eb,#7c3aed)}
-.primary-btn:hover{transform:translateY(-2px);box-shadow:0 18px 40px rgba(37,99,235,.28)}
-.primary-btn:disabled{opacity:.6;cursor:not-allowed}
-.btn-spinner{display:none;width:18px;height:18px;border:3px solid rgba(255,255,255,.35);border-top-color:#fff;border-radius:50%;animation:spin .7s linear infinite;margin:0 auto}
-@keyframes spin{to{transform:rotate(360deg)}}
-
-.bottom-link{margin-top:16px;text-align:center;font-size:14px;color:#aab8d4}
-.bottom-link a{color:#60a5fa;font-weight:700;text-decoration:none}
-
-/* RESPONSIVE */
-@media(max-width:1200px){main.container{grid-template-columns:1fr;gap:32px;padding-top:calc(var(--auth-header-height) + 12px)}.feature-card{padding:32px}}
-@media(max-width:900px){.left-panel{padding:28px}.feature-card{display:none}}
-@media(max-width:768px){.nav-container{width:96%}.brand h2,.brand-text{font-size:18px}.brand p{display:none}.nav-actions{gap:8px}.nav-link{display:none}.nav-btn{display:none}.hamburger{display:flex}.mobile-menu{left:12px;right:12px}.left-panel{padding:22px;border-radius:16px}.left-panel h1{font-size:30px}.subtitle{font-size:15px}main.container{padding-top:calc(var(--auth-header-height) + 12px)}}
-@media(max-width:600px){.left-panel{padding:20px}.left-panel h1{font-size:28px}.input-group input,.input-group select{min-height:48px;font-size:15px}.primary-btn,.success-btn{min-height:50px;font-size:15px}.role-selector{gap:10px}.footer-content{flex-direction:column;text-align:center}}
-
-/* Mobile menu open */
-.mobile-menu.open{display:block}
-body.mobile-menu-open{overflow:hidden;touch-action:none}
-.auth-form-wrap{display:none}.auth-skeleton{padding:8px 0}
-:focus{outline-offset:2px}
