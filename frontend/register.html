@@ -73,6 +73,23 @@ onerror="handleLogoError(this)">
 
 </a>
 
+<!-- Mobile hamburger (visible on small screens) -->
+<button
+    type="button"
+    id="mobileMenuBtn"
+    class="hamburger"
+    aria-label="Open navigation menu"
+    aria-expanded="false"
+    aria-controls="mobileMenu"
+>
+    <i class="fa-solid fa-bars" aria-hidden="true"></i>
+</button>
+
+<nav id="mobileMenu" class="mobile-menu" aria-hidden="true">
+    <a href="index.html" class="mobile-link">Home</a>
+    <a href="login.html" class="mobile-link nav-btn">Already Registered?</a>
+</nav>
+
 <div class="nav-actions">
 
 <a href="index.html" class="nav-link">
@@ -99,7 +116,7 @@ Already Registered?
 
 <!-- ================= LEFT ================= -->
 
-<section class="left-panel">
+<section class="left-panel auth-card">
 
 <!-- Loading skeleton shown briefly on page load -->
 <div class="auth-skeleton" id="authSkeleton">
