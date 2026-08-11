@@ -75,23 +75,6 @@ onerror="handleLogoError(this)">
 
 </a>
 
-<!-- Mobile hamburger (visible on small screens) -->
-<button
-    type="button"
-    id="mobileMenuBtn"
-    class="hamburger"
-    aria-label="Open navigation menu"
-    aria-expanded="false"
-    aria-controls="mobileMenu"
->
-    <i class="fa-solid fa-bars" aria-hidden="true"></i>
-</button>
-
-<nav id="mobileMenu" class="mobile-menu" aria-hidden="true">
-    <a href="index.html" class="mobile-link">Home</a>
-    <a href="register.html" class="mobile-link nav-btn">Create Account</a>
-</nav>
-
 <div class="nav-actions">
 
 <a href="index.html" class="nav-link">
@@ -106,9 +89,26 @@ Create Account
 
 </a>
 
+<!-- Mobile hamburger (anchored inside nav-actions so flex layout keeps it on the right) -->
+<button
+    type="button"
+    id="mobileMenuBtn"
+    class="hamburger"
+    aria-label="Open navigation menu"
+    aria-expanded="false"
+    aria-controls="mobileMenu"
+>
+    <i class="fa-solid fa-bars" aria-hidden="true"></i>
+</button>
+
 </div>
 
 </div>
+
+<nav id="mobileMenu" class="mobile-menu" aria-hidden="true">
+    <a href="index.html" class="mobile-link">Home</a>
+    <a href="register.html" class="mobile-link nav-btn">Create Account</a>
+</nav>
 
 </header>
 
