@@ -73,6 +73,23 @@ onerror="handleLogoError(this)">
 
 </a>
 
+<!-- Mobile hamburger (visible on small screens) -->
+<button
+    type="button"
+    id="mobileMenuBtn"
+    class="hamburger"
+    aria-label="Open navigation menu"
+    aria-expanded="false"
+    aria-controls="mobileMenu"
+>
+    <i class="fa-solid fa-bars" aria-hidden="true"></i>
+</button>
+
+<nav id="mobileMenu" class="mobile-menu" aria-hidden="true">
+    <a href="index.html" class="mobile-link">Home</a>
+    <a href="login.html" class="mobile-link nav-btn">Already Registered?</a>
+</nav>
+
 <div class="nav-actions">
 
 <a href="index.html" class="nav-link">
@@ -87,30 +104,11 @@ Already Registered?
 
 </a>
 
-<!-- Mobile hamburger (visible on small screens) -->
-<button
-    type="button"
-    id="mobileMenuBtn"
-    class="hamburger"
-    aria-label="Open navigation menu"
-    aria-expanded="false"
-    aria-controls="mobileMenu"
->
-    <i class="fa-solid fa-bars" aria-hidden="true"></i>
-</button>
-
 </div>
 
 </div>
 
 </header>
-
-<!-- Mobile menu placed after header so it doesn't affect header layout -->
-<nav id="mobileMenu" class="mobile-menu" aria-hidden="true">
-    <a href="index.html" class="mobile-link">Home</a>
-    <a href="login.html" class="mobile-link">Already Registered?</a>
-    <a href="register.html" class="mobile-link">Create Account</a>
-</nav>
 
 <!-- ================= MAIN ================= -->
 
@@ -118,7 +116,7 @@ Already Registered?
 
 <!-- ================= LEFT ================= -->
 
-<section class="left-panel">
+<section class="left-panel auth-card">
 
 <!-- Loading skeleton shown briefly on page load -->
 <div class="auth-skeleton" id="authSkeleton">
@@ -217,3 +215,405 @@ OR
 <div id="googleButton"></div>
 
 <div class="input-group">
+
+<label>
+
+Full Name
+
+</label>
+
+<input
+
+id="name"
+
+type="text"
+
+placeholder="Enter your name"
+
+required
+
+>
+
+</div>
+
+<div class="input-group">
+
+<label>
+
+Email Address
+
+</label>
+
+<input
+
+id="email"
+
+type="email"
+
+placeholder="Enter your email"
+
+required
+
+>
+
+</div>
+
+<div class="input-group">
+
+<label>
+
+Password
+
+</label>
+
+<div class="password-field">
+
+<input
+
+id="password"
+
+type="password"
+
+placeholder="Create a password"
+
+autocomplete="new-password"
+
+aria-label="Password"
+
+required
+
+>
+
+<button
+
+type="button"
+
+class="password-toggle"
+
+id="togglePassword"
+
+aria-label="Show password"
+
+tabindex="-1">
+
+<i class="fa-solid fa-eye"></i>
+
+</button>
+
+</div>
+
+<div class="password-hint">
+
+Min 8 chars with uppercase, lowercase, number &amp; special character.
+
+</div>
+
+</div>
+
+<div class="input-group">
+
+<label>
+
+Confirm Password
+
+</label>
+
+<div class="password-field">
+
+<input
+
+id="confirmPassword"
+
+type="password"
+
+placeholder="Re-enter password"
+
+autocomplete="new-password"
+
+aria-label="Confirm password"
+
+required
+
+>
+
+<button
+
+type="button"
+
+class="password-toggle"
+
+id="toggleConfirmPassword"
+
+aria-label="Show password"
+
+tabindex="-1">
+
+<i class="fa-solid fa-eye"></i>
+
+</button>
+
+</div>
+
+</div>
+
+<!-- ================= SUBMIT ================= -->
+
+<button
+
+type="submit"
+
+id="createAccountBtn"
+
+class="primary-btn">
+
+<span class="btn-label">Create Account</span>
+
+<span class="btn-spinner" aria-hidden="true"></span>
+
+</button>
+
+<!-- ================= STATUS ================= -->
+
+<div
+
+id="successMessage"
+
+class="success-message">
+
+</div>
+
+<div
+
+id="errorMessage"
+
+class="error-message">
+
+</div>
+
+</form>
+</div>
+
+</section>
+
+<!-- ================= RIGHT PANEL ================= -->
+
+<section class="auth-side">
+
+<div class="feature-card">
+
+<h2>
+
+Find Your Campus Home
+
+</h2>
+
+<p>
+
+Discover verified student accommodation near top colleges and universities across India with secure bookings and trusted property owners.
+
+</p>
+
+<div class="stats-grid">
+
+<div>
+
+<h3>
+
+10K+
+
+</h3>
+
+<p>
+
+Students
+
+</p>
+
+</div>
+
+<div>
+
+<h3>
+
+1500+
+
+</h3>
+
+<p>
+
+Verified PGs
+
+</p>
+
+</div>
+
+<div>
+
+<h3>
+
+250+
+
+</h3>
+
+<p>
+
+Universities
+
+</p>
+
+</div>
+
+<div>
+
+<h3>
+
+4.9★
+
+</h3>
+
+<p>
+
+Rating
+
+</p>
+
+</div>
+
+</div>
+
+<div class="feature-list">
+
+<div>✔ Verified Properties</div>
+<div>✔ Google Sign In</div>
+<div>✔ Secure Payments</div>
+<div>✔ Instant Booking</div>
+<div>✔ 24×7 Support</div>
+
+</div>
+
+</div>
+
+</section>
+
+</main>
+<!-- ================= FOOTER ================= -->
+
+<footer class="auth-footer">
+
+<div class="footer-content">
+
+<div class="footer-logo">
+
+<img
+src="./images/logo.png"
+alt="Campora"
+class="footer-logo-img"
+onerror="handleLogoError(this)">
+
+<div>
+
+<h3>
+
+Campora
+
+</h3>
+
+<p>
+
+Find Your Campus Home
+
+</p>
+
+</div>
+
+</div>
+
+<p class="footer-text">
+
+© 2026 Campora. All Rights Reserved.
+
+</p>
+
+</div>
+
+</footer>
+
+<!-- ================= GOOGLE IDENTITY ================= -->
+
+<script
+src="https://accounts.google.com/gsi/client"
+async
+defer>
+
+</script>
+
+<!-- ================= REGISTER JS ================= -->
+
+<script
+type="module"
+src="./js/register.js">
+
+</script>
+
+<!-- ================= ROLE CARD <-> SELECT BRIDGE ================= -->
+<!-- Purely presentational: keeps #role (used by register.js) in sync
+     with the visual cards. Does not touch register.js. -->
+<script>
+(function () {
+
+    function init() {
+
+        var select = document.getElementById("role");
+
+        var cards = document.querySelectorAll("#roleSelector .role-card");
+
+        function paint() {
+
+            cards.forEach(function (card) {
+
+                card.classList.toggle(
+                    "active",
+                    card.getAttribute("data-role") === select.value
+                );
+
+            });
+
+        }
+
+        cards.forEach(function (card) {
+
+            card.addEventListener("click", function () {
+
+                select.value = card.getAttribute("data-role");
+
+                select.dispatchEvent(new Event("change"));
+
+                paint();
+
+            });
+
+        });
+
+        // Reflect whatever register.js set on load (incl. ?role=owner)
+        paint();
+
+        select.addEventListener("change", paint);
+
+    }
+
+    if (document.readyState === "loading") {
+
+        document.addEventListener("DOMContentLoaded", init);
+
+    } else {
+
+        init();
+
+    }
+
+})();
+</script>
+
+</body>
+
+</html>
