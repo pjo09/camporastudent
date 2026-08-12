@@ -109,10 +109,10 @@ const Intro = (() => {
         if (!intro) return;
 
         if (loading) {
-            setTimeout(() => { loading.style.width = "100%"; }, 400);
+            setTimeout(() => { loading.style.width = "100%"; }, 200);
         }
 
-setTimeout(() => {
+        setTimeout(() => {
             intro.classList.add("hide");
             document.body.classList.add("intro-done");
 
@@ -121,7 +121,7 @@ setTimeout(() => {
             if (!getToken()) {
                 AuthModal.open("login");
             }
-        }, 4200);
+        }, 1800);
     }
 
     return { init };
