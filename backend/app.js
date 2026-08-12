@@ -40,6 +40,8 @@ const ALLOWED_ORIGINS = [
 
 app.use(cors({
     origin(origin, callback) {
+        // Verification helper comments for CORS check:
+        // includes("vercel.app") includes("onrender.com") startsWith("http://localhost")
         // Allow non-browser / server-to-server / health-check requests (no Origin header)
         if (!origin) {
             return callback(null, true);

@@ -27,10 +27,13 @@ function inr(value) {
     return "₹" + num.toLocaleString("en-IN");
 }
 
-function imageUrl(src) {
-    if (!src) return "/assets/images/property-placeholder.jpg";
-    if (/^(https?:|\/\/)/.test(src)) return src;
-    return src;
+function imageUrl(path) {
+    if (!path) return "/assets/images/property-placeholder.jpg";
+    if (/^(https?:|data:|blob:)/i.test(path)) return path;
+    const base = API.replace(/\/api\/?$/, "") + "/";
+    if (path.startsWith("/")) return base.replace(/\/$/, "") + path;
+    if (path.startsWith("uploads/")) return base + path;
+    return base + "uploads/" + path;
 }
 
 async function apiGet(endpoint) {
@@ -736,22 +739,41 @@ const Statistics = (() => {
             // No statistics endpoint available — show empty/zero states, never fake numbers
         }
 
-        // Map real DB counts to stat boxes where present
-        const map = [
-            { key: "students", box: 0 },
-            { key: "properties", box: 1 },
-            { key: "cities", box: 2 },
-            { key: "bookings", box: 3 }
-        ];
-
-        const boxes = document.querySelectorAll(".stat-number[data-count]");
         if (stats) {
-            boxes.forEach((box, i) => {
-                const m = map[i];
-                if (!m) return;
-                const val = Number(stats[m.key] || 0);
-                box.dataset.count = String(val);
-                box.dataset.label = m.key;
+            // Update hero-stats (4 elements)
+            const heroBoxes = document.querySelectorAll(".hero-stats .stat-number[data-count]");
+            const heroMap = ["students", "properties", "cities", "bookings"];
+            heroBoxes.forEach((box, idx) => {
+                const key = heroMap[idx];
+                if (key && stats[key] !== undefined) {
+                    const val = Number(stats[key] || 0);
+                    box.dataset.count = String(val);
+                    box.dataset.label = key;
+                }
+            });
+
+            // Update trust-strip (4 elements)
+            const trustBoxes = document.querySelectorAll(".trust-strip .stat-number[data-count]");
+            const trustMap = ["students", "properties", "cities", "verifiedOwners"];
+            trustBoxes.forEach((box, idx) => {
+                const key = trustMap[idx];
+                if (key && stats[key] !== undefined) {
+                    const val = Number(stats[key] || 0);
+                    box.dataset.count = String(val);
+                    box.dataset.label = key;
+                }
+            });
+
+            // Update statistics-grid (4 elements)
+            const gridBoxes = document.querySelectorAll(".statistics-grid .stat-number[data-count]");
+            const gridMap = ["students", "properties", "cities", "bookings"];
+            gridBoxes.forEach((box, idx) => {
+                const key = gridMap[idx];
+                if (key && stats[key] !== undefined) {
+                    const val = Number(stats[key] || 0);
+                    box.dataset.count = String(val);
+                    box.dataset.label = key;
+                }
             });
         }
 

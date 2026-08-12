@@ -274,8 +274,10 @@ function getBounds() {
 
 function getImageUrl(path) {
   if (!path) return "";
-  if (path.startsWith("http")) return path;
-  return IMAGE_BASE + path.replace(/^\//, "");
+  if (/^(https?:|data:|blob:)/i.test(path)) return path;
+  if (path.startsWith("/")) return IMAGE_BASE.replace(/\/$/, "") + path;
+  if (path.startsWith("uploads/")) return IMAGE_BASE + path;
+  return IMAGE_BASE + "uploads/" + path;
 }
 
 console.log("✅ Nearby Page Loaded");

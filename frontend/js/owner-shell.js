@@ -83,7 +83,11 @@ export async function apiFetch(endpoint, opts = {}) {
 
 export function formatImage(path) {
   if (!path) return "https://placehold.co/700x450?text=Campora";
-  return path.startsWith("http") ? path : `${APP_BASE_URL}/uploads/${path.replace(/^\/+/, "")}`;
+  if (/^(https?:|data:|blob:)/i.test(path)) return path;
+  const base = APP_BASE_URL.replace(/\/$/, "") + "/";
+  if (path.startsWith("/")) return base.replace(/\/$/, "") + path;
+  if (path.startsWith("uploads/")) return base + path;
+  return base + "uploads/" + path;
 }
 
 // =====================================================

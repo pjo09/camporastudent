@@ -274,7 +274,7 @@ router.post("/login", async (req, res) => {
             const providerMsg = user.authProvider === "google"
                 ? "This account uses Google sign-in. Please use Google login."
                 : user.authProvider === "otp"
-                    ? "This account uses OTP login. Please use OTP login or reset your password."
+                    ? "This account has no password set. Please reset your password to log in."
                     : "This account has no password set. Please reset your password.";
             return respondError(res, 400, providerMsg);
         }

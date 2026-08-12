@@ -91,8 +91,11 @@ export function timeAgo(input) {
 
 export function imageUrl(path) {
   if (!path) return "/assets/logos/logo.png";
-  if (path.startsWith("http") || path.startsWith("data:")) return path;
-  return `${API_BASE.replace("/api", "")}/${path.replace(/^\/+/, "")}`;
+  if (/^(https?:|data:|blob:)/i.test(path)) return path;
+  const base = API_BASE.replace(/\/api\/?$/, "") + "/";
+  if (path.startsWith("/")) return base.replace(/\/$/, "") + path;
+  if (path.startsWith("uploads/")) return base + path;
+  return base + "uploads/" + path;
 }
 
 // =====================================================

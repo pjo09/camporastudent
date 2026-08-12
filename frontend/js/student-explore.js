@@ -11,14 +11,41 @@ const state = {
   search: "",
   totalPages: 1,
   searchTimeout: null,
+  city: "",
+  college: "",
+  maxRent: "",
+  sharing: "",
 };
 
 document.addEventListener("DOMContentLoaded", () => {
   initShell();
   loadUnreadCount();
+  parseUrlParams();
   setupEvents();
   loadProperties();
 });
+
+function parseUrlParams() {
+  const urlParams = new URLSearchParams(window.location.search);
+  state.city = urlParams.get("city") || "";
+  state.college = urlParams.get("college") || "";
+  state.maxRent = urlParams.get("maxRent") || "";
+  state.sharing = urlParams.get("sharing") || "";
+  state.filter = urlParams.get("propertyType") || "all";
+
+  // Pre-populate search input value
+  const searchInput = $("searchInput");
+  if (searchInput) {
+    searchInput.value = state.college || state.city || "";
+  }
+
+  // Pre-select active filter button
+  if (state.filter !== "all") {
+    document.querySelectorAll(".sv3-filter-btn").forEach((btn) => {
+      btn.classList.toggle("active", btn.dataset.filter === state.filter);
+    });
+  }
+}
 
 function setupEvents() {
   const searchInput = $("searchInput");
@@ -26,7 +53,11 @@ function setupEvents() {
     searchInput.addEventListener("input", () => {
       clearTimeout(state.searchTimeout);
       state.searchTimeout = setTimeout(() => {
-        state.search = searchInput.value.trim();
+        const val = searchInput.value.trim();
+        state.search = val;
+        // Reset specific city/college searches from homepage
+        state.city = "";
+        state.college = val;
         state.page = 1;
         loadProperties();
       }, 400);
@@ -71,7 +102,11 @@ async function loadProperties() {
     q.set("sort", state.sort);
     q.set("page", state.page);
     q.set("limit", "9");
-    if (state.search) q.set("college", state.search);
+    if (state.city) q.set("city", state.city);
+    if (state.college) q.set("college", state.college);
+    if (state.maxRent) q.set("maxRent", state.maxRent);
+    if (state.sharing) q.set("sharing", state.sharing);
+    if (state.search && !state.college) q.set("college", state.search);
 
     const data = await apiFetch(`/properties/search?${q.toString()}`);
     const properties = data.properties || [];
