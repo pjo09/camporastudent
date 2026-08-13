@@ -54,10 +54,76 @@ async function loadDashboard() {
     renderRecommended(data.recommended || []);
     renderRecentBookings(data.recentBookings || []);
     renderRecentNotifications(data.recentNotifications || []);
+
+    // Load Move-In Center Banner & Announcements
+    const confirmedBooking = (data.recentBookings || []).find(b => b.bookingStatus === "confirmed" || b.bookingStatus === "checked-in");
+    let announcements = [];
+    try {
+      const annRes = await apiFetch("/student/announcements");
+      announcements = annRes.announcements || [];
+    } catch (e) {
+      console.warn("Failed to load announcements for dashboard", e);
+    }
+    renderMoveInAndAnnouncements(confirmedBooking, announcements);
+
   } catch (err) {
     const grid = $("recommendedGrid");
     if (grid) grid.innerHTML = `<div class="sv3-error" style="grid-column:1/-1"><i class="fa-solid fa-triangle-exclamation"></i><h3>Failed to load dashboard</h3><p>${esc(err.message)}</p></div>`;
   }
+}
+
+function renderMoveInAndAnnouncements(booking, announcements) {
+  const container = $("moveInBannerContainer");
+  if (!container) return;
+
+  let html = "";
+
+  if (booking) {
+    const propName = booking.propertyName || (booking.propertyId && booking.propertyId.propertyName) || "Property";
+    html += `
+      <div class="sv3-card" style="background:linear-gradient(135deg, rgba(37,99,235,0.06), rgba(99,102,241,0.06));border:1px solid rgba(37,99,235,0.2);padding:20px;border-radius:16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px">
+        <div style="display:flex;align-items:center;gap:16px">
+          <div style="width:48px;height:48px;border-radius:12px;background:var(--sv3-primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:20px">
+            <i class="fa-solid fa-truck-ramp-box"></i>
+          </div>
+          <div>
+            <h3 style="font-size:16px;font-weight:800;margin-bottom:4px;color:#fff">Move-In Center: ${esc(propName)}</h3>
+            <p style="font-size:13px;color:var(--sv3-muted)">Submit your required documents, view check-in coordinates, and coordinate with the owner.</p>
+          </div>
+        </div>
+        <button class="sv3-btn sv3-btn-primary" style="padding:10px 20px" onclick="window.location.href='move-in.html?bookingId=${booking._id}'">Go to Move-In Center <i class="fa-solid fa-arrow-right" style="margin-left:6px"></i></button>
+      </div>
+    `;
+  }
+
+  if (announcements && announcements.length > 0) {
+    const annHTML = announcements.map(a => {
+      const propName = a.property?.propertyName || "Property Update";
+      const date = new Date(a.createdAt).toLocaleDateString("en-IN", { day: '2-digit', month: 'short' });
+      return `
+        <div style="background:rgba(255,255,255,0.01);border:1px solid var(--sv3-border);padding:14px 16px;border-radius:12px;display:flex;align-items:start;gap:12px;margin-bottom:8px">
+          <div style="color:var(--sv3-warning);font-size:16px;margin-top:2px"><i class="fa-solid fa-bullhorn"></i></div>
+          <div style="flex:1">
+            <div style="display:flex;justify-content:space-between;align-items:baseline">
+              <strong style="font-size:12px;color:var(--sv3-primary);text-transform:uppercase">${esc(propName)}</strong>
+              <span style="font-size:11px;color:var(--sv3-muted)">${date}</span>
+            </div>
+            <h4 style="font-size:14px;font-weight:700;margin:4px 0 2px 0;color:#fff">${esc(a.title)}</h4>
+            <p style="font-size:13px;color:rgba(255,255,255,0.75);line-height:1.45">${esc(a.message)}</p>
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    html += `
+      <div class="sv3-card" style="padding:20px;border-radius:16px;background:rgba(255,255,255,0.02)">
+        <h3 style="font-size:15px;font-weight:800;margin-bottom:12px;color:#fff"><i class="fa-solid fa-bullhorn" style="color:var(--sv3-warning);margin-right:6px"></i> Property Announcements</h3>
+        <div>${annHTML}</div>
+      </div>
+    `;
+  }
+
+  container.innerHTML = html;
 }
 
 function renderRecommended(properties) {

@@ -511,6 +511,15 @@ router.put("/:id", auth, async (req, res) => {
 
         await booking.save();
 
+        if (booking.bookingStatus === "confirmed") {
+            try {
+                const { syncBookingConversation } = require("../utils/bookingHelper");
+                await syncBookingConversation(booking);
+            } catch (e) {
+                console.error("Booking status update sync failed:", e.message);
+            }
+        }
+
         res.json({
 
             success: true,

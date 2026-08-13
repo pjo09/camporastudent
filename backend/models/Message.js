@@ -27,6 +27,21 @@ const messageConversationSchema = new mongoose.Schema({
         default: null
     },
 
+    bookingId: {
+        type: mongoose.Schema.Types.ObjectId,
+        ref: "Booking",
+        default: null,
+        index: true,
+        unique: true,
+        sparse: true
+    },
+
+    status: {
+        type: String,
+        enum: ["active", "archived"],
+        default: "active"
+    },
+
     lastMessage: {
         type: String,
         default: ""

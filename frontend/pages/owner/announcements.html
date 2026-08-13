@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campora | Announcements</title>
+    <meta name="theme-color" content="#2563eb">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="../../css/owner-v3.css">
+    <link rel="icon" href="../../images/logo.png" type="image/png">
+</head>
+<body class="v3-body">
+
+<div class="v3-bg" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+</div>
+
+<div id="toastContainer" class="v3-toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<main class="v3-content" id="mainContent" role="main">
+
+    <div class="v3-grid" style="grid-template-columns:1fr 2fr;gap:20px;align-items:start">
+        
+        <!-- Publish Announcement Card -->
+        <div class="v3-card" style="padding:20px">
+            <h3 style="font-size:16px;font-weight:800;margin-bottom:14px;color:var(--v3-primary2)"><i class="fa-solid fa-bullhorn"></i> New Announcement</h3>
+            <form id="announcementForm">
+                <div class="v3-form-group" style="margin-bottom:12px">
+                    <label for="propertyId">Property</label>
+                    <select id="propertyId" class="v3-input" required>
+                        <option value="" disabled selected>Select Property</option>
+                    </select>
+                </div>
+                <div class="v3-form-group" style="margin-bottom:12px">
+                    <label for="title">Title</label>
+                    <input type="text" id="title" class="v3-input" placeholder="e.g. Wi-Fi Maintenance Tomorrow" required>
+                </div>
+                <div class="v3-form-group" style="margin-bottom:12px">
+                    <label for="message">Message</label>
+                    <textarea id="message" class="v3-input" rows="4" placeholder="Announcement details..." required></textarea>
+                </div>
+                <div class="v3-form-group" style="margin-bottom:16px">
+                    <label for="expiresAt">Expires On (Optional)</label>
+                    <input type="date" id="expiresAt" class="v3-input">
+                </div>
+                <button type="submit" class="v3-btn v3-btn-primary" style="width:100%"><i class="fa-solid fa-paper-plane"></i> Publish Announcement</button>
+            </form>
+        </div>
+
+        <!-- History of Announcements Card -->
+        <div class="v3-card" style="padding:20px">
+            <h3 style="font-size:16px;font-weight:800;margin-bottom:14px;color:var(--v3-secondary)"><i class="fa-solid fa-clock-rotate-left"></i> Announcement History</h3>
+            <div id="announcementsList">
+                <div class="v3-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading announcements...</div>
+            </div>
+            <div id="emptyAnnouncements" class="v3-empty" style="display:none;padding:30px 0">
+                <i class="fa-solid fa-bullhorn" style="font-size:32px"></i>
+                <h3>No Announcements Published</h3>
+                <p>Use the form to send updates to your residents.</p>
+            </div>
+        </div>
+
+    </div>
+
+</main>
+
+<div id="sidebarBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998" hidden></div>
+
+<script type="module">
+import { initShell } from "../../js/owner-shell.js";
+initShell("Announcements");
+</script>
+<script type="module" src="../../js/owner-announcements.js"></script>
+</body>
+</html>

@@ -10,8 +10,10 @@ const mongoose = require("mongoose");
 const auth = require("../middleware/auth");
 const requireRole = require("../middleware/role");
 const User = require("../models/User");
+const Booking = require("../models/Booking");
 const { MessageConversation, Message } = require("../models/Message");
 const Notification = require("../models/Notification");
+const { syncBookingConversation } = require("../utils/bookingHelper");
 
 function isValidObjectId(id) {
     return mongoose.Types.ObjectId.isValid(id);
@@ -20,58 +22,64 @@ function isValidObjectId(id) {
 // ======================================================
 // STUDENT AUTH
 // ======================================================
-
 router.use(auth);
 router.use(requireRole("student"));
 
 // ======================================================
 // LIST CONVERSATIONS (inbox)
 // ======================================================
-
 router.get("/conversations", async (req, res) => {
     try {
+        // Find conversations matching studentId
         const conversations = await MessageConversation.find({ studentId: req.user.id })
             .populate("ownerId", "name email phone profileImage businessName city")
             .populate("propertyId", "propertyName city images")
+            .populate("bookingId", "bookingStatus checkIn checkOut")
             .sort({ lastMessageAt: -1 })
             .limit(100);
 
-        return res.json({ success: true, conversations });
+        // Filter out conversations where the booking doesn't exist or is invalid
+        const validConversations = conversations.filter(c => c.bookingId);
+
+        return res.json({ success: true, conversations: validConversations });
     } catch (err) {
         return res.status(500).json({ success: false, message: err.message });
     }
 });
 
 // ======================================================
-// GET / CREATE CONVERSATION WITH AN OWNER
+// START CONVERSATION WITH AN OWNER (Requires confirmed booking)
 // ======================================================
-
 router.post("/conversation/start", async (req, res) => {
     try {
-        const { ownerId, propertyId } = req.body;
-        if (!ownerId || !isValidObjectId(ownerId)) {
-            return res.status(400).json({ success: false, message: "Valid ownerId is required" });
-        }
+        const { ownerId, propertyId, bookingId } = req.body;
 
-        const owner = await User.findById(ownerId);
-        if (!owner || owner.role !== "owner") {
-            return res.status(404).json({ success: false, message: "Owner not found" });
-        }
-
-        let conv = await MessageConversation.findOne({
-            ownerId,
-            studentId: req.user.id,
-        });
-
-        if (!conv) {
-            conv = await MessageConversation.create({
-                ownerId,
-                studentId: req.user.id,
-                propertyId: propertyId || null,
+        let booking = null;
+        if (bookingId && isValidObjectId(bookingId)) {
+            booking = await Booking.findOne({
+                _id: bookingId,
+                userId: req.user.id,
+                bookingStatus: "confirmed"
             });
-        } else if (propertyId && !conv.propertyId) {
-            conv.propertyId = propertyId;
-            await conv.save();
+        } else if (propertyId && isValidObjectId(propertyId)) {
+            // Find active confirmed booking for this property
+            booking = await Booking.findOne({
+                propertyId,
+                userId: req.user.id,
+                bookingStatus: "confirmed"
+            });
+        }
+
+        if (!booking) {
+            return res.status(403).json({
+                success: false,
+                message: "Your booking is no longer active."
+            });
+        }
+
+        const conv = await syncBookingConversation(booking);
+        if (!conv) {
+            return res.status(500).json({ success: false, message: "Failed to sync conversation." });
         }
 
         return res.json({ success: true, conversation: conv });
@@ -83,7 +91,6 @@ router.post("/conversation/start", async (req, res) => {
 // ======================================================
 // GET MESSAGES FOR A CONVERSATION
 // ======================================================
-
 router.get("/conversation/:id/messages", async (req, res) => {
     try {
         if (!isValidObjectId(req.params.id)) {
@@ -92,11 +99,17 @@ router.get("/conversation/:id/messages", async (req, res) => {
 
         const conv = await MessageConversation.findOne({
             _id: req.params.id,
-            studentId: req.user.id,
+            studentId: req.user.id
         });
 
-        if (!conv) {
-            return res.status(404).json({ success: false, message: "Conversation not found" });
+        if (!conv || !conv.bookingId) {
+            return res.status(404).json({ success: false, message: "Conversation unavailable." });
+        }
+
+        // Validate booking relationship
+        const booking = await Booking.findById(conv.bookingId);
+        if (!booking || String(booking.userId) !== String(req.user.id)) {
+            return res.status(403).json({ success: false, message: "Conversation unavailable." });
         }
 
         const messages = await Message.find({ conversationId: conv._id })
@@ -120,7 +133,6 @@ router.get("/conversation/:id/messages", async (req, res) => {
 // ======================================================
 // SEND MESSAGE TO OWNER
 // ======================================================
-
 router.post("/conversation/:id/send", async (req, res) => {
     try {
         if (!isValidObjectId(req.params.id)) {
@@ -129,11 +141,22 @@ router.post("/conversation/:id/send", async (req, res) => {
 
         const conv = await MessageConversation.findOne({
             _id: req.params.id,
-            studentId: req.user.id,
+            studentId: req.user.id
         });
 
-        if (!conv) {
-            return res.status(404).json({ success: false, message: "Conversation not found" });
+        if (!conv || !conv.bookingId) {
+            return res.status(404).json({ success: false, message: "Conversation unavailable." });
+        }
+
+        // Validate booking relationship
+        const booking = await Booking.findById(conv.bookingId);
+        if (!booking || String(booking.userId) !== String(req.user.id)) {
+            return res.status(403).json({ success: false, message: "Conversation unavailable." });
+        }
+
+        // Enforce cancelled booking rule: blocked from sending new messages
+        if (booking.bookingStatus === "cancelled") {
+            return res.status(403).json({ success: false, message: "Your booking is no longer active." });
         }
 
         const { text, attachment } = req.body;
@@ -147,7 +170,7 @@ router.post("/conversation/:id/send", async (req, res) => {
             senderId: req.user.id,
             text: text || "",
             attachment: attachment || {},
-            isRead: false,
+            isRead: false
         });
 
         conv.lastMessage = text || "📎 Attachment";
@@ -163,7 +186,7 @@ router.post("/conversation/:id/send", async (req, res) => {
                 receiverId: conv.ownerId,
                 title: "New Message from " + (student?.name || "Student"),
                 message: text || "You received an attachment",
-                type: "general",
+                type: "NEW_MESSAGE"
             });
         } catch (e) { /* non-fatal */ }
 
@@ -176,7 +199,6 @@ router.post("/conversation/:id/send", async (req, res) => {
 // ======================================================
 // MARK CONVERSATION READ
 // ======================================================
-
 router.patch("/conversation/:id/read", async (req, res) => {
     try {
         if (!isValidObjectId(req.params.id)) {
@@ -185,11 +207,11 @@ router.patch("/conversation/:id/read", async (req, res) => {
 
         const conv = await MessageConversation.findOne({
             _id: req.params.id,
-            studentId: req.user.id,
+            studentId: req.user.id
         });
 
         if (!conv) {
-            return res.status(404).json({ success: false, message: "Conversation not found" });
+            return res.status(404).json({ success: false, message: "Conversation unavailable." });
         }
 
         await Message.updateMany(
@@ -208,7 +230,6 @@ router.patch("/conversation/:id/read", async (req, res) => {
 // ======================================================
 // UNREAD COUNT
 // ======================================================
-
 router.get("/unread-count", async (req, res) => {
     try {
         const conversations = await MessageConversation.find({ studentId: req.user.id });
@@ -220,4 +241,3 @@ router.get("/unread-count", async (req, res) => {
 });
 
 module.exports = router;
-

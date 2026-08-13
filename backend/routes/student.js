@@ -957,6 +957,155 @@ router.get("/analytics", auth, requireRole("student"), async (req, res) => {
         savingProps.forEach(p => {
             if (p.city) cityCounts[p.city] = (cityCounts[p.city] || 0) + 1;
         });
+// ======================================================
+// CANCEL BOOKING (student)
+// ======================================================
+
+router.patch("/bookings/:id/cancel", auth, requireRole("student"), async (req, res) => {
+
+    try {
+
+        if (!isValidObjectId(req.params.id)) {
+            return res.status(400).json({ success: false, message: "Invalid booking ID" });
+        }
+
+        const booking = await Booking.findOne({
+            _id: req.params.id,
+            userId: req.user.id
+        });
+
+        if (!booking) {
+            return res.status(404).json({ success: false, message: "Booking not found" });
+        }
+
+        if (booking.bookingStatus === "checked-in" || booking.bookingStatus === "checked-out") {
+            return res.status(400).json({
+                success: false,
+                message: "You cannot cancel a booking that has already started."
+            });
+        }
+
+        booking.bookingStatus = "cancelled";
+        booking.cancelReason = req.body.reason || "Cancelled by student";
+        await booking.save();
+
+        // Notify owner
+        try {
+            await Notification.create({
+                receiverId: booking.ownerId,
+                title: "Booking Cancelled",
+                message: `A student cancelled their booking for "${booking.propertyName || 'a property'}".`,
+                type: "booking"
+            });
+        } catch (e) { /* non-fatal */ }
+
+        return res.json({ success: true, message: "Booking cancelled", booking });
+
+    } catch (err) {
+
+        return res.status(500).json({ success: false, message: err.message });
+
+    }
+
+});
+
+// ======================================================
+// STUDENT DOCUMENTS
+// ======================================================
+
+router.get("/documents", auth, requireRole("student"), async (req, res) => {
+
+    try {
+
+        const user = await User.findById(req.user.id).select("-password");
+
+        if (!user) {
+            return res.status(404).json({ success: false, message: "User not found" });
+        }
+
+        // Documents derived from user data + bookings
+        const bookings = await Booking.find({ userId: user._id })
+            .populate("propertyId", "propertyName city state address rent")
+            .sort({ createdAt: -1 });
+
+        const agreements = bookings
+            .filter(b => b.bookingStatus === "confirmed" || b.bookingStatus === "checked-in")
+            .map(b => ({
+                id: b._id,
+                type: "agreement",
+                title: "Rental Agreement - " + (b.propertyName || "Property"),
+                date: b.createdAt,
+                property: b.propertyName || "Property",
+                bookingId: b._id
+            }));
+
+        const receipts = bookings
+            .filter(b => b.paymentStatus === "paid")
+            .map(b => ({
+                id: b._id,
+                type: "receipt",
+                title: "Payment Receipt - " + (b.propertyName || "Property"),
+                amount: b.price || 0,
+                date: b.paymentDate || b.createdAt,
+                property: b.propertyName || "Property",
+                bookingId: b._id
+            }));
+
+        const idProofs = [];
+
+        if (user.profileImage) {
+            idProofs.push({
+                id: "profile",
+                type: "idproof",
+                title: "Profile ID",
+                url: user.profileImage,
+                date: user.createdAt
+            });
+        }
+
+        return res.json({
+            success: true,
+            documents: {
+                agreements,
+                receipts,
+                idProofs
+            }
+        });
+
+    } catch (err) {
+
+        return res.status(500).json({ success: false, message: err.message });
+
+    }
+
+});
+
+// ======================================================
+// STUDENT ANALYTICS
+// ======================================================
+router.get("/analytics", auth, requireRole("student"), async (req, res) => {
+    try {
+        const studentId = req.user.id;
+        const Invoice = require("../models/Invoice");
+        const Maintenance = require("../models/Maintenance");
+
+        const [bookings, invoices, savingProps, maintenance] = await Promise.all([
+            Booking.find({ userId: studentId }).sort({ createdAt: 1 }),
+            Invoice.find({ studentId }),
+            User.findById(studentId).populate("savedProperties").then(u => u.savedProperties || []),
+            Maintenance.find({ studentId })
+        ]);
+
+        const totalSpent = invoices.reduce((s, i) => s + (i.amountPaid || 0), 0);
+        const totalPaidBookings = bookings.filter(b => b.paymentStatus === "paid").length;
+        const totalCancelled = bookings.filter(b => b.bookingStatus === "cancelled").length;
+
+        // Favorite locations
+        const cityCounts = {};
+        savingProps.forEach(p => {
+            if (p.city) cityCounts[p.city] = (cityCounts[p.city] || 0) + 1;
+        });
+
         const favoriteLocations = Object.entries(cityCounts)
             .map(([city, count]) => ({ city, count }))
             .sort((a, b) => b.count - a.count)
@@ -993,13 +1142,332 @@ router.get("/analytics", auth, requireRole("student"), async (req, res) => {
                 bookingTimeline
             }
         });
-
     } catch (err) {
-
         return res.status(500).json({ success: false, message: err.message });
-
     }
+});
+        const favoriteLocations = Object.entries(cityCounts)
+            .map(([city, count]) => ({ city, count }))
+            .sort((a, b) => b.count - a.count)
+            .slice(0, 5);
 
+        // Monthly spending
+        const monthly = {};
+        invoices.forEach(inv => {
+            inv.transactions.forEach(t => {
+                const d = new Date(t.paidAt);
+                const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
+                monthly[key] = (monthly[key] || 0) + t.amount;
+            });
+        });
+
+        // Booking timeline
+        const bookingTimeline = bookings.map(b => ({
+            month: b.createdAt ? new Date(b.createdAt).getMonth() + 1 : 0,
+            year: b.createdAt ? new Date(b.createdAt).getFullYear() : 0,
+            status: b.bookingStatus
+        }));
+
+        return res.json({
+            success: true,
+            analytics: {
+                totalBookings: bookings.length,
+                totalSpent,
+                totalPaidBookings,
+                totalCancelled,
+                totalMaintenance: maintenance.length,
+                pendingMaintenance: maintenance.filter(m => !["resolved", "rejected"].includes(m.status)).length,
+                favoriteLocations,
+                monthly,
+                bookingTimeline
+            }
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// ======================================================
+// STUDENT MOVE-IN CENTER
+// ======================================================
+router.get("/bookings/:id/move-in", auth, requireRole("student"), async (req, res) => {
+    try {
+        const { MessageConversation, Message } = require("../models/Message");
+        const { id } = req.params;
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ success: false, message: "Invalid booking ID" });
+        }
+
+        const booking = await Booking.findById(id);
+        if (!booking || String(booking.userId) !== String(req.user.id)) {
+            return res.status(404).json({ success: false, message: "Booking not found" });
+        }
+
+        const property = await Property.findById(booking.propertyId);
+        if (!property) {
+            return res.status(404).json({ success: false, message: "Property not found" });
+        }
+
+        const owner = await User.findById(booking.ownerId).select("name businessName phone email");
+
+        // Calculate checklist details
+        const bookingConfirmed = ["confirmed", "checked-in", "checked-out"].includes(booking.bookingStatus);
+        const paymentStatus = booking.paymentStatus === "paid";
+        const moveInDateConfirmed = !!booking.checkIn;
+        const checkInInstructionsReceived = !!booking.checkInInstructions;
+
+        // Check if owner contacted (student sent at least one message)
+        let ownerContacted = false;
+        const conv = await MessageConversation.findOne({ bookingId: booking._id });
+        if (conv) {
+            ownerContacted = await Message.exists({ conversationId: conv._id, sender: "student" });
+        }
+
+        // Fetch announcements for this property
+        const Announcement = require("../models/Announcement");
+        const announcements = await Announcement.find({
+            property: property._id,
+            active: true,
+            $or: [
+                { expiresAt: null },
+                { expiresAt: { $gt: new Date() } }
+            ]
+        }).sort({ createdAt: -1 });
+
+        return res.json({
+            success: true,
+            booking: {
+                _id: booking._id,
+                bookingStatus: booking.bookingStatus,
+                checkIn: booking.checkIn,
+                checkOut: booking.checkOut,
+                price: booking.price,
+                paymentStatus: booking.paymentStatus,
+                checkInInstructions: booking.checkInInstructions,
+                checkInWindow: booking.checkInWindow,
+                meetingInstructions: booking.meetingInstructions,
+                specialInstructions: booking.specialInstructions,
+                requiredDocuments: booking.requiredDocuments || []
+            },
+            property: {
+                _id: property._id,
+                propertyName: property.propertyName,
+                propertyType: property.propertyType,
+                images: property.images,
+                address: property.address,
+                city: property.city,
+                state: property.state,
+                sharing: property.sharing,
+                gender: property.gender,
+                amenities: property.amenities,
+                houseRules: property.houseRules
+            },
+            owner,
+            checklist: {
+                bookingConfirmed,
+                documentsSubmitted: booking.requiredDocuments && booking.requiredDocuments.length > 0
+                    ? booking.requiredDocuments.every(d => !d.required || d.submitted)
+                    : false,
+                paymentStatus,
+                moveInDateConfirmed,
+                checkInInstructionsReceived,
+                ownerContacted: !!ownerContacted
+            },
+            announcements
+        });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// ======================================================
+// SECURE FILE UPLOAD FOR PRIVATE DOCUMENTS
+// ======================================================
+const multer = require("multer");
+const path = require("path");
+const fs = require("fs");
+
+const docStorage = multer.diskStorage({
+    destination: (req, file, cb) => {
+        const uploadDir = path.join(__dirname, "../private_uploads/documents");
+        if (!fs.existsSync(uploadDir)) {
+            fs.mkdirSync(uploadDir, { recursive: true });
+        }
+        cb(null, uploadDir);
+    },
+    filename: (req, file, cb) => {
+        const ext = path.extname(file.originalname);
+        const secureName = require("crypto").randomBytes(16).toString("hex") + ext;
+        cb(null, secureName);
+    }
+});
+
+const docUpload = multer({
+    storage: docStorage,
+    limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB limit
+    fileFilter: (req, file, cb) => {
+        const allowedExtensions = [".jpg", ".jpeg", ".png", ".pdf"];
+        const ext = path.extname(file.originalname).toLowerCase();
+        if (allowedExtensions.includes(ext)) {
+            cb(null, true);
+        } else {
+            cb(new Error("Only JPG, JPEG, PNG, and PDF files are allowed."));
+        }
+    }
+});
+
+router.post("/bookings/:id/documents/:docIndex", auth, requireRole("student"), docUpload.single("document"), async (req, res) => {
+    try {
+        const { id, docIndex } = req.params;
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ success: false, message: "Invalid booking ID" });
+        }
+
+        const booking = await Booking.findById(id);
+        if (!booking || String(booking.userId) !== String(req.user.id)) {
+            if (req.file && fs.existsSync(req.file.path)) {
+                try { fs.unlinkSync(req.file.path); } catch (e) {}
+            }
+            return res.status(404).json({ success: false, message: "Booking not found" });
+        }
+
+        if (!req.file) {
+            return res.status(400).json({ success: false, message: "No file uploaded" });
+        }
+
+        const index = parseInt(docIndex);
+        if (isNaN(index) || !booking.requiredDocuments || index < 0 || index >= booking.requiredDocuments.length) {
+            if (req.file && fs.existsSync(req.file.path)) {
+                try { fs.unlinkSync(req.file.path); } catch (e) {}
+            }
+            return res.status(400).json({ success: false, message: "Invalid document index" });
+        }
+
+        // Cleanup old file if it exists
+        const oldFileName = booking.requiredDocuments[index].fileName;
+        if (oldFileName) {
+            const oldPath = path.join(__dirname, "../private_uploads/documents", oldFileName);
+            if (fs.existsSync(oldPath)) {
+                try { fs.unlinkSync(oldPath); } catch (e) {}
+            }
+        }
+
+        booking.requiredDocuments[index].submitted = true;
+        booking.requiredDocuments[index].fileName = req.file.filename;
+        booking.requiredDocuments[index].documentUrl = `/api/student/bookings/${booking._id}/documents/${index}/view`;
+        booking.requiredDocuments[index].submittedAt = new Date();
+
+        await booking.save();
+
+        // Check if all required docs are submitted
+        const allDone = booking.requiredDocuments.every(d => !d.required || d.submitted);
+        if (allDone) {
+            try {
+                await Notification.create({
+                    receiverId: booking.ownerId,
+                    title: "Required Documents Submitted",
+                    message: `Student ${booking.userName} has submitted all required documents for booking at ${booking.propertyName}.`,
+                    type: "DOCUMENT_REQUEST"
+                });
+            } catch (e) {}
+        }
+
+        return res.json({
+            success: true,
+            message: "Document submitted successfully",
+            requiredDocuments: booking.requiredDocuments
+        });
+    } catch (err) {
+        if (req.file && fs.existsSync(req.file.path)) {
+            try { fs.unlinkSync(req.file.path); } catch (e) {}
+        }
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// ======================================================
+// SECURE FILE VIEWING FOR PRIVATE DOCUMENTS
+// ======================================================
+router.get("/bookings/:id/documents/:docIndex/view", auth, async (req, res) => {
+    try {
+        const { id, docIndex } = req.params;
+        if (!isValidObjectId(id)) {
+            return res.status(400).json({ success: false, message: "Invalid booking ID" });
+        }
+
+        const booking = await Booking.findById(id);
+        if (!booking) {
+            return res.status(404).json({ success: false, message: "Booking not found" });
+        }
+
+        // Authorize: user must be student of booking, owner of property, or admin
+        const isStudent = String(booking.userId) === String(req.user.id) && req.user.role === "student";
+        const isOwner = String(booking.ownerId) === String(req.user.id) && req.user.role === "owner";
+        const isAdmin = req.user.role === "admin";
+
+        if (!isStudent && !isOwner && !isAdmin) {
+            return res.status(403).json({ success: false, message: "Unauthorized access" });
+        }
+
+        const index = parseInt(docIndex);
+        if (isNaN(index) || !booking.requiredDocuments || index < 0 || index >= booking.requiredDocuments.length) {
+            return res.status(400).json({ success: false, message: "Invalid document index" });
+        }
+
+        const doc = booking.requiredDocuments[index];
+        if (!doc.submitted || !doc.fileName) {
+            return res.status(404).json({ success: false, message: "Document not submitted yet" });
+        }
+
+        // Path traversal protection
+        const docDir = path.resolve(path.join(__dirname, "../private_uploads/documents"));
+        const filePath = path.resolve(path.join(docDir, doc.fileName));
+
+        if (!filePath.startsWith(docDir)) {
+            return res.status(400).json({ success: false, message: "Path traversal detected" });
+        }
+
+        if (!fs.existsSync(filePath)) {
+            return res.status(404).json({ success: false, message: "File not found on disk" });
+        }
+
+        return res.sendFile(filePath);
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+// ======================================================
+// PROPERTY ANNOUNCEMENTS
+// ======================================================
+router.get("/announcements", auth, requireRole("student"), async (req, res) => {
+    try {
+        const bookings = await Booking.find({
+            userId: req.user.id,
+            bookingStatus: { $in: ["confirmed", "checked-in"] }
+        });
+
+        const propertyIds = bookings.map(b => b.propertyId);
+        if (propertyIds.length === 0) {
+            return res.json({ success: true, announcements: [] });
+        }
+
+        const Announcement = require("../models/Announcement");
+        const announcements = await Announcement.find({
+            property: { $in: propertyIds },
+            active: true,
+            $or: [
+                { expiresAt: null },
+                { expiresAt: { $gt: new Date() } }
+            ]
+        })
+        .populate("property", "propertyName images city")
+        .sort({ createdAt: -1 });
+
+        return res.json({ success: true, announcements });
+    } catch (err) {
+        return res.status(500).json({ success: false, message: err.message });
+    }
 });
 
 module.exports = router;

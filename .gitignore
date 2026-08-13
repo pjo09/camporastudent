@@ -10,6 +10,8 @@ backend/node_modules/
 
 # Uploads
 uploads/
+private_uploads/
+backend/private_uploads/
 
 # Logs
 *.log

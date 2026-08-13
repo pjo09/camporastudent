@@ -65,7 +65,41 @@ const bookingSchema = new mongoose.Schema({
     cancelReason: {
         type: String,
         default: ""
-    }
+    },
+    checkInInstructions: {
+        type: String,
+        default: ""
+    },
+    checkInWindow: {
+        type: String,
+        default: ""
+    },
+    meetingInstructions: {
+        type: String,
+        default: ""
+    },
+    specialInstructions: {
+        type: String,
+        default: ""
+    },
+    reminderSent7Days: {
+        type: Boolean,
+        default: false
+    },
+    reminderSent1Day: {
+        type: Boolean,
+        default: false
+    },
+    requiredDocuments: [
+        {
+            name: { type: String, required: true },
+            required: { type: Boolean, default: true },
+            submitted: { type: Boolean, default: false },
+            documentUrl: { type: String, default: "" },
+            fileName: { type: String, default: "" },
+            submittedAt: { type: Date, default: null }
+        }
+    ]
 }, {
     timestamps: true
 });
@@ -75,6 +109,18 @@ bookingSchema.index({ ownerId: 1, bookingStatus: 1, createdAt: -1 });
 bookingSchema.index({ userId: 1, bookingStatus: 1, createdAt: -1 });
 bookingSchema.index({ propertyId: 1, bookingStatus: 1 });
 bookingSchema.index({ paymentStatus: 1, createdAt: -1 });
+
+// Safety post-save middleware for conversation auto-creation
+bookingSchema.post("save", async function(doc) {
+    if (doc.bookingStatus === "confirmed") {
+        try {
+            const { syncBookingConversation } = require("../utils/bookingHelper");
+            await syncBookingConversation(doc);
+        } catch (err) {
+            console.error("Booking post-save sync failed:", err.message);
+        }
+    }
+});
 
 module.exports = mongoose.model("Booking", bookingSchema);
 

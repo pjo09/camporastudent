@@ -18,7 +18,17 @@ const { configureDnsResolvers } = require("./config/dns");
 const app = express();
 
 configureDnsResolvers();
-connectDB();
+connectDB().then(() => {
+    try {
+        const { syncAllBookingConversations, checkAndSendMoveInReminders } = require("./utils/bookingHelper");
+        syncAllBookingConversations();
+        checkAndSendMoveInReminders();
+        // Run reminders check every 6 hours
+        setInterval(checkAndSendMoveInReminders, 6 * 60 * 60 * 1000);
+    } catch (err) {
+        console.error("Failed to run booking helper startup:", err.message);
+    }
+});
 
 // ===============================================
 // CORS — MUST be registered FIRST so that OPTIONS
@@ -165,11 +175,25 @@ try { app.use("/api/properties", require("./routes/properties")); console.log("�
 try { app.use("/api/owner", require("./routes/owner")); console.log("✅ Owner Route Loaded"); } catch(err) { console.log("❌ Owner Route Error", err); }
 try { app.use("/api/owner/finance", require("./routes/owner-finance")); console.log("✅ Owner Finance Route Loaded"); } catch(err) { console.log("❌ Owner Finance Route Error", err); }
 try { app.use("/api/owner/maintenance", require("./routes/owner-maintenance")); console.log("✅ Owner Maintenance Route Loaded"); } catch(err) { console.log("❌ Owner Maintenance Route Error", err); }
-try { app.use("/api/owner/messaging", require("./routes/owner-messaging")); console.log("✅ Owner Messaging Route Loaded"); } catch(err) { console.log("❌ Owner Messaging Route Error", err); }
+try {
+    const ownerMsg = require("./routes/owner-messaging");
+    app.use("/api/owner/messaging", ownerMsg);
+    app.use("/api/owner/messages", ownerMsg);
+    console.log("✅ Owner Messaging Routes Loaded");
+} catch(err) {
+    console.log("❌ Owner Messaging Routes Error", err);
+}
 try { app.use("/api/student", require("./routes/student")); console.log("✅ Student Route Loaded"); } catch(err) { console.log("❌ Student Route Error", err); }
 try { app.use("/api/student/finance", require("./routes/student-finance")); console.log("✅ Student Finance Route Loaded"); } catch(err) { console.log("❌ Student Finance Route Error", err); }
 try { app.use("/api/student/maintenance", require("./routes/student-maintenance")); console.log("✅ Student Maintenance Route Loaded"); } catch(err) { console.log("❌ Student Maintenance Route Error", err); }
-try { app.use("/api/student/messaging", require("./routes/student-messaging")); console.log("✅ Student Messaging Route Loaded"); } catch(err) { console.log("❌ Student Messaging Route Error", err); }
+try {
+    const studentMsg = require("./routes/student-messaging");
+    app.use("/api/student/messaging", studentMsg);
+    app.use("/api/student/messages", studentMsg);
+    console.log("✅ Student Messaging Routes Loaded");
+} catch(err) {
+    console.log("❌ Student Messaging Routes Error", err);
+}
 try { app.use("/api/admin", require("./routes/admin")); console.log("✅ Admin Route Loaded"); } catch(err) { console.log("❌ Admin Route Error", err); }
 try { app.use("/api/bookings", require("./routes/bookings")); console.log("✅ Bookings Route Loaded"); } catch(err) { console.log("❌ Bookings Route Error", err); }
 try { app.use("/api/payments", require("./routes/payment")); console.log("✅ Payments Route Loaded"); } catch(err) { console.log("❌ Payments Route Error", err); }

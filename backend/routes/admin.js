@@ -2511,6 +2511,13 @@ router.patch("/bookings/:id/confirm", async (req, res) => {
 
         await booking.save();
 
+        try {
+            const { syncBookingConversation } = require("../utils/bookingHelper");
+            await syncBookingConversation(booking);
+        } catch (e) {
+            console.error("Booking confirmation sync failed:", e.message);
+        }
+
         return success(res, {
 
             message: "Booking confirmed",

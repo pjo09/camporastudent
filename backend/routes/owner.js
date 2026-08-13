@@ -1214,6 +1214,13 @@ router.patch(
 
             await booking.save();
 
+            try {
+                const { syncBookingConversation } = require("../utils/bookingHelper");
+                await syncBookingConversation(booking);
+            } catch (e) {
+                console.error("Booking confirmation sync failed:", e.message);
+            }
+
             return sendSuccess(res, {
 
                 message: "Booking Confirmed",
@@ -2133,18 +2140,17 @@ router.get("/summary", async (req, res) => {
 // OWNER STUDENTS MODULE
 // ======================================================
 
-router.get("/students", async (req, res) => {
-
+const getResidents = async (req, res) => {
     try {
-
         const { search, status } = req.query;
-
         const filter = {
             ownerId: req.owner._id
         };
 
         if (status) {
             filter.bookingStatus = status;
+        } else {
+            filter.bookingStatus = { $in: ["confirmed", "checked-in"] };
         }
 
         // Base query: active/confirmed bookings for this owner
@@ -2166,7 +2172,7 @@ router.get("/students", async (req, res) => {
             });
         }
 
-        // Deduplicate by student (a student may have multiple bookings)
+        // Deduplicate by student
         const studentsMap = new Map();
         bookings.forEach((b) => {
             const student = b.userId;
@@ -2187,15 +2193,131 @@ router.get("/students", async (req, res) => {
             total: students.length,
             students
         });
-
-    }
-
-    catch (err) {
-
+    } catch (err) {
         return sendError(res, err.message);
-
     }
+};
 
+router.get("/students", getResidents);
+router.get("/residents", getResidents);
+
+// ======================================================
+// OWNER CHECK-IN COORDINATION
+// ======================================================
+router.put("/bookings/:id/check-in", async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!isValidObjectId(id)) {
+            return sendError(res, "Invalid booking ID", 400);
+        }
+
+        const booking = await Booking.findById(id);
+        if (!booking || String(booking.ownerId) !== String(req.owner._id)) {
+            return sendError(res, "Booking not found", 404);
+        }
+
+        const { checkInInstructions, checkInWindow, meetingInstructions, specialInstructions, requiredDocuments } = req.body;
+
+        if (checkInInstructions !== undefined) booking.checkInInstructions = checkInInstructions;
+        if (checkInWindow !== undefined) booking.checkInWindow = checkInWindow;
+        if (meetingInstructions !== undefined) booking.meetingInstructions = meetingInstructions;
+        if (specialInstructions !== undefined) booking.specialInstructions = specialInstructions;
+
+        if (requiredDocuments && Array.isArray(requiredDocuments)) {
+            // Merge or set required documents. Preserve submitted state if name matches!
+            const newDocs = requiredDocuments.map(docName => {
+                const existing = booking.requiredDocuments.find(d => d.name === docName);
+                if (existing) {
+                    return existing;
+                }
+                return { name: docName, required: true, submitted: false, documentUrl: "" };
+            });
+            booking.requiredDocuments = newDocs;
+        }
+
+        await booking.save();
+
+        // Create a notification for the student
+        try {
+            await Notification.create({
+                receiverId: booking.userId,
+                title: "Check-In Information Updated 📦",
+                message: `The owner has updated the check-in instructions for your booking at "${booking.propertyName}". View details in the Move-In Center.`,
+                type: "CHECK_IN_UPDATE"
+            });
+        } catch (e) {}
+
+        return sendSuccess(res, {
+            message: "Check-in instructions updated",
+            booking
+        });
+    } catch (err) {
+        return sendError(res, err.message);
+    }
+});
+
+// ======================================================
+// PROPERTY ANNOUNCEMENTS (OWNER)
+// ======================================================
+router.post("/announcements", async (req, res) => {
+    try {
+        const { propertyId, title, message, expiresAt } = req.body;
+        if (!propertyId || !title || !message) {
+            return sendError(res, "Missing required fields", 400);
+        }
+
+        const property = await Property.findById(propertyId);
+        if (!property || String(property.owner) !== String(req.owner._id)) {
+            return sendError(res, "Unauthorized property access", 403);
+        }
+
+        const Announcement = require("../models/Announcement");
+        const announcement = await Announcement.create({
+            property: propertyId,
+            owner: req.owner._id,
+            title,
+            message,
+            active: true,
+            expiresAt: expiresAt ? new Date(expiresAt) : null
+        });
+
+        // Notify active confirmed/checked-in residents
+        const bookings = await Booking.find({
+            propertyId,
+            bookingStatus: { $in: ["confirmed", "checked-in"] }
+        });
+
+        for (const b of bookings) {
+            try {
+                await Notification.create({
+                    receiverId: b.userId,
+                    title: `New Announcement: ${title} 📢`,
+                    message: message,
+                    type: "NEW_ANNOUNCEMENT"
+                });
+            } catch (e) {}
+        }
+
+        return sendSuccess(res, {
+            message: "Announcement published successfully",
+            announcement
+        });
+    } catch (err) {
+        return sendError(res, err.message);
+    }
+});
+
+router.get("/announcements", async (req, res) => {
+    try {
+        const Announcement = require("../models/Announcement");
+        const announcements = await Announcement.find({ owner: req.owner._id })
+            .populate("property", "propertyName city")
+            .sort({ createdAt: -1 });
+
+        return sendSuccess(res, { announcements });
+    } catch (err) {
+        return sendError(res, err.message);
+    }
 });
 
 // ======================================================

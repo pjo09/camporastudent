@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campora • Student Move-In Center</title>
+<meta name="description" content="Manage your move-in, submit documents, and coordinate with the owner.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/student-v3.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+</head>
+<body class="sv3-body">
+<a class="sv3-skip-link" href="#sv3Main">Skip to content</a>
+
+<div class="sv3-bg-glow sv3-gl1"></div>
+<div class="sv3-bg-glow sv3-gl2"></div>
+<div class="sv3-bg-glow sv3-gl3"></div>
+
+<!-- SIDEBAR -->
+<aside class="sv3-sidebar" id="sidebar" aria-label="Student navigation">
+  <div class="sv3-sidebar-header">
+    <img class="sv3-logo" src="../../images/logo.png" alt="Campora logo">
+    <div class="sv3-logo-text">
+      <h3>Campora</h3>
+      <p>Student Dashboard</p>
+    </div>
+  </div>
+  <nav class="sv3-nav">
+    <a href="dashboard.html" class="sv3-nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
+    <a href="../../properties.html" class="sv3-nav-item"><i class="fa-solid fa-magnifying-glass"></i> Explore</a>
+    <a href="saved-properties.html" class="sv3-nav-item"><i class="fa-solid fa-heart"></i> Saved</a>
+    <a href="bookings.html" class="sv3-nav-item"><i class="fa-solid fa-calendar-check"></i> My Bookings</a>
+    <a href="payments.html" class="sv3-nav-item"><i class="fa-solid fa-credit-card"></i> Payments</a>
+    <a href="messages.html" class="sv3-nav-item"><i class="fa-solid fa-comments"></i> Messages</a>
+    <a href="move-in.html" class="sv3-nav-item active" aria-current="page"><i class="fa-solid fa-truck-ramp-box"></i> Move-In Center</a>
+    <a href="notifications.html" class="sv3-nav-item"><i class="fa-solid fa-bell"></i> Notifications <span class="sv3-nav-badge" id="unreadNotifications" style="display:none">0</span></a>
+    <a href="maintenance.html" class="sv3-nav-item"><i class="fa-solid fa-screwdriver-wrench"></i> Maintenance</a>
+    <a href="reviews.html" class="sv3-nav-item"><i class="fa-solid fa-star"></i> Reviews</a>
+    <a href="documents.html" class="sv3-nav-item"><i class="fa-solid fa-folder-open"></i> Documents</a>
+    <a href="analytics.html" class="sv3-nav-item"><i class="fa-solid fa-chart-line"></i> Analytics</a>
+    <a href="support.html" class="sv3-nav-item"><i class="fa-solid fa-headset"></i> Support</a>
+    <a href="profile.html" class="sv3-nav-item"><i class="fa-solid fa-user"></i> Profile</a>
+    <a href="settings.html" class="sv3-nav-item"><i class="fa-solid fa-gear"></i> Settings</a>
+  </nav>
+  <div class="sv3-sidebar-footer">
+    <button class="sv3-logout-btn" id="logoutBtn"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
+  </div>
+</aside>
+<div class="sv3-sidebar-backdrop" id="sidebarBackdrop"></div>
+
+<!-- MAIN -->
+<main class="sv3-main" id="sv3Main">
+  <header class="sv3-topbar">
+    <div class="sv3-topbar-left">
+      <button class="sv3-menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
+      <div class="sv3-topbar-title">
+        <h1>Move-In Center</h1>
+        <p>Coordinate your move-in, submit files, and coordinate arrival</p>
+      </div>
+    </div>
+    <div class="sv3-topbar-right">
+      <button class="sv3-icon-btn" id="notificationBell" aria-label="Notifications"><i class="fa-solid fa-bell"></i></button>
+      <div class="sv3-profile" id="profileBtn" role="button" tabindex="0" aria-haspopup="true" aria-expanded="false">
+        <div class="sv3-avatar" id="studentInitials">S</div>
+        <div class="sv3-profile-info">
+          <strong id="navbarName">Student</strong>
+          <span id="navbarRole">Student</span>
+        </div>
+        <i class="fa-solid fa-chevron-down" style="font-size:12px;color:var(--sv3-muted)"></i>
+        <div class="sv3-profile-dropdown" id="profileDropdown">
+          <a href="profile.html"><i class="fa-solid fa-user"></i> My Profile</a>
+          <a href="settings.html"><i class="fa-solid fa-gear"></i> Settings</a>
+          <a href="support.html"><i class="fa-solid fa-headset"></i> Support</a>
+          <a href="https://camporastudent.vercel.app/" class="danger" id="dropdownLogout"><i class="fa-solid fa-right-from-bracket"></i> Logout</a>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <div id="noBookingState" class="sv3-empty" style="display:none;margin-top:40px">
+    <i class="fa-solid fa-truck-ramp-box" style="font-size:48px"></i>
+    <h2>No Active Confirmed Booking</h2>
+    <p>You need a confirmed booking to access the Move-In Center. Explore accommodations and complete booking payment first.</p>
+    <a href="bookings.html" class="sv3-btn sv3-btn-primary" style="margin-top:16px"><i class="fa-solid fa-calendar-check"></i> View My Bookings</a>
+  </div>
+
+  <div id="bookingSelectorContainer" style="display:none;margin-bottom:20px">
+    <label for="bookingSelect" style="font-size:13px;font-weight:600;margin-bottom:6px;display:block">Select Booking</label>
+    <select id="bookingSelect" class="sv3-input" style="max-width:300px"></select>
+  </div>
+
+  <div id="moveInContent" style="display:none">
+    <div style="display:grid;grid-template-columns:2fr 1fr;gap:24px;align-items:start">
+      
+      <!-- Left: Checklist & Docs -->
+      <div style="display:flex;flex-direction:column;gap:24px">
+        
+        <!-- Checklist Card -->
+        <div class="sv3-card" style="padding:24px">
+          <h2 style="font-size:18px;font-weight:800;margin-bottom:16px"><i class="fa-solid fa-list-check" style="color:var(--sv3-primary)"></i> Move-In Checklist</h2>
+          <div id="checklistItems" style="display:flex;flex-direction:column;gap:12px"></div>
+        </div>
+
+        <!-- Documents Submission Card -->
+        <div class="sv3-card" style="padding:24px">
+          <h2 style="font-size:18px;font-weight:800;margin-bottom:6px"><i class="fa-solid fa-file-shield" style="color:var(--sv3-primary)"></i> Secure Document Verification</h2>
+          <p style="font-size:13px;color:var(--sv3-muted);margin-bottom:16px">Upload required documents to verify your residency. All documents are stored privately and securely.</p>
+          <div id="documentsList" style="display:flex;flex-direction:column;gap:16px"></div>
+        </div>
+
+      </div>
+
+      <!-- Right: Property & Contact -->
+      <div style="display:flex;flex-direction:column;gap:24px">
+        
+        <!-- Property Details Card -->
+        <div class="sv3-card" style="padding:20px" id="propertyDetailsCard"></div>
+
+        <!-- Check-In Instructions Card -->
+        <div class="sv3-card" style="padding:20px">
+          <h2 style="font-size:16px;font-weight:800;margin-bottom:12px"><i class="fa-solid fa-location-crosshairs" style="color:var(--sv3-secondary)"></i> Arrival Instructions</h2>
+          <div id="instructionsContent" style="display:flex;flex-direction:column;gap:12px"></div>
+        </div>
+
+      </div>
+
+    </div>
+  </div>
+
+</main>
+
+<div class="sv3-toast-container" id="toastContainer"></div>
+
+<script type="module" src="../../js/student-move-in.js"></script>
+</body>
+</html>

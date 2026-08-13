@@ -37,7 +37,14 @@ const NotificationSchema = new mongoose.Schema({
             "booking",
             "payment",
             "property",
-            "system"
+            "system",
+            "NEW_MESSAGE",
+            "BOOKING_CONFIRMED",
+            "MOVE_IN_REMINDER",
+            "NEW_ANNOUNCEMENT",
+            "CHECK_IN_UPDATE",
+            "DOCUMENT_REQUEST",
+            "BOOKING_UPDATE"
         ],
 
         default:"general"

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <title>Campora | Residents</title>
+    <meta name="theme-color" content="#2563eb">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+    <link rel="stylesheet" href="../../css/owner-v3.css">
+    <link rel="icon" href="../../images/logo.png" type="image/png">
+</head>
+<body class="v3-body">
+
+<div class="v3-bg" aria-hidden="true">
+    <div class="blob b1"></div>
+    <div class="blob b2"></div>
+    <div class="blob b3"></div>
+</div>
+
+<div id="toastContainer" class="v3-toast-container" aria-live="polite" aria-atomic="true"></div>
+
+<main class="v3-content" id="mainContent" role="main">
+
+        <div class="v3-filter-bar">
+            <div class="v3-search" style="max-width:400px">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <input type="search" id="studentSearch" placeholder="Search by name, phone, email, college..." aria-label="Search residents">
+            </div>
+            <button class="v3-btn v3-btn-primary" id="broadcastBtn"><i class="fa-solid fa-paper-plane"></i> Broadcast Message</button>
+        </div>
+
+        <!-- Residents Table -->
+        <div class="v3-table-wrap">
+            <table class="v3-table">
+                <thead>
+                    <tr>
+                        <th>Resident</th>
+                        <th>Contact</th>
+                        <th>College</th>
+                        <th>Property</th>
+                        <th>Move In</th>
+                        <th>Rent</th>
+                        <th>Status</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="studentsBody">
+                    <tr><td colspan="8" class="v3-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading residents...</td></tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div id="emptyState" class="v3-empty" style="display:none">
+            <i class="fa-solid fa-user-graduate"></i>
+            <h3>No Active Residents</h3>
+            <p>Students with confirmed bookings will appear here.</p>
+        </div>
+
+</main>
+
+<div id="sidebarBackdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998" hidden></div>
+
+<!-- Resident Profile Modal -->
+<div class="v3-modal-overlay" id="studentModal">
+    <div class="v3-modal" style="max-width:700px">
+        <div class="v3-modal-header">
+            <h3>Resident Profile & Check-In</h3>
+            <button class="v3-modal-close" id="closeStudentModal" type="button" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <div id="studentProfileContent">
+            <div class="v3-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading profile...</div>
+        </div>
+    </div>
+</div>
+
+<!-- Broadcast Modal -->
+<div class="v3-modal-overlay" id="broadcastModal">
+    <div class="v3-modal">
+        <div class="v3-modal-header">
+            <h3>Broadcast Message</h3>
+            <button class="v3-modal-close" id="closeBroadcastModal" type="button" aria-label="Close"><i class="fa-solid fa-xmark"></i></button>
+        </div>
+        <form id="broadcastForm">
+            <div class="v3-form-group">
+                <label for="broadcastAudience">Audience</label>
+                <select id="broadcastAudience">
+                    <option value="all">All Active Residents</option>
+                </select>
+            </div>
+            <div class="v3-form-group">
+                <label for="broadcastText">Message</label>
+                <textarea id="broadcastText" rows="4" placeholder="Type your announcement..." required></textarea>
+            </div>
+            <button type="submit" class="v3-btn v3-btn-primary" style="width:100%"><i class="fa-solid fa-paper-plane"></i> Send Broadcast</button>
+        </form>
+    </div>
+</div>
+
+<script type="module">
+import { initShell } from "../../js/owner-shell.js";
+initShell("Residents");
+</script>
+<script type="module" src="../../js/owner-residents.js"></script>
+</body>
+</html>
