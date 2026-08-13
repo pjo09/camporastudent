@@ -8,6 +8,31 @@ import { API } from "./config.js";
 
 const API_BASE = API;
 
+const originalFetch = window.fetch;
+const fetch = async (url, options = {}) => {
+  const res = await originalFetch(url, options);
+  if (!res.ok) {
+    let message = `Admin API request failed: HTTP ${res.status}`;
+    try {
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const errData = await res.json();
+        if (errData && errData.message) message = errData.message;
+      }
+    } catch (e) {}
+    throw new Error(message);
+  }
+  const originalJson = res.json.bind(res);
+  res.json = async () => {
+    const contentType = res.headers.get("content-type");
+    if (contentType && contentType.includes("application/json")) {
+      return await originalJson();
+    }
+    throw new Error(`Expected JSON response but received non-JSON payload (Status ${res.status})`);
+  };
+  return res;
+};
+
 const $ = (id) => document.getElementById(id);
 
 // =====================================================

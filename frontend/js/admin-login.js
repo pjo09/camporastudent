@@ -144,7 +144,13 @@ async function adminLogin(e) {
             body: JSON.stringify({ email, password })
         });
 
-        const data = await response.json();
+        let data = {};
+        const contentType = response.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+            data = await response.json();
+        } else {
+            throw new Error(`Admin login failed: HTTP ${response.status}`);
+        }
 
         if (!response.ok || !data.success) {
             throw new Error(data.message || "Admin login failed.");
