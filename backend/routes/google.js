@@ -60,11 +60,39 @@ router.post("/", async (req, res) => {
             });
         }
 
+        // Validate GOOGLE_CLIENT_ID configuration on server
+        const clientId = process.env.GOOGLE_CLIENT_ID;
+        const isValidFormat = typeof clientId === "string" &&
+                              clientId.trim().length > 0 &&
+                              clientId.endsWith(".apps.googleusercontent.com") &&
+                              !clientId.startsWith("mongodb");
+
+        if (!isValidFormat) {
+            console.error("Google authentication configuration error: GOOGLE_CLIENT_ID is missing or has an invalid format.");
+            return res.status(500).json({
+                success: false,
+                message: "Google authentication is not configured correctly on the server."
+            });
+        }
+
         // Verify Google ID token on the server (never trust frontend)
-        const ticket = await client.verifyIdToken({
-            idToken: credential,
-            audience: process.env.GOOGLE_CLIENT_ID
-        });
+        let ticket;
+        try {
+            ticket = await client.verifyIdToken({
+                idToken: credential,
+                audience: clientId
+            });
+        } catch (verifyErr) {
+            console.error("Google authentication verification failed:", {
+                name: verifyErr?.name,
+                message: verifyErr?.message
+            });
+
+            return res.status(401).json({
+                success: false,
+                message: "Google authentication failed."
+            });
+        }
 
         const payload = ticket.getPayload();
         const { sub, email, name, picture } = payload;
