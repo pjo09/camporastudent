@@ -16,6 +16,7 @@ const connectDB = require("./config/db");
 const { configureDnsResolvers } = require("./config/dns");
 
 const app = express();
+app.set("trust proxy", 1);
 
 configureDnsResolvers();
 connectDB().then(() => {
@@ -116,7 +117,8 @@ const limiter = rateLimit({
     max: 100,
     message: { success: false, message: "Too many requests. Please try again later." },
     standardHeaders: true,
-    legacyHeaders: false
+    legacyHeaders: false,
+    skip: (req) => req.originalUrl && req.originalUrl.startsWith("/api/admin/")
 });
 app.use("/api/", limiter);
 

@@ -9,28 +9,94 @@ import { API } from "./config.js";
 const API_BASE = API;
 
 const originalFetch = window.fetch;
-const fetch = async (url, options = {}) => {
-  const res = await originalFetch(url, options);
-  if (!res.ok) {
-    let message = `Admin API request failed: HTTP ${res.status}`;
-    try {
-      const contentType = res.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const errData = await res.json();
-        if (errData && errData.message) message = errData.message;
-      }
-    } catch (e) {}
-    throw new Error(message);
+const inFlightRequests = new Map();
+let activeRetries = 0;
+
+const fetch = async (url, options = {}, retryCount = 0) => {
+  const isGet = !options.method || options.method.toUpperCase() === "GET";
+  const force = options.forceReload || state.forceReloadActive;
+
+  if (isGet && force) {
+    inFlightRequests.delete(url);
   }
-  const originalJson = res.json.bind(res);
-  res.json = async () => {
-    const contentType = res.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-      return await originalJson();
+
+  const cacheKey = isGet ? url : null;
+
+  if (cacheKey && inFlightRequests.has(cacheKey)) {
+    return inFlightRequests.get(cacheKey);
+  }
+
+  const promise = (async () => {
+    try {
+      const res = await originalFetch(url, options);
+
+      if (res.status === 429 && isGet) {
+        if (retryCount < 2) {
+          activeRetries++;
+          const retryAfterHeader = res.headers.get("Retry-After");
+          let delaySec = parseInt(retryAfterHeader, 10);
+          if (isNaN(delaySec) || delaySec <= 0) {
+            delaySec = 5;
+          }
+
+          const staggerMs = (activeRetries - 1) * 500;
+          const totalDelayMs = (delaySec * 1000) + staggerMs;
+          const roundedDelaySec = Math.round(totalDelayMs / 1000);
+
+          showToast(`Admin data is temporarily rate limited. Retrying in ${roundedDelaySec} seconds...`, "info");
+
+          try {
+            await new Promise(resolve => setTimeout(resolve, totalDelayMs));
+          } finally {
+            activeRetries--;
+          }
+
+          if (cacheKey) {
+            inFlightRequests.delete(cacheKey);
+          }
+
+          return fetch(url, options, retryCount + 1);
+        } else {
+          showToast("Unable to load this section right now. Please try again later.", "error");
+        }
+      }
+
+      if (!res.ok) {
+        let message = `Admin API request failed: HTTP ${res.status}`;
+        try {
+          const contentType = res.headers.get("content-type");
+          if (contentType && contentType.includes("application/json")) {
+            const errData = await res.json();
+            if (errData && errData.message) message = errData.message;
+          }
+        } catch (e) {}
+        throw new Error(message);
+      }
+
+      const originalJson = res.json.bind(res);
+      res.json = async () => {
+        const contentType = res.headers.get("content-type");
+        if (contentType && contentType.includes("application/json")) {
+          return await originalJson();
+        }
+        throw new Error(`Expected JSON response but received non-JSON payload (Status ${res.status})`);
+      };
+
+      return res;
+    } finally {
+      if (cacheKey) {
+        if (inFlightRequests.get(cacheKey) === promise) {
+          inFlightRequests.delete(cacheKey);
+        }
+      }
     }
-    throw new Error(`Expected JSON response but received non-JSON payload (Status ${res.status})`);
-  };
-  return res;
+  })();
+
+  if (cacheKey) {
+    inFlightRequests.set(cacheKey, promise);
+  }
+
+  return promise;
 };
 
 const $ = (id) => document.getElementById(id);
@@ -50,6 +116,9 @@ const state = {
   bookingPage: 1,
   bookingTotal: 1,
   currentTab: "overview",
+  loadedTabs: {},
+  loadingTabs: {},
+  forceReloadActive: false,
 };
 
 state.user = protectPageByRole(["admin"]);
@@ -139,7 +208,7 @@ init();
 async function init() {
   renderAdminInfo();
   setupEventListeners();
-  await loadAllTabs();
+  await loadTabData("overview");
   DOM.loading.style.display = "none";
   updateLastUpdate();
 }
@@ -164,7 +233,10 @@ function setupEventListeners() {
   });
 
   // Refresh
-  DOM.refreshBtn?.addEventListener("click", () => { loadAllTabs(); updateLastUpdate(); });
+  DOM.refreshBtn?.addEventListener("click", async () => {
+    await loadTabData(state.currentTab, true);
+    updateLastUpdate();
+  });
 
 // Logout
   DOM.logoutBtn?.addEventListener("click", () => {
@@ -228,23 +300,35 @@ function switchTab(tab) {
   DOM.sidebar?.classList.remove("open");
 }
 
-function loadTabData(tab) {
-  switch (tab) {
-    case "overview": loadOverview(); break;
-    case "analytics": loadAnalytics(); break;
-    case "users": loadUsers(); break;
-    case "properties": loadProperties(); break;
-    case "bookings": loadBookings(); break;
-    case "payments": loadPayments(); break;
-    case "reviews": loadReviews(); break;
-    case "reports": loadReports(); break;
-    case "settings": loadSettings(); break;
-    case "system": loadSystem(); break;
-  }
-}
+async function loadTabData(tab, force = false) {
+  if (!force && state.loadedTabs[tab]) return;
+  if (state.loadingTabs[tab]) return;
 
-async function loadAllTabs() {
-  await Promise.all([loadOverview(), loadAnalytics(), loadReports(), loadSettings(), loadSystem()]);
+  state.loadingTabs[tab] = true;
+  if (force) {
+    state.forceReloadActive = true;
+  }
+
+  try {
+    switch (tab) {
+      case "overview": await loadOverview(); break;
+      case "analytics": await loadAnalytics(); break;
+      case "users": await loadUsers(); break;
+      case "properties": await loadProperties(); break;
+      case "bookings": await loadBookings(); break;
+      case "payments": await loadPayments(); break;
+      case "reviews": await loadReviews(); break;
+      case "reports": await loadReports(); break;
+      case "settings": await loadSettings(); break;
+      case "system": await loadSystem(); break;
+    }
+    state.loadedTabs[tab] = true;
+  } catch (err) {
+    console.error(`Failed to load tab ${tab}:`, err);
+  } finally {
+    state.loadingTabs[tab] = false;
+    state.forceReloadActive = false;
+  }
 }
 
 function updateLastUpdate() {

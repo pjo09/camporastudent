@@ -81,6 +81,37 @@ router.use(async (req, res, next) => {
 });
 
 // ======================================================
+// DEDICATED AUTHENTICATED ADMIN RATE LIMITERS
+// ======================================================
+const rateLimit = require("express-rate-limit");
+
+const adminReadLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 500, // Reasonable limit for admin read operations
+    message: { success: false, message: "Too many admin requests. Please try again later." },
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => req.admin ? `admin_read:${req.admin._id}` : `admin_read:ip:${req.ip}`
+});
+
+const adminMutationLimiter = rateLimit({
+    windowMs: 15 * 60 * 1000,
+    max: 50, // Stricter limit for sensitive operations
+    message: { success: false, message: "Too many sensitive attempts. Please try again later." },
+    standardHeaders: true,
+    legacyHeaders: false,
+    keyGenerator: (req) => req.admin ? `admin_write:${req.admin._id}` : `admin_write:ip:${req.ip}`
+});
+
+router.use((req, res, next) => {
+    if (req.method === "GET") {
+        return adminReadLimiter(req, res, next);
+    } else {
+        return adminMutationLimiter(req, res, next);
+    }
+});
+
+// ======================================================
 // HELPERS
 // ======================================================
 
