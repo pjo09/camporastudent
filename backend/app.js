@@ -93,6 +93,7 @@ app.use((req, res, next) => {
 });
 
 app.use(helmet({
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
     contentSecurityPolicy: {
         useDefaults: true,
         directives: {
