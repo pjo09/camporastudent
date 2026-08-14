@@ -50,6 +50,7 @@ function sanitizeUser(user) {
 // ===============================================
 
 router.post("/", async (req, res) => {
+    let currentStage = "GOOGLE_CONFIG";
     try {
         const { credential, role } = req.body;
 
@@ -68,14 +69,21 @@ router.post("/", async (req, res) => {
                               !clientId.startsWith("mongodb");
 
         if (!isValidFormat) {
-            console.error("Google authentication configuration error: GOOGLE_CLIENT_ID is missing or has an invalid format.");
+            console.error("[GOOGLE_AUTH_STAGE] Config invalid:", {
+                stage: "GOOGLE_CONFIG",
+                clientIdPresent: !!clientId,
+                validFormat: isValidFormat
+            });
+            res.setHeader("X-Campora-Google-Stage", "GOOGLE_CONFIG");
             return res.status(500).json({
                 success: false,
-                message: "Google authentication is not configured correctly on the server."
+                message: "Google authentication is not configured correctly on the server.",
+                errorCode: "GOOGLE_CONFIG_ERROR"
             });
         }
 
         // Verify Google ID token on the server (never trust frontend)
+        currentStage = "GOOGLE_VERIFY";
         let ticket;
         try {
             ticket = await client.verifyIdToken({
@@ -83,88 +91,180 @@ router.post("/", async (req, res) => {
                 audience: clientId
             });
         } catch (verifyErr) {
-            console.error("Google authentication verification failed:", {
+            console.error("[GOOGLE_AUTH_STAGE] Verification failed:", {
+                stage: "GOOGLE_VERIFY",
                 name: verifyErr?.name,
                 message: verifyErr?.message
             });
-
+            res.setHeader("X-Campora-Google-Stage", "GOOGLE_VERIFY");
             return res.status(401).json({
                 success: false,
-                message: "Google authentication failed."
+                message: "Google authentication failed.",
+                errorCode: "GOOGLE_TOKEN_INVALID"
             });
         }
 
+        currentStage = "GOOGLE_PAYLOAD";
         const payload = ticket.getPayload();
+        if (!payload) {
+            console.error("[GOOGLE_AUTH_STAGE] Payload missing");
+            res.setHeader("X-Campora-Google-Stage", "GOOGLE_PAYLOAD");
+            return res.status(400).json({
+                success: false,
+                message: "Google account must have a valid payload.",
+                errorCode: "GOOGLE_PAYLOAD_INVALID"
+            });
+        }
+
         const { sub, email, name, picture } = payload;
 
         if (!email) {
+            console.error("[GOOGLE_AUTH_STAGE] Email missing from payload");
+            res.setHeader("X-Campora-Google-Stage", "GOOGLE_PAYLOAD");
             return res.status(400).json({
                 success: false,
-                message: "Google account must have an email address."
+                message: "Google account must have an email address.",
+                errorCode: "GOOGLE_PAYLOAD_INVALID"
             });
         }
 
         const normalizedEmail = email.toLowerCase().trim();
 
         // Check if user exists by email
-        let user = await User.findOne({ email: normalizedEmail });
-        let isNewUser = false;
-
-        if (user) {
-            // Existing user — update Google ID and avatar if needed
-            if (!user.googleId) {
-                user.googleId = sub;
-            }
-            if (picture && !user.profileImage) {
-                user.profileImage = picture;
-            }
-            user.lastLogin = new Date();
-            await user.save();
-        } else {
-            // New user — create account
-            isNewUser = true;
-            const validRole = (role && ["student", "owner"].includes(role))
-                ? role
-                : "student";
-
-            const isAdminEmail = normalizedEmail === process.env.ADMIN_EMAIL || normalizedEmail === "camporaforstudents@gmail.com";
-            const finalRole = isAdminEmail ? "admin" : validRole;
-
-            user = await User.create({
-                name: name || "Google User",
-                email: normalizedEmail,
-                avatar: picture || "",
-                profileImage: picture || "",
-                googleId: sub,
-                provider: "google",
-                authProvider: "google",
-                password: null,
-                role: finalRole,
-                verified: true,
-                accountStatus: isAdminEmail ? "ACTIVE" : (finalRole === "owner" ? "PENDING" : "ACTIVE")
+        currentStage = "USER_LOOKUP";
+        let user;
+        try {
+            user = await User.findOne({ email: normalizedEmail });
+        } catch (lookupErr) {
+            console.error("[GOOGLE_AUTH_STAGE] DB Lookup failed:", {
+                stage: "USER_LOOKUP",
+                name: lookupErr?.name,
+                message: lookupErr?.message,
+                code: lookupErr?.code
+            });
+            res.setHeader("X-Campora-Google-Stage", "USER_LOOKUP");
+            return res.status(500).json({
+                success: false,
+                message: "Google authentication failed.",
+                errorCode: "GOOGLE_USER_LOOKUP_FAILED"
             });
         }
 
+        let isNewUser = false;
+
+        if (user) {
+            currentStage = "USER_UPDATE";
+            try {
+                // Existing user — update Google ID and avatar if needed
+                if (!user.googleId) {
+                    user.googleId = sub;
+                }
+                if (picture && !user.profileImage) {
+                    user.profileImage = picture;
+                }
+                user.lastLogin = new Date();
+                await user.save();
+            } catch (updateErr) {
+                console.error("[GOOGLE_AUTH_STAGE] User update failed:", {
+                    stage: "USER_UPDATE",
+                    name: updateErr?.name,
+                    message: updateErr?.message,
+                    code: updateErr?.code,
+                    validationPaths: updateErr?.errors ? Object.keys(updateErr.errors) : []
+                });
+                res.setHeader("X-Campora-Google-Stage", "USER_UPDATE");
+                return res.status(500).json({
+                    success: false,
+                    message: "Google authentication failed.",
+                    errorCode: "GOOGLE_USER_UPDATE_FAILED"
+                });
+            }
+        } else {
+            currentStage = "USER_CREATE";
+            try {
+                // New user — create account
+                isNewUser = true;
+                const validRole = (role && ["student", "owner"].includes(role))
+                    ? role
+                    : "student";
+
+                const isAdminEmail = normalizedEmail === process.env.ADMIN_EMAIL || normalizedEmail === "camporaforstudents@gmail.com";
+                const finalRole = isAdminEmail ? "admin" : validRole;
+
+                user = await User.create({
+                    name: name || "Google User",
+                    email: normalizedEmail,
+                    avatar: picture || "",
+                    profileImage: picture || "",
+                    googleId: sub,
+                    provider: "google",
+                    authProvider: "google",
+                    password: null,
+                    role: finalRole,
+                    verified: true,
+                    accountStatus: isAdminEmail ? "ACTIVE" : (finalRole === "owner" ? "PENDING" : "ACTIVE")
+                });
+            } catch (createErr) {
+                console.error("[GOOGLE_AUTH_STAGE] User create failed:", {
+                    stage: "USER_CREATE",
+                    name: createErr?.name,
+                    message: createErr?.message,
+                    code: createErr?.code,
+                    validationPaths: createErr?.errors ? Object.keys(createErr.errors) : []
+                });
+                res.setHeader("X-Campora-Google-Stage", "USER_CREATE");
+                return res.status(500).json({
+                    success: false,
+                    message: "Google authentication failed.",
+                    errorCode: "GOOGLE_USER_CREATE_FAILED"
+                });
+            }
+        }
+
+        currentStage = "ACCOUNT_STATUS";
         // Block deleted / banned accounts
         if (user.accountStatus === "BANNED" || user.accountStatus === "DELETED") {
+            res.setHeader("X-Campora-Google-Stage", "ACCOUNT_STATUS");
             return res.status(403).json({
                 success: false,
-                message: "Your account has been deactivated. Please contact support."
+                message: "Your account has been deactivated. Please contact support.",
+                errorCode: "GOOGLE_ACCOUNT_BLOCKED"
             });
         }
 
         // Pending owners cannot log in until approved
         if (user.role === "owner" && user.accountStatus === "PENDING") {
+            res.setHeader("X-Campora-Google-Stage", "ACCOUNT_STATUS");
             return res.status(403).json({
                 success: false,
-                message: "Your account is waiting for admin approval."
+                message: "Your account is waiting for admin approval.",
+                errorCode: "GOOGLE_ACCOUNT_PENDING"
             });
         }
 
         // Generate JWT
-        const token = generateToken(user);
-        const safeUser = sanitizeUser(user);
+        currentStage = "JWT_GENERATION";
+        let token;
+        try {
+            token = generateToken(user);
+        } catch (jwtErr) {
+            console.error("[GOOGLE_AUTH_STAGE] JWT generation failed:", {
+                stage: "JWT_GENERATION",
+                name: jwtErr?.name,
+                message: jwtErr?.message,
+                jwtSecretPresent: !!process.env.JWT_SECRET
+            });
+            res.setHeader("X-Campora-Google-Stage", "JWT_GENERATION");
+            return res.status(500).json({
+                success: false,
+                message: "Google authentication failed.",
+                errorCode: "GOOGLE_JWT_FAILED"
+            });
+        }
 
+        currentStage = "RESPONSE";
+        const safeUser = sanitizeUser(user);
+        res.setHeader("X-Campora-Google-Stage", "RESPONSE");
         return res.json({
             success: true,
             message: !isNewUser ? "Login successful." : "Registration successful.",
@@ -179,10 +279,16 @@ router.post("/", async (req, res) => {
         });
 
     } catch (err) {
-        console.error("Google Auth Error:", err);
+        console.error("[GOOGLE_AUTH_STAGE] Uncaught error:", {
+            stage: currentStage,
+            name: err?.name,
+            message: err?.message
+        });
+        res.setHeader("X-Campora-Google-Stage", currentStage);
         return res.status(500).json({
             success: false,
-            message: "Google authentication failed."
+            message: "Google authentication failed.",
+            errorCode: "GOOGLE_AUTH_INTERNAL_ERROR"
         });
     }
 });
