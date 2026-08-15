@@ -9,5 +9,17 @@
         }
       ]
     }
+  ],
+  "redirects": [
+    {
+      "source": "/pages/student/login.html",
+      "destination": "/login.html",
+      "permanent": true
+    },
+    {
+      "source": "/pages/owner/login.html",
+      "destination": "/login.html",
+      "permanent": true
+    }
   ]
 }

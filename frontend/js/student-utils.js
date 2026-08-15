@@ -3,7 +3,7 @@
 // Central API helper, toast, session, sidebar, topbar
 // =====================================================
 
-import { getToken, getUser, protectPageByRole, logout as sessionLogout } from "./session.js";
+import { getToken, getUser, protectPageByRole, logout as sessionLogout, getLoginUrl } from "./session.js";
 import { API } from "./config.js";
 
 const API_BASE = API;
@@ -16,7 +16,7 @@ export function gateStudent() {
   const user = protectPageByRole(["student"]);
   const token = getToken();
   if (!user || !token) {
-    window.location.href = "login.html";
+    window.location.href = getLoginUrl();
     return null;
   }
   return user;

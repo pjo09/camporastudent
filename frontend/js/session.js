@@ -11,6 +11,34 @@ const REMEMBER_KEY = "camporaRemember";
 const LANDING_URL = "https://camporastudent.vercel.app/";
 
 // ===========================================
+// DYNAMIC LOGIN URL FOR NESTED PAGES
+// ===========================================
+export function getLoginUrl() {
+    const path = window.location.pathname.toLowerCase();
+    if (path.includes("/pages/student/") || 
+        path.includes("/pages/owner/") || 
+        path.includes("/pages/admin/") || 
+        path.includes("/pages/property/")) {
+        return "../../login.html";
+    }
+    return "login.html";
+}
+
+// ===========================================
+// DYNAMIC PROPERTIES URL FOR NESTED PAGES
+// ===========================================
+export function getPropertiesUrl() {
+    const path = window.location.pathname.toLowerCase();
+    if (path.includes("/pages/student/") || 
+        path.includes("/pages/owner/") || 
+        path.includes("/pages/admin/") || 
+        path.includes("/pages/property/")) {
+        return "../../properties.html";
+    }
+    return "properties.html";
+}
+
+// ===========================================
 // STORAGE HELPERS
 // ===========================================
 
@@ -142,7 +170,7 @@ export function redirectBasedOnRole(role) {
 export function protectPage() {
     const token = getToken();
     if (!token) {
-        window.location.href = "login.html";
+        window.location.href = getLoginUrl();
         return null;
     }
     return getUser();
@@ -155,13 +183,13 @@ export function protectPage() {
 export function protectPageByRole(allowedRoles) {
     const token = getToken();
     if (!token) {
-        window.location.href = "login.html";
+        window.location.href = getLoginUrl();
         return null;
     }
 
     const user = getUser();
     if (!user || !allowedRoles.includes(user.role)) {
-        window.location.href = "login.html";
+        window.location.href = getLoginUrl();
         return null;
     }
 

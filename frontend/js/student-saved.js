@@ -3,6 +3,7 @@
 // =====================================================
 
 import { $, apiFetch, initShell, loadUnreadCount, imageUrl, inr, esc } from "./student-utils.js";
+import { getPropertiesUrl } from "./session.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   initShell();
@@ -17,7 +18,7 @@ async function loadSaved() {
     const data = await apiFetch("/student/saved");
     const properties = data.properties || [];
     if (properties.length === 0) {
-grid.innerHTML = `<div class="sv3-empty" style="grid-column:1/-1"><i class="fa-solid fa-heart"></i><h3>No saved properties</h3><p>Tap the heart on any property to save it here.</p><a href="properties.html" class="sv3-btn sv3-btn-primary" style="margin-top:14px">Explore Properties</a></div>`;
+grid.innerHTML = `<div class="sv3-empty" style="grid-column:1/-1"><i class="fa-solid fa-heart"></i><h3>No saved properties</h3><p>Tap the heart on any property to save it here.</p><a href="${getPropertiesUrl()}" class="sv3-btn sv3-btn-primary" style="margin-top:14px">Explore Properties</a></div>`;
       return;
     }
     grid.innerHTML = properties.map((p) => {

@@ -2,7 +2,7 @@
 // CAMPORA REGISTER - Password-based (no OTP)
 // ==========================================
 
-import { login, redirectBasedOnRole } from "./session.js";
+import { login, redirectBasedOnRole, getLoginUrl } from "./session.js";
 import CONFIG, { API } from "./config.js";
 
 const API_BASE = API;
@@ -169,7 +169,7 @@ form.addEventListener("submit", async (e) => {
         setTimeout(() => {
             if (data.role === "owner" && !data.token) {
                 // Pending owner - send to login
-                window.location.href = "login.html";
+                window.location.href = getLoginUrl();
             } else {
                 redirectBasedOnRole(data.user ? data.user.role : data.role);
             }
@@ -212,7 +212,7 @@ window.handleGoogleRegister = async function (response) {
 
         setTimeout(() => {
             if (data.user.role === "owner" && data.user.accountStatus === "PENDING") {
-                window.location.href = "login.html";
+                window.location.href = getLoginUrl();
             } else {
                 redirectBasedOnRole(data.user.role);
             }

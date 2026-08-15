@@ -3,6 +3,7 @@
 // =====================================================
 
 import { $, apiFetch, initShell, loadUnreadCount, imageUrl, esc, timeAgo, showToast } from "./student-utils.js";
+import { getPropertiesUrl } from "./session.js";
 
 let allBookings = [];
 let currentFilter = "all";
@@ -42,7 +43,7 @@ function renderList() {
   const filtered = currentFilter === "all" ? allBookings : allBookings.filter((b) => (b.bookingStatus || b.status || "pending") === currentFilter);
 
   if (filtered.length === 0) {
-list.innerHTML = `<div class="sv3-empty"><i class="fa-solid fa-calendar-check"></i><h3>No bookings</h3><p>${currentFilter === "all" ? 'You have no bookings yet. <a href="properties.html" style="color:#60a5fa">Explore properties</a>.' : "No " + currentFilter + " bookings."}</p></div>`;
+    list.innerHTML = `<div class="sv3-empty"><i class="fa-solid fa-calendar-check"></i><h3>No bookings</h3><p>${currentFilter === "all" ? 'You have no bookings yet. <a href="' + getPropertiesUrl() + '" style="color:#60a5fa">Explore properties</a>.' : "No " + currentFilter + " bookings."}</p></div>`;
     return;
   }
 

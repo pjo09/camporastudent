@@ -4,6 +4,7 @@
 // ===============================================
 
 import { API } from "./config.js";
+import { getLoginUrl } from "./session.js";
 
 // -------------------------
 // Helpers
@@ -323,7 +324,7 @@ resetForm.addEventListener("submit", async (e) => {
 
         showSuccess("Password reset successful! Redirecting to login...");
         setTimeout(() => {
-            window.location.href = "login.html";
+            window.location.href = getLoginUrl();
         }, 1200);
 
     } catch (err) {

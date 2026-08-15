@@ -6,7 +6,7 @@
 
 import { $, initShell, loadUnreadCount, imageUrl, inr, esc } from "./student-utils.js";
 import { API } from "./config.js";
-import { getToken } from "./session.js";
+import { getToken, getPropertiesUrl } from "./session.js";
 
 const API_BASE = API;
 const params = new URLSearchParams(window.location.search);
@@ -18,7 +18,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadUnreadCount();
   if (!propertyId) {
     showToast("No property selected", "error");
-setTimeout(() => (window.location.href = "properties.html"), 1500);
+setTimeout(() => (window.location.href = getPropertiesUrl()), 1500);
     return;
   }
   loadProperty();
@@ -41,7 +41,7 @@ async function loadProperty() {
   } catch (err) {
     const loading = $("loadingProperty");
     if (loading) {
-loading.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="font-size:36px;color:#f87171"></i><p style="margin-top:12px">${esc(err.message)}</p><a href="properties.html" class="sv3-btn sv3-btn-primary" style="margin-top:14px">Back to Explore</a>`;
+loading.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="font-size:36px;color:#f87171"></i><p style="margin-top:12px">${esc(err.message)}</p><a href="${getPropertiesUrl()}" class="sv3-btn sv3-btn-primary" style="margin-top:14px">Back to Explore</a>`;
     }
   }
 }

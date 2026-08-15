@@ -3,7 +3,7 @@
 // All owner V3 pages import this module.
 // =====================================================
 
-import { getToken, getUser, protectPageByRole, logout as sessionLogout } from "./session.js";
+import { getToken, getUser, protectPageByRole, logout as sessionLogout, getLoginUrl } from "./session.js";
 import { API } from "./config.js";
 
 // =====================================================
@@ -13,7 +13,7 @@ import { API } from "./config.js";
 const user = protectPageByRole(["owner"]);
 const token = getToken();
 if (!user || !token) {
-  window.location.href = "login.html";
+  window.location.href = getLoginUrl();
 }
 
 // =====================================================

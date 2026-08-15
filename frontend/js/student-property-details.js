@@ -3,6 +3,7 @@
 // =====================================================
 
 import { $, apiFetch, initShell, loadUnreadCount, imageUrl, inr, esc, timeAgo } from "./student-utils.js";
+import { getPropertiesUrl } from "./session.js";
 
 const params = new URLSearchParams(window.location.search);
 const propertyId = params.get("id");
@@ -21,7 +22,7 @@ document.addEventListener("DOMContentLoaded", () => {
 function showError(msg) {
   const loading = $("loading");
   if (loading) {
-loading.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="font-size:40px;color:#f87171"></i><p style="margin-top:12px;color:var(--sv3-muted)">${esc(msg)}</p><a href="properties.html" class="sv3-btn sv3-btn-primary" style="margin-top:16px">Back to Explore</a>`;
+loading.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="font-size:40px;color:#f87171"></i><p style="margin-top:12px;color:var(--sv3-muted)">${esc(msg)}</p><a href="${getPropertiesUrl()}" class="sv3-btn sv3-btn-primary" style="margin-top:16px">Back to Explore</a>`;
   }
 }
 

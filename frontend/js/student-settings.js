@@ -3,6 +3,7 @@
 // =====================================================
 
 import { $, apiFetch, initShell, loadUnreadCount, showToast } from "./student-utils.js";
+import { getLoginUrl } from "./session.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   initShell();
@@ -57,7 +58,7 @@ async function deleteAccount() {
     localStorage.removeItem("camporaToken");
     localStorage.removeItem("camporaUser");
     localStorage.removeItem("camporauser");
-    window.location.href = "login.html";
+    window.location.href = getLoginUrl();
   } catch (err) {
     showToast(err.message || "Unable to delete account", "error");
     btn.disabled = false;
