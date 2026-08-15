@@ -135,7 +135,7 @@ function renderList() {
     const card = document.createElement("div");
     card.className = "nearby-card";
     card.innerHTML = `
-      <img src="${img}" class="nearby-card-img" alt="${name}" loading="lazy" onerror="this.src='/assets/images/property-placeholder.jpg'" />
+      <img src="${img}" class="nearby-card-img" alt="${name}" loading="lazy" onerror="this.onerror=null; this.src='/assets/images/property-placeholder.jpg'" />
       <div class="nearby-card-content">
         <div class="nearby-card-title">${name}</div>
         ${loc ? `<div class="nearby-card-location"><i class="fa-solid fa-location-dot"></i> ${loc}</div>` : ""}

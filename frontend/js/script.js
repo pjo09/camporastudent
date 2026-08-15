@@ -562,7 +562,7 @@ const Properties = (() => {
         return `
         <div class="property-card reveal">
             <div class="property-image">
-                <img src="${img}" alt="${esc(name)}" loading="lazy" onerror="this.src='/assets/images/property-placeholder.jpg'">
+                <img src="${img}" alt="${esc(name)}" loading="lazy" onerror="this.onerror=null; this.src='/assets/images/property-placeholder.jpg'">
                 ${badge ? '<span class="property-badge">' + esc(badge) + "</span>" : ""}
                 ${p.propertyType ? '<span class="property-type">' + esc(p.propertyType) + "</span>" : ""}
             </div>
