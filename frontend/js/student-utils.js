@@ -5,6 +5,7 @@
 
 import { getToken, getUser, protectPageByRole, logout as sessionLogout, getLoginUrl } from "./session.js";
 import { API } from "./config.js";
+import { getImageUrl } from "./image-utils.js";
 
 const API_BASE = API;
 
@@ -95,12 +96,7 @@ export function timeAgo(input) {
 // =====================================================
 
 export function imageUrl(path) {
-  if (!path) return "/assets/logos/logo.png";
-  if (/^(https?:|data:|blob:)/i.test(path)) return path;
-  const base = API_BASE.replace(/\/api\/?$/, "") + "/";
-  if (path.startsWith("/")) return base.replace(/\/$/, "") + path;
-  if (path.startsWith("uploads/")) return base + path;
-  return base + "uploads/" + path;
+  return getImageUrl(path, "/assets/logos/logo.png");
 }
 
 // =====================================================

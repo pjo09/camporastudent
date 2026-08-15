@@ -28,6 +28,9 @@ export function getImageUrl(path, fallback = "/assets/images/property-placeholde
   // Legacy: stored as "uploads/xxx.jpg" (relative to server root)
   if (path.startsWith("uploads/")) return IMAGE_BASE + path;
 
+  // Relative images path (e.g. "images/foo.jpg")
+  if (path.startsWith("images/")) return IMAGE_BASE + path;
+
   // Bare filename — assume it lives under /uploads/
   return IMAGE_BASE + "uploads/" + path;
 }

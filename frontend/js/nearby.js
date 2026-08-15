@@ -5,9 +5,9 @@
 
 import { getToken, getUser, protectPage } from "./session.js";
 import { API } from "./config.js";
+import { getImageUrl } from "./image-utils.js";
 
 const API_BASE = API;
-const IMAGE_BASE = API.replace("/api", "") + "/";
 
 const $ = (id) => document.getElementById(id);
 
@@ -272,13 +272,7 @@ function getBounds() {
   return { lat: 20.5937, lng: 78.9629 };
 }
 
-function getImageUrl(path) {
-  if (!path) return "";
-  if (/^(https?:|data:|blob:)/i.test(path)) return path;
-  if (path.startsWith("/")) return IMAGE_BASE.replace(/\/$/, "") + path;
-  if (path.startsWith("uploads/")) return IMAGE_BASE + path;
-  return IMAGE_BASE + "uploads/" + path;
-}
+// Centralized getImageUrl helper is imported from image-utils.js
 
 console.log("✅ Nearby Page Loaded");
 

@@ -4,6 +4,7 @@
 
 import CONFIG, { API } from "./config.js";
 import { login, logout, getUser, getToken, redirectBasedOnRole } from "./session.js";
+import { getImageUrl } from "./image-utils.js";
 
 // =====================================================
 // SHARED HELPERS
@@ -28,12 +29,7 @@ function inr(value) {
 }
 
 function imageUrl(path) {
-    if (!path) return "/assets/images/property-placeholder.jpg";
-    if (/^(https?:|data:|blob:)/i.test(path)) return path;
-    const base = API.replace(/\/api\/?$/, "") + "/";
-    if (path.startsWith("/")) return base.replace(/\/$/, "") + path;
-    if (path.startsWith("uploads/")) return base + path;
-    return base + "uploads/" + path;
+    return getImageUrl(path, "/assets/images/property-placeholder.jpg");
 }
 
 async function apiGet(endpoint) {

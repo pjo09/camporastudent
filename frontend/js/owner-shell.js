@@ -5,6 +5,7 @@
 
 import { getToken, getUser, protectPageByRole, logout as sessionLogout, getLoginUrl } from "./session.js";
 import { API } from "./config.js";
+import { getImageUrl } from "./image-utils.js";
 
 // =====================================================
 // AUTH GUARD
@@ -82,12 +83,7 @@ export async function apiFetch(endpoint, opts = {}) {
 // =====================================================
 
 export function formatImage(path) {
-  if (!path) return "https://placehold.co/700x450?text=Campora";
-  if (/^(https?:|data:|blob:)/i.test(path)) return path;
-  const base = APP_BASE_URL.replace(/\/$/, "") + "/";
-  if (path.startsWith("/")) return base.replace(/\/$/, "") + path;
-  if (path.startsWith("uploads/")) return base + path;
-  return base + "uploads/" + path;
+  return getImageUrl(path, "https://placehold.co/700x450?text=Campora");
 }
 
 // =====================================================
