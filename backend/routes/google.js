@@ -222,16 +222,9 @@ router.post("/", async (req, res) => {
         }
 
         currentStage = "ACCOUNT_STATUS";
-        console.log("[GOOGLE_AUTH_DEBUG]", {
-            stage: currentStage,
-            userExists: !!user,
-            role: user ? user.role : null,
-            accountStatus: user ? user.accountStatus : null
-        });
 
         // Block deleted / banned accounts
         if (user.accountStatus === "BANNED" || user.accountStatus === "DELETED") {
-            console.log("[GOOGLE_AUTH_DEBUG] Rejected: user is banned or deleted", { status: user.accountStatus });
             res.setHeader("X-Campora-Google-Stage", "ACCOUNT_STATUS");
             return res.status(403).json({
                 success: false,
@@ -242,7 +235,6 @@ router.post("/", async (req, res) => {
 
         // Pending owners cannot log in until approved
         if (user.role === "owner" && user.accountStatus === "PENDING") {
-            console.log("[GOOGLE_AUTH_DEBUG] Rejected: owner is pending approval");
             res.setHeader("X-Campora-Google-Stage", "ACCOUNT_STATUS");
             return res.status(403).json({
                 success: false,

@@ -3,24 +3,6 @@
 // ===============================================
 
 const path = require("path");
-
-// Log capture setup for debugging in production
-global.debugLogs = global.debugLogs || [];
-const originalLog = console.log;
-const originalError = console.error;
-console.log = function(...args) {
-    const msg = args.map(arg => typeof arg === "object" ? JSON.stringify(arg) : arg).join(" ");
-    global.debugLogs.push(`[LOG] ${new Date().toISOString()}: ${msg}`);
-    if (global.debugLogs.length > 200) global.debugLogs.shift();
-    originalLog.apply(console, args);
-};
-console.error = function(...args) {
-    const msg = args.map(arg => typeof arg === "object" ? JSON.stringify(arg) : arg).join(" ");
-    global.debugLogs.push(`[ERROR] ${new Date().toISOString()}: ${msg}`);
-    if (global.debugLogs.length > 200) global.debugLogs.shift();
-    originalError.apply(console, args);
-};
-
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 require("dotenv").config({ path: path.join(__dirname, "../.env") });
 
@@ -111,7 +93,7 @@ app.use((req, res, next) => {
 });
 
 app.use(helmet({
-    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
+    crossOriginOpenerPolicy: { policy: "unsafe-none" },
     contentSecurityPolicy: {
         useDefaults: true,
         directives: {
@@ -227,22 +209,6 @@ try { app.use("/api/dashboard", require("./routes/dashboard")); console.log("✅
 
 app.get("/api/health", (req, res) => {
     res.status(200).json({ status: "UP", timestamp: new Date().toISOString() });
-});
-
-app.get("/api/auth/debug-env", (req, res) => {
-    res.status(200).json({
-        GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ? "PRESENT" : "MISSING",
-        GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ? "PRESENT" : "MISSING",
-        JWT_SECRET: process.env.JWT_SECRET ? "PRESENT" : "MISSING",
-        GOOGLE_CLIENT_ID_VALUE_HASH: process.env.GOOGLE_CLIENT_ID ? require("crypto").createHash("sha256").update(process.env.GOOGLE_CLIENT_ID).digest("hex") : null
-    });
-});
-
-app.get("/api/auth/debug-logs", (req, res) => {
-    res.status(200).json({
-        success: true,
-        logs: global.debugLogs || []
-    });
 });
 
 // Centralized Error Handling Middleware
