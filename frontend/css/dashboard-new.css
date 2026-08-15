@@ -1150,3 +1150,32 @@ border-radius:28px;
 border:1px solid rgba(255,255,255,.08);
 
 }
+
+@media (max-width: 480px) {
+    .content {
+        padding: 16px;
+    }
+    .hero {
+        padding: 24px 16px;
+    }
+    .hero h1 {
+        font-size: 24px;
+    }
+    .stat-card {
+        padding: 16px;
+        gap: 16px;
+    }
+    .panel {
+        padding: 16px;
+    }
+    .section-header h2 {
+        font-size: 20px;
+    }
+    .topbar {
+        gap: 15px;
+        margin-bottom: 25px;
+    }
+    .topbar h1 {
+        font-size: 28px;
+    }
+}

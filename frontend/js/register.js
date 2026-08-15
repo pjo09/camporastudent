@@ -251,7 +251,7 @@ window.handleGoogleRegister = async function (response) {
             theme: "filled_blue",
             size: "large",
             shape: "pill",
-            width: 420
+            width: Math.max(200, Math.min(420, window.innerWidth - 80))
         });
     }
 

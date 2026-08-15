@@ -424,7 +424,7 @@ const AuthModal = (() => {
                 theme: "outline",
                 size: "large",
                 shape: "pill",
-                width: 300
+                width: Math.max(200, Math.min(300, window.innerWidth - 80))
             });
         }
 
@@ -435,7 +435,7 @@ const AuthModal = (() => {
                 theme: "filled_blue",
                 size: "large",
                 shape: "pill",
-                width: 300
+                width: Math.max(200, Math.min(300, window.innerWidth - 80))
             });
         }
     }

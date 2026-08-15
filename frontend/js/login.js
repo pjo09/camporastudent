@@ -234,7 +234,7 @@ window.handleGoogleLogin = async function (response) {
                 theme: "outline",
                 size: "large",
                 shape: "pill",
-                width: 320
+                width: Math.max(200, Math.min(320, window.innerWidth - 80))
             });
         }
     }
