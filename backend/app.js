@@ -119,14 +119,15 @@ const limiter = rateLimit({
     message: { success: false, message: "Too many requests. Please try again later." },
     standardHeaders: true,
     legacyHeaders: false,
-    skip: (req) => req.originalUrl && req.originalUrl.startsWith("/api/admin/")
+    skip: (req) => (req.originalUrl && req.originalUrl.startsWith("/api/admin/")) || process.env.NODE_ENV !== "production"
 });
 app.use("/api/", limiter);
 
 const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 20,
-    message: { success: false, message: "Too many login attempts. Please try again later." }
+    message: { success: false, message: "Too many login attempts. Please try again later." },
+    skip: (req) => process.env.NODE_ENV !== "production"
 });
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
@@ -136,7 +137,8 @@ app.use("/api/auth/register", authLimiter);
 const otpSendLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 30,
-    message: { success: false, message: "Too many OTP requests. Please try again later." }
+    message: { success: false, message: "Too many OTP requests. Please try again later." },
+    skip: (req) => process.env.NODE_ENV !== "production"
 });
 app.use("/api/otp/send", otpSendLimiter);
 
@@ -144,7 +146,8 @@ app.use("/api/otp/send", otpSendLimiter);
 const sensitiveLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
-    message: { success: false, message: "Too many attempts. Please try again later." }
+    message: { success: false, message: "Too many attempts. Please try again later." },
+    skip: (req) => process.env.NODE_ENV !== "production"
 });
 app.use("/api/auth/admin/login", sensitiveLimiter);
 app.use("/api/auth/forgot-password", sensitiveLimiter);
@@ -157,7 +160,8 @@ app.use("/api/auth/reset-password", sensitiveLimiter);
 const otpVerifyLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 30,
-    message: { success: false, message: "Too many OTP verification attempts. Please try again later." }
+    message: { success: false, message: "Too many OTP verification attempts. Please try again later." },
+    skip: (req) => process.env.NODE_ENV !== "production"
 });
 app.use("/api/otp/verify", otpVerifyLimiter);
 
