@@ -490,23 +490,58 @@ h1, h2, h3, h4, h5, h6 {
    ===================================================== */
 .hero {
     position: relative;
-    padding-top: 140px;
+    margin: 96px 24px 24px 24px;
+    padding-top: 80px;
     padding-bottom: 80px;
-    background: radial-gradient(circle at 0% 0%, var(--campora-soft-blue), transparent 60%);
+    background-image: url('../images/campora_hero_bg_1786804797505.jpg');
+    background-size: cover;
+    background-position: right center;
+    background-repeat: no-repeat;
+    border-radius: var(--radius-lg);
     overflow: hidden;
+    box-shadow: 0 20px 40px rgba(11, 31, 58, 0.03);
+    border: 1px solid var(--border-color);
+}
+
+@media (min-width: 1328px) {
+    .hero {
+        max-width: 1280px;
+        margin-left: auto;
+        margin-right: auto;
+    }
+}
+
+.hero::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(to right, 
+        rgba(248, 251, 255, 0.98) 0%, 
+        rgba(248, 251, 255, 0.96) 42%, 
+        rgba(248, 251, 255, 0.7) 58%, 
+        rgba(248, 251, 255, 0.15) 75%, 
+        rgba(248, 251, 255, 0) 100%
+    );
+    z-index: 1;
+    pointer-events: none;
 }
 
 .hero-wrapper {
-    display: grid;
-    grid-template-columns: 1.1fr 0.9fr;
+    position: relative;
+    z-index: 2;
+    display: flex;
     align-items: center;
-    gap: 64px;
 }
 
 .hero-left {
     display: flex;
     flex-direction: column;
     align-items: flex-start;
+    width: 55%;
+    max-width: 700px;
 }
 
 .hero-badge {
@@ -686,9 +721,27 @@ h1, h2, h3, h4, h5, h6 {
 
 /* Responsive Hero Layout */
 @media (max-width: 1023px) {
+    .hero {
+        margin: 80px 16px 16px 16px;
+        padding-top: 48px;
+        padding-bottom: 48px;
+        border-radius: var(--radius-md);
+        background-position: 75% center;
+    }
+    .hero::before {
+        background: linear-gradient(to bottom, 
+            rgba(248, 251, 255, 0.98) 0%, 
+            rgba(248, 251, 255, 0.95) 55%, 
+            rgba(248, 251, 255, 0.7) 80%, 
+            rgba(248, 251, 255, 0.25) 100%
+        );
+    }
     .hero-wrapper {
-        grid-template-columns: 1fr;
-        gap: 48px;
+        display: block;
+    }
+    .hero-left {
+        width: 100%;
+        max-width: 100%;
     }
     .hero-search {
         grid-template-columns: 1fr;
@@ -702,9 +755,23 @@ h1, h2, h3, h4, h5, h6 {
     .search-item:last-of-type {
         border-bottom: none;
     }
-    .card-top, .card-bottom {
-        position: static;
-        margin-top: 16px;
+}
+
+@media (max-width: 767px) {
+    .hero {
+        margin: 76px 12px 12px 12px;
+        padding-top: 40px;
+        padding-bottom: 40px;
+        border-radius: var(--radius-md);
+        background-position: 72% center;
+    }
+    .hero::before {
+        background: linear-gradient(to bottom, 
+            rgba(248, 251, 255, 0.98) 0%, 
+            rgba(248, 251, 255, 0.95) 50%, 
+            rgba(248, 251, 255, 0.8) 75%, 
+            rgba(248, 251, 255, 0.3) 100%
+        );
     }
 }
 
