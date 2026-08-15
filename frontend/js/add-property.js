@@ -652,7 +652,7 @@ function buildPropertyBody(images, isDraft) {
   if (!isNaN(lat)) body.latitude = lat;
   if (!isNaN(lng)) body.longitude = lng;
 
-  if (images && images.length > 0) body.images = images;
+  body.images = images || [];
   body.published = !isDraft;
 
   return body;
