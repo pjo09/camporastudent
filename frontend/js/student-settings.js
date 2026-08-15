@@ -55,12 +55,23 @@ async function deleteAccount() {
   btn.disabled = true;
   try {
     await apiFetch("/student/profile", { method: "DELETE" });
-    localStorage.removeItem("camporaToken");
-    localStorage.removeItem("camporaUser");
-    localStorage.removeItem("camporauser");
-    window.location.href = getLoginUrl();
   } catch (err) {
-    showToast(err.message || "Unable to delete account", "error");
-    btn.disabled = false;
+    const isUserNotFound = err.status === 404 && 
+      (err.message && err.message.toLowerCase().includes("user not found"));
+    if (!isUserNotFound) {
+      showToast(err.message || "Unable to delete account", "error");
+      btn.disabled = false;
+      return;
+    }
   }
+
+  // Clear local authentication/session state
+  localStorage.removeItem("camporaToken");
+  localStorage.removeItem("camporaUser");
+  localStorage.removeItem("camporauser");
+  sessionStorage.removeItem("camporaToken");
+  sessionStorage.removeItem("camporaUser");
+  sessionStorage.removeItem("camporauser");
+
+  window.location.href = getLoginUrl();
 }

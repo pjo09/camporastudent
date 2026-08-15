@@ -39,10 +39,15 @@ export function $(id) {
 
 export async function apiFetch(endpoint, opts = {}) {
   const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
-  if (token) headers.Authorization = `Bearer ${token}`;
+  const currentToken = getToken();
+  if (currentToken) headers.Authorization = `Bearer ${currentToken}`;
   const res = await fetch(`${API_BASE}${endpoint}`, { ...opts, headers });
   const data = await res.json();
-  if (!res.ok || !data.success) throw new Error(data.message || `Request failed (${res.status})`);
+  if (!res.ok || !data.success) {
+    const error = new Error(data.message || `Request failed (${res.status})`);
+    error.status = res.status;
+    throw error;
+  }
   return data;
 }
 
