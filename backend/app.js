@@ -211,6 +211,15 @@ app.get("/api/health", (req, res) => {
     res.status(200).json({ status: "UP", timestamp: new Date().toISOString() });
 });
 
+app.get("/api/auth/debug-env", (req, res) => {
+    res.status(200).json({
+        GOOGLE_CLIENT_ID: process.env.GOOGLE_CLIENT_ID ? "PRESENT" : "MISSING",
+        GOOGLE_CLIENT_SECRET: process.env.GOOGLE_CLIENT_SECRET ? "PRESENT" : "MISSING",
+        JWT_SECRET: process.env.JWT_SECRET ? "PRESENT" : "MISSING",
+        GOOGLE_CLIENT_ID_VALUE_HASH: process.env.GOOGLE_CLIENT_ID ? require("crypto").createHash("sha256").update(process.env.GOOGLE_CLIENT_ID).digest("hex") : null
+    });
+});
+
 // Centralized Error Handling Middleware
 app.use((err, req, res, next) => {
     const isProd = process.env.NODE_ENV === "production";
