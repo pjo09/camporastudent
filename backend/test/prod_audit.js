@@ -105,8 +105,28 @@ async function setupDB() {
   });
   createdRecords.properties.push(property._id);
 
+  // Expired Invite
+  const expiredInvite = await PropertyInvite.create({
+    property: property._id,
+    token: `expired_${testSuffix}`,
+    expiresAt: new Date(Date.now() - 3600 * 1000), // expired 1 hour ago
+    status: "ACTIVE"
+  });
+  createdRecords.invites.push(expiredInvite._id);
+
+  // Revoked Invite
+  const revokedInvite = await PropertyInvite.create({
+    property: property._id,
+    token: `revoked_${testSuffix}`,
+    expiresAt: new Date(Date.now() + 3600 * 1000),
+    status: "REVOKED"
+  });
+  createdRecords.invites.push(revokedInvite._id);
+
   console.log("Database mock records setup complete.");
   return {
+    expiredToken: expiredInvite.token,
+    revokedToken: revokedInvite.token,
     studentToken: jwt.sign({ id: student._id, role: "student" }, JWT_SECRET),
     student2Token: jwt.sign({ id: student2._id, role: "student" }, JWT_SECRET),
     ownerToken: jwt.sign({ id: owner._id, role: "owner" }, JWT_SECRET),
@@ -213,6 +233,38 @@ async function runApiAudit(tokens) {
     recordAudit("API_GENERATE_INVITE", "FAIL", `Failed to generate invite token. Status: ${r.status}, Body: ${JSON.stringify(r.data)}`);
   }
 
+  // 2b. Test expired and revoked invite resolutions
+  let rExp = await call(`/join-pg/${tokens.expiredToken}`, null, "GET");
+  recordAudit("API_RESOLVE_EXPIRED_INVITE", rExp.status === 410 ? "PASS" : "FAIL", `Expired token resolution returned status ${rExp.status} (expected: 410)`);
+
+  let rRev = await call(`/join-pg/${tokens.revokedToken}`, null, "GET");
+  recordAudit("API_RESOLVE_REVOKED_INVITE", rRev.status === 404 ? "PASS" : "FAIL", `Revoked token resolution returned status ${rRev.status} (expected: 404)`);
+
+  // 2c. Student Request Validations
+  let rValRoom = await call("/residents/requests", tokens.studentToken, "POST", {
+    property: tokens.propertyId,
+    moveInDate: new Date(),
+    residenceSource: "DIRECT_OWNER"
+  });
+  recordAudit("VALIDATION_MISSING_ROOM", rValRoom.status === 400 ? "PASS" : "FAIL", "Prevented request submission with missing room (status: 400).");
+
+  let rValDate = await call("/residents/requests", tokens.studentToken, "POST", {
+    property: tokens.propertyId,
+    room: "101",
+    moveInDate: "invalid-date",
+    residenceSource: "DIRECT_OWNER"
+  });
+  recordAudit("VALIDATION_INVALID_DATE", rValDate.status === 400 ? "PASS" : "FAIL", "Prevented request submission with invalid move-in date format (status: 400).");
+
+  let rValOutDate = await call("/residents/requests", tokens.studentToken, "POST", {
+    property: tokens.propertyId,
+    room: "101",
+    moveInDate: new Date(),
+    expectedMoveOutDate: new Date(Date.now() - 86400 * 1000), // yesterday
+    residenceSource: "DIRECT_OWNER"
+  });
+  recordAudit("VALIDATION_INVALID_OUT_DATE", rValOutDate.status === 400 ? "PASS" : "FAIL", "Prevented request submission with expectedMoveOutDate before moveInDate (status: 400).");
+
   // 3. Submit Resident Request
   let r3 = await call("/residents/requests", tokens.studentToken, "POST", {
     property: tokens.propertyId,
@@ -275,6 +327,15 @@ async function runApiAudit(tokens) {
       if (tenancies[0]) {
         createdRecords.tenancies.push(tenancies[0]._id);
       }
+
+      // 9b. Prevent request submission with existing active tenancy
+      let rActiveTenancy = await call("/residents/requests", tokens.studentToken, "POST", {
+        property: tokens.propertyId,
+        room: "B-201",
+        moveInDate: new Date(),
+        residenceSource: "DIRECT_OWNER"
+      });
+      recordAudit("VALIDATION_ACTIVE_TENANCY_SUBMIT", rActiveTenancy.status === 400 ? "PASS" : "FAIL", "Prevented request submission when student already has an active tenancy (status: 400).");
 
       // 10. Cancellation block after approval
       let rCancel = await call(`/residents/requests/${requestId}`, tokens.studentToken, "DELETE");
