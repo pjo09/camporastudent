@@ -55,8 +55,7 @@ router.get("/join-pg/:token", async (req, res) => {
 
         // Check expiration
         if (invite.expiresAt && new Date() > invite.expiresAt) {
-            invite.status = "REVOKED";
-            await invite.save();
+            await PropertyInvite.updateOne({ _id: invite._id }, { $set: { status: "REVOKED" } });
             return sendError(res, "Invite link has expired.", 410);
         }
 
