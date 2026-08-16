@@ -172,7 +172,6 @@ async function call(path, token, method = "GET", body = null) {
   const url = BASE_API + path;
   const headers = { "Content-Type": "application/json" };
   if (token) headers["Authorization"] = `Bearer ${token}`;
-  if (JWT_SECRET) headers["x-bypass-rate-limit"] = JWT_SECRET;
 
   const dnsObj = require("dns");
   const urlObj = new URL(url);
