@@ -50,6 +50,9 @@ async function loadDashboard() {
     if ($("statMaintenance")) $("statMaintenance").textContent = stats.pendingMaintenance || 0;
     if ($("statRentDue")) $("statRentDue").textContent = inr(stats.rentDue || 0);
 
+    // Stay Section
+    renderStaySection(data.activeTenancy, data.residentRequests);
+
     // Recommended
     renderRecommended(data.recommended || []);
     renderRecentBookings(data.recentBookings || []);
@@ -218,3 +221,113 @@ function renderRecentNotifications(notifications) {
       </div>`;
   }).join("");
 }
+
+function renderStaySection(activeTenancy, residentRequests) {
+  const container = $("myStayContainer");
+  if (!container) return;
+
+  let stayHTML = "";
+  if (activeTenancy) {
+    const prop = activeTenancy.property || {};
+    const img = prop.images && prop.images.length ? imageUrl(prop.images[0]) : "/assets/logos/logo.png";
+    const name = prop.propertyName || "My Property";
+    const room = activeTenancy.room || "—";
+    const bed = activeTenancy.bed ? `, ${activeTenancy.bed}` : "";
+    const startDate = new Date(activeTenancy.startDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+    const endDate = activeTenancy.endDate ? new Date(activeTenancy.endDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" }) : "Ongoing";
+
+    stayHTML = `
+      <div class="sv3-card" style="padding:24px; border-radius:18px; display:flex; gap:20px; align-items:start; flex-wrap:wrap">
+        <div style="width:140px; height:100px; border-radius:12px; overflow:hidden; background:#111">
+          <img src="${img}" style="width:100%; height:100%; object-fit:cover" onerror="this.src='/assets/logos/logo.png'">
+        </div>
+        <div style="flex:1; min-width:200px">
+          <div style="display:flex; justify-content:space-between; align-items:start; gap:12px; flex-wrap:wrap">
+            <div>
+              <span class="sv3-pill sv3-pill-success" style="margin-bottom:8px">ACTIVE RESIDENT</span>
+              <h3 style="font-size:18px; font-weight:800; color:#fff; margin-top:4px">${esc(name)}</h3>
+              <p style="font-size:13.5px; color:var(--sv3-muted); margin-top:4px"><i class="fa-solid fa-door-open" style="margin-right:6px"></i> Room: ${esc(room)}${esc(bed)}</p>
+              <p style="font-size:13px; color:var(--sv3-muted); margin-top:2px"><i class="fa-solid fa-calendar-check" style="margin-right:6px"></i> Stay: ${startDate} - ${endDate}</p>
+            </div>
+          </div>
+          <div style="display:flex; gap:10px; margin-top:18px; flex-wrap:wrap">
+            <a href="/pages/property/property.html?id=${prop._id}" class="sv3-btn sv3-btn-primary" style="padding:8px 16px; font-size:13px"><i class="fa-solid fa-eye"></i> View Property</a>
+            <a href="messages.html?property=${prop._id}" class="sv3-btn sv3-btn-ghost" style="padding:8px 16px; font-size:13px"><i class="fa-solid fa-comments"></i> Contact Owner</a>
+            <a href="maintenance.html" class="sv3-btn sv3-btn-ghost" style="padding:8px 16px; font-size:13px"><i class="fa-solid fa-screwdriver-wrench"></i> Maintenance</a>
+            <a href="reviews.html" class="sv3-btn sv3-btn-ghost" style="padding:8px 16px; font-size:13px"><i class="fa-solid fa-star"></i> Reviews</a>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  if (residentRequests && residentRequests.length > 0) {
+    const requestsHTML = residentRequests.map(req => {
+      const prop = req.property || {};
+      const name = prop.propertyName || "Campora PG";
+      const room = req.room || "—";
+      const bed = req.bed ? `, ${req.bed}` : "";
+      const moveIn = new Date(req.moveInDate).toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+      const status = req.status;
+      const statusColor = status === "PENDING" ? "warning" : status === "APPROVED" ? "success" : "danger";
+      const isPending = status === "PENDING";
+      
+      let cancelBtn = "";
+      if (isPending) {
+        cancelBtn = `<button class="sv3-btn sv3-btn-ghost danger" style="padding:6px 12px; font-size:12px" onclick="window.cancelResidentRequest('${req._id}', this)"><i class="fa-solid fa-ban"></i> Cancel</button>`;
+      }
+
+      return `
+        <div style="background:rgba(255,255,255,0.01); border:1px solid var(--sv3-border); padding:16px 20px; border-radius:14px; display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:14px">
+          <div style="text-align:left">
+            <strong style="font-size:14.5px; color:#fff">${esc(name)}</strong>
+            <div style="display:flex; gap:14px; font-size:12px; color:var(--sv3-muted); margin-top:4px; flex-wrap:wrap">
+              <span>Room: ${esc(room)}${esc(bed)}</span>
+              <span>Move-in: ${moveIn}</span>
+            </div>
+            ${req.rejectionReason ? `<p style="font-size:12px; color:var(--sv3-red); margin-top:4px"><i class="fa-solid fa-circle-info"></i> Reason: ${esc(req.rejectionReason)}</p>` : ""}
+          </div>
+          <div style="display:flex; align-items:center; gap:12px">
+            <span class="sv3-pill sv3-pill-${statusColor}">${status === "PENDING" ? "Pending verification" : status.charAt(0) + status.slice(1).toLowerCase()}</span>
+            ${cancelBtn}
+          </div>
+        </div>
+      `;
+    }).join("");
+
+    stayHTML += `
+      <div class="sv3-card" style="padding:20px; border-radius:16px; background:rgba(255,255,255,0.02); margin-top: 16px">
+        <h3 style="font-size:15px; font-weight:800; margin-bottom:12px; color:#fff"><i class="fa-solid fa-clock-rotate-left" style="color:var(--sv3-primary); margin-right:6px"></i> Verification Requests</h3>
+        <div style="display:flex; flex-direction:column; gap:12px">${requestsHTML}</div>
+      </div>
+    `;
+  }
+
+  if (!activeTenancy && (!residentRequests || residentRequests.length === 0)) {
+    stayHTML = `
+      <div class="sv3-card" style="padding:30px; text-align:center; border-radius:16px">
+        <i class="fa-solid fa-house-chimney-user" style="font-size:36px; color:var(--sv3-muted); margin-bottom:12px; display:block"></i>
+        <h3 style="font-size:15px; font-weight:700; color:#fff; margin-bottom:4px">You haven't joined a property as an active resident yet</h3>
+        <p style="font-size:13px; color:var(--sv3-muted); margin-bottom:16px">Stay connected with your PG, raise maintenance requests and moderate reviews.</p>
+        <a href="../../properties.html" class="sv3-btn sv3-btn-primary" style="display:inline-block; padding:8px 16px"><i class="fa-solid fa-magnifying-glass"></i> Explore Properties</a>
+      </div>
+    `;
+  }
+
+  container.innerHTML = stayHTML;
+}
+
+window.cancelResidentRequest = async function(requestId, btn) {
+  if (!confirm("Are you sure you want to cancel this resident request?")) return;
+  btn.disabled = true;
+  btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Cancelling...';
+  try {
+    await apiFetch(`/residents/requests/${requestId}`, { method: "DELETE" });
+    alert("Request cancelled successfully.");
+    location.reload();
+  } catch (err) {
+    alert(err.message || "Failed to cancel request.");
+    btn.disabled = false;
+    btn.innerHTML = '<i class="fa-solid fa-ban"></i> Cancel';
+  }
+};

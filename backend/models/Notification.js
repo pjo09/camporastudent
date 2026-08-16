@@ -44,7 +44,10 @@ const NotificationSchema = new mongoose.Schema({
             "NEW_ANNOUNCEMENT",
             "CHECK_IN_UPDATE",
             "DOCUMENT_REQUEST",
-            "BOOKING_UPDATE"
+            "BOOKING_UPDATE",
+            "NEW_RESIDENT_REQUEST",
+            "RESIDENT_REQUEST_APPROVED",
+            "RESIDENT_REQUEST_REJECTED"
         ],
 
         default:"general"

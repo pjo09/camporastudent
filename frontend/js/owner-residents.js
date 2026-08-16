@@ -19,6 +19,12 @@ const DOM = {
 };
 
 let allResidents = [];
+let currentTab = "active";
+let allRequests = [];
+const esc = (str) => {
+  if (!str) return "";
+  return str.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
+};
 
 // =====================================================
 // INIT
@@ -28,12 +34,36 @@ initShell("Residents");
 document.addEventListener("DOMContentLoaded", () => {
   setupListeners();
   loadResidents();
+  loadRequestsCountOnly();
 });
+
+async function loadRequestsCountOnly() {
+  try {
+    const data = await apiFetch("/owner/resident-requests");
+    allRequests = data.requests || [];
+    const badge = $("requestsCountBadge");
+    const pendingCount = allRequests.filter(r => r.status === "PENDING").length;
+    if (badge) {
+      if (pendingCount > 0) {
+        badge.textContent = pendingCount;
+        badge.style.display = "inline-flex";
+      } else {
+        badge.style.display = "none";
+      }
+    }
+  } catch (e) {
+    console.warn("Failed to prefetch requests count:", e);
+  }
+}
 
 function setupListeners() {
   DOM.studentSearch?.addEventListener("input", (e) => {
     const term = e.target.value.trim().toLowerCase();
-    renderResidents(term);
+    if (currentTab === "active") {
+      renderResidents(term);
+    } else {
+      renderRequests(term);
+    }
   });
 
   DOM.closeStudentModal?.addEventListener("click", () => DOM.studentModal.classList.remove("active"));
@@ -44,6 +74,44 @@ function setupListeners() {
   DOM.broadcastModal?.addEventListener("click", (e) => { if (e.target === DOM.broadcastModal) DOM.broadcastModal.classList.remove("active"); });
 
   DOM.broadcastForm?.addEventListener("submit", handleBroadcast);
+
+  // Tab listeners
+  const tabActive = $("tabActiveResidents");
+  const tabReq = $("tabVerificationRequests");
+
+  tabActive?.addEventListener("click", () => {
+    currentTab = "active";
+    tabActive.style.background = "var(--v3-primary)";
+    tabActive.style.color = "#fff";
+    tabActive.classList.remove("v3-btn-ghost");
+    tabReq.style.background = "none";
+    tabReq.style.color = "var(--v3-muted)";
+    tabReq.classList.add("v3-btn-ghost");
+    updateTableHeaders();
+    renderResidents();
+  });
+
+  tabReq?.addEventListener("click", () => {
+    currentTab = "requests";
+    tabReq.style.background = "var(--v3-primary)";
+    tabReq.style.color = "#fff";
+    tabReq.classList.remove("v3-btn-ghost");
+    tabActive.style.background = "none";
+    tabActive.style.color = "var(--v3-muted)";
+    tabActive.classList.add("v3-btn-ghost");
+    updateTableHeaders();
+    loadRequests();
+  });
+
+  // Request modal close
+  $("closeRequestModal")?.addEventListener("click", () => {
+    $("requestModal").style.display = "none";
+  });
+  $("requestModal")?.addEventListener("click", (e) => {
+    if (e.target === $("requestModal")) {
+      $("requestModal").style.display = "none";
+    }
+  });
 }
 
 // =====================================================
@@ -296,4 +364,258 @@ async function handleBroadcast(e) {
 }
 
 window.showToast = (...args) => showToast(...args);
+
+function updateTableHeaders() {
+  const thead = document.querySelector(".v3-table thead tr");
+  if (!thead) return;
+  if (currentTab === "active") {
+    thead.innerHTML = `
+      <th>Resident</th>
+      <th>Contact</th>
+      <th>College</th>
+      <th>Property</th>
+      <th>Move In</th>
+      <th>Rent</th>
+      <th>Status</th>
+      <th>Actions</th>
+    `;
+  } else {
+    thead.innerHTML = `
+      <th>Student</th>
+      <th>Contact</th>
+      <th>Property</th>
+      <th>Room</th>
+      <th>Move-in Date</th>
+      <th>Source</th>
+      <th>Status</th>
+      <th>Actions</th>
+    `;
+  }
+}
+
+async function loadRequests() {
+  DOM.studentsBody.innerHTML = `<tr><td colspan="8" class="v3-loading"><i class="fa-solid fa-spinner fa-spin"></i> Loading requests...</td></tr>`;
+  try {
+    const data = await apiFetch("/owner/resident-requests");
+    allRequests = data.requests || [];
+    
+    // Update badge count
+    const badge = $("requestsCountBadge");
+    const pendingCount = allRequests.filter(r => r.status === "PENDING").length;
+    if (badge) {
+      if (pendingCount > 0) {
+        badge.textContent = pendingCount;
+        badge.style.display = "inline-flex";
+      } else {
+        badge.style.display = "none";
+      }
+    }
+    
+    renderRequests();
+  } catch (err) {
+    console.error("Requests load error:", err);
+    DOM.studentsBody.innerHTML = `<tr><td colspan="8" class="v3-error"><i class="fa-solid fa-exclamation-triangle"></i><h3>Failed to Load Requests</h3><p>${err.message}</p></td></tr>`;
+  }
+}
+
+function renderRequests(searchTerm = "") {
+  if (currentTab !== "requests") return;
+
+  let filtered = allRequests;
+  if (searchTerm) {
+    filtered = allRequests.filter((r) => {
+      const student = r.student || {};
+      const name = (student.name || "").toLowerCase();
+      const phone = (student.phone || "").toLowerCase();
+      const email = (student.email || "").toLowerCase();
+      const college = (student.college || "").toLowerCase();
+      return name.includes(searchTerm) || phone.includes(searchTerm) || email.includes(searchTerm) || college.includes(searchTerm);
+    });
+  }
+
+  if (filtered.length === 0) {
+    DOM.studentsBody.innerHTML = "";
+    DOM.emptyState.innerHTML = `
+      <i class="fa-solid fa-user-clock"></i>
+      <h3>No Verification Requests</h3>
+      <p>Requests from existing residents will appear here.</p>
+    `;
+    DOM.emptyState.style.display = "block";
+    return;
+  }
+
+  DOM.emptyState.style.display = "none";
+  DOM.studentsBody.innerHTML = "";
+
+  filtered.forEach((r) => {
+    const student = r.student || {};
+    const property = r.property || {};
+    const name = student.name || "Student";
+    const phone = student.phone || "";
+    const email = student.email || "";
+    const propertyName = property.propertyName || "";
+    const room = r.room || "";
+    const bed = r.bed ? `, ${r.bed}` : "";
+    const moveIn = new Date(r.moveInDate).toLocaleDateString("en-IN");
+    const source = r.residenceSource.replace("_", " ");
+    const status = r.status;
+    const statusColor = status === "PENDING" ? "warning" : status === "APPROVED" ? "success" : "danger";
+    const avatar = (name.charAt(0) || "S").toUpperCase();
+
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>
+        <div style="display:flex;align-items:center;gap:12px">
+          <div class="v3-avatar" style="width:40px;height:40px;font-size:16px">${avatar}</div>
+          <div>
+            <strong style="font-size:14px">${name}</strong>
+          </div>
+        </div>
+      </td>
+      <td>
+        <div style="font-size:13px">${phone || "—"}</div>
+        <div style="font-size:12px;color:var(--v3-muted)">${email || ""}</div>
+      </td>
+      <td style="font-size:13px">${propertyName}</td>
+      <td style="font-size:13px">${room}${bed}</td>
+      <td style="font-size:13px">${moveIn}</td>
+      <td style="font-size:13px; text-transform:capitalize">${source.toLowerCase()}</td>
+      <td><span class="v3-pill v3-pill-${statusColor}">${status}</span></td>
+      <td>
+        <div style="display:flex;gap:6px;flex-wrap:wrap">
+          <button class="v3-btn v3-btn-primary v3-btn-sm" data-action="view" data-id="${r._id}"><i class="fa-solid fa-eye"></i> View</button>
+        </div>
+      </td>
+    `;
+
+    tr.querySelector("[data-action='view']")?.addEventListener("click", () => openRequestDetails(r));
+
+    DOM.studentsBody.appendChild(tr);
+  });
+}
+
+function openRequestDetails(r) {
+  const modal = $("requestModal");
+  const content = $("requestModalContent");
+  if (!modal || !content) return;
+
+  const student = r.student || {};
+  const property = r.property || {};
+  const name = student.name || "Student";
+  const avatar = (name.charAt(0) || "S").toUpperCase();
+
+  let actionsHTML = "";
+  if (r.status === "PENDING") {
+    actionsHTML = `
+      <div style="display:flex; gap:12px; margin-top:24px">
+        <button id="approveReqBtn" class="v3-btn v3-btn-success" style="flex:1"><i class="fa-solid fa-check"></i> Approve Resident</button>
+        <button id="rejectReqBtn" class="v3-btn v3-btn-danger" style="flex:1"><i class="fa-solid fa-xmark"></i> Reject</button>
+      </div>
+    `;
+  }
+
+  let docHTML = `<p style="color:var(--v3-muted); font-size:13px">No proof document supplied.</p>`;
+  if (r.proofDocument) {
+    docHTML = `
+      <a href="${r.proofDocument}" target="_blank" style="display:inline-flex; align-items:center; gap:8px; color:var(--v3-primary2); font-weight:600; font-size:14px; text-decoration:none; margin-top:4px">
+        <i class="fa-solid fa-file-invoice"></i> View Proof Document <i class="fa-solid fa-arrow-up-right-from-square" style="font-size:11px"></i>
+      </a>
+    `;
+  }
+
+  content.innerHTML = `
+    <div style="display:flex;align-items:center;gap:16px;margin-bottom:20px">
+      <div class="v3-avatar" style="width:54px;height:54px;font-size:22px">${avatar}</div>
+      <div>
+        <h3 style="font-size:18px;font-weight:800;color:#fff">${name}</h3>
+        <p style="color:var(--v3-muted);font-size:13px">${student.email || "No email"}</p>
+      </div>
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:20px">
+      <div style="padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.04)">
+        <div style="font-size:11px;color:var(--v3-muted)">Phone</div>
+        <div style="font-weight:700;margin-top:2px;font-size:13px;color:#fff">${student.phone || "—"}</div>
+      </div>
+      <div style="padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.04)">
+        <div style="font-size:11px;color:var(--v3-muted)">College</div>
+        <div style="font-weight:700;margin-top:2px;font-size:13px;color:#fff">${student.college || "—"}</div>
+      </div>
+      <div style="padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.04)">
+        <div style="font-size:11px;color:var(--v3-muted)">Property</div>
+        <div style="font-weight:700;margin-top:2px;font-size:13px;color:#fff">${property.propertyName || "—"}</div>
+      </div>
+      <div style="padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.04)">
+        <div style="font-size:11px;color:var(--v3-muted)">Room / Bed</div>
+        <div style="font-weight:700;margin-top:2px;font-size:13px;color:#fff">${r.room || "—"}${r.bed ? ", " + r.bed : ""}</div>
+      </div>
+      <div style="padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.04)">
+        <div style="font-size:11px;color:var(--v3-muted)">Move-in Date</div>
+        <div style="font-weight:700;margin-top:2px;font-size:13px;color:#fff">${new Date(r.moveInDate).toLocaleDateString("en-IN")}</div>
+      </div>
+      <div style="padding:10px 14px;border-radius:12px;background:rgba(255,255,255,.04)">
+        <div style="font-size:11px;color:var(--v3-muted)">Source</div>
+        <div style="font-weight:700;margin-top:2px;font-size:13px;color:#fff;text-transform:capitalize">${r.residenceSource.toLowerCase().replace("_", " ")}</div>
+      </div>
+    </div>
+
+    <div style="margin-bottom:16px; text-align:left">
+      <h4 style="font-size:12px; font-weight:700; color:var(--v3-muted); text-transform:uppercase; margin-bottom:6px">Residence Proof</h4>
+      <div style="padding:12px; border-radius:10px; background:rgba(255,255,255,0.02); border:1px solid var(--v3-border)">
+        ${docHTML}
+      </div>
+    </div>
+
+    ${r.message ? `
+    <div style="margin-bottom:20px; text-align:left">
+      <h4 style="font-size:12px; font-weight:700; color:var(--v3-muted); text-transform:uppercase; margin-bottom:6px">Student Message</h4>
+      <p style="font-size:13.5px; color:#fff; line-height:1.5; padding:12px; border-radius:10px; background:rgba(255,255,255,0.02); border:1px solid var(--v3-border)">${esc(r.message)}</p>
+    </div>
+    ` : ""}
+
+    ${actionsHTML}
+  `;
+
+  if (r.status === "PENDING") {
+    $("approveReqBtn")?.addEventListener("click", () => handleApproveRequest(r._id));
+    $("rejectReqBtn")?.addEventListener("click", () => handleRejectRequest(r._id));
+  }
+
+  modal.style.display = "flex";
+}
+
+async function handleApproveRequest(requestId) {
+  if (!confirm("Are you sure you want to approve this student as an existing resident? This will create an active stay tenancy.")) return;
+  
+  const modal = $("requestModal");
+  try {
+    await apiFetch(`/owner/resident-requests/${requestId}/approve`, {
+      method: "POST"
+    });
+    showToast("Resident approved successfully!", "success");
+    modal.style.display = "none";
+    loadRequests();
+  } catch (err) {
+    showToast("Approval failed: " + err.message, "error");
+  }
+}
+
+async function handleRejectRequest(requestId) {
+  const reason = prompt("Please enter a reason for rejection (optional):");
+  if (reason === null) return;
+
+  const modal = $("requestModal");
+  try {
+    await apiFetch(`/owner/resident-requests/${requestId}/reject`, {
+      method: "POST",
+      body: JSON.stringify({ reason })
+    });
+    showToast("Request rejected.", "info");
+    modal.style.display = "none";
+    loadRequests();
+  } catch (err) {
+    showToast("Rejection failed: " + err.message, "error");
+  }
+}
+
 console.log("✅ Campora Owner Residents V3 initialised");

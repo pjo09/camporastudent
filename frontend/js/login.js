@@ -170,7 +170,15 @@ async function loginUser(e) {
         showSuccess("Welcome back, " + data.user.name + "!");
 
         // Redirect after brief delay for success message
-        setTimeout(() => redirectBasedOnRole(data.user.role), 500);
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectTo = urlParams.get("redirectTo");
+        setTimeout(() => {
+            if (redirectTo) {
+                window.location.href = redirectTo;
+            } else {
+                redirectBasedOnRole(data.user.role);
+            }
+        }, 500);
 
     } catch (err) {
         console.error("Login Error:", err);
@@ -203,7 +211,15 @@ window.handleGoogleLogin = async function (response) {
 
         showSuccess("Welcome, " + data.user.name + "!");
 
-        setTimeout(() => redirectBasedOnRole(data.user.role), 500);
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectTo = urlParams.get("redirectTo");
+        setTimeout(() => {
+            if (redirectTo) {
+                window.location.href = redirectTo;
+            } else {
+                redirectBasedOnRole(data.user.role);
+            }
+        }, 500);
 
     } catch (err) {
         console.error("Google Login Error:", err);

@@ -166,10 +166,14 @@ form.addEventListener("submit", async (e) => {
         showSuccess(data.message || "Account created successfully!");
 
         // Redirect based on role
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectTo = urlParams.get("redirectTo");
         setTimeout(() => {
             if (data.role === "owner" && !data.token) {
                 // Pending owner - send to login
                 window.location.href = getLoginUrl();
+            } else if (redirectTo) {
+                window.location.href = redirectTo;
             } else {
                 redirectBasedOnRole(data.user ? data.user.role : data.role);
             }
@@ -210,9 +214,13 @@ window.handleGoogleRegister = async function (response) {
 
         showSuccess("Welcome, " + data.user.name + "!");
 
+        const urlParams = new URLSearchParams(window.location.search);
+        const redirectTo = urlParams.get("redirectTo");
         setTimeout(() => {
             if (data.user.role === "owner" && data.user.accountStatus === "PENDING") {
                 window.location.href = getLoginUrl();
+            } else if (redirectTo) {
+                window.location.href = redirectTo;
             } else {
                 redirectBasedOnRole(data.user.role);
             }

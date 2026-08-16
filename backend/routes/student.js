@@ -8,6 +8,8 @@ const requireRole = require("../middleware/role");
 const User = require("../models/User");
 const Property = require("../models/Property");
 const Booking = require("../models/Booking");
+const Tenancy = require("../models/Tenancy");
+const ResidentRequest = require("../models/ResidentRequest");
 
 function isValidObjectId(id) {
     return mongoose.Types.ObjectId.isValid(id);
@@ -709,7 +711,9 @@ try {
             recentBookings,
             recentNotifications,
             savedProperties,
-            recommended
+            recommended,
+            activeTenancy,
+            residentRequests
         ] = await Promise.all([
 
             User.findById(studentId).select("-password"),
@@ -732,7 +736,7 @@ try {
 
             Notification.countDocuments({ receiverId: studentId, isRead: false }),
 
-MessageConversation.aggregate([
+            MessageConversation.aggregate([
                 { $match: { studentId: studentObjectId } },
                 { $group: { _id: null, total: { $sum: "$unreadByStudent" } } }
             ]).then(r => (r[0] && r[0].total) || 0),
@@ -772,7 +776,14 @@ MessageConversation.aggregate([
             })
                 .populate("owner", "name phone")
                 .sort({ featured: -1, averageRating: -1 })
-                .limit(6)
+                .limit(6),
+
+            Tenancy.findOne({ student: studentId, status: "ACTIVE" })
+                .populate("property", "propertyName city state images owner"),
+
+            ResidentRequest.find({ student: studentId })
+                .populate("property", "propertyName city state images")
+                .sort({ requestedAt: -1 })
 
         ]);
 
@@ -794,7 +805,9 @@ MessageConversation.aggregate([
             recentBookings,
             recentNotifications,
             savedProperties,
-            recommended
+            recommended,
+            activeTenancy,
+            residentRequests
         });
 
     } catch (err) {

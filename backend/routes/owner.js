@@ -17,6 +17,9 @@ const Property = require("../models/Property");
 const Booking = require("../models/Booking");
 const Review = require("../models/Review");
 const Notification = require("../models/Notification");
+const ResidentRequest = require("../models/ResidentRequest");
+const Tenancy = require("../models/Tenancy");
+const PropertyInvite = require("../models/PropertyInvite");
 const bcrypt = require("bcryptjs");
 
 // ======================================================
@@ -2617,11 +2620,15 @@ router.get("/dashboard-v3", async (req, res) => {
 
         const Maintenance = require("../models/Maintenance");
 
+        const ownerPropertiesList = await Property.find({ owner: ownerId }).select("_id");
+        const myPropIds = ownerPropertiesList.map(p => p._id);
+
         const [
             totalProperties,
             approvedProperties,
             pendingProperties,
             activeStudents,
+            pendingResidentRequests,
             totalBookings,
             pendingBookings,
             todayCheckIns,
@@ -2644,7 +2651,9 @@ router.get("/dashboard-v3", async (req, res) => {
 
             Property.countDocuments({ owner: ownerId, status: "pending" }),
 
-            Booking.countDocuments({ ownerId, bookingStatus: { $in: ["confirmed", "checked-in"] } }),
+            Tenancy.countDocuments({ property: { $in: myPropIds }, status: "ACTIVE" }),
+
+            ResidentRequest.countDocuments({ property: { $in: myPropIds }, status: "PENDING" }),
 
             Booking.countDocuments({ ownerId }),
 
@@ -2739,6 +2748,7 @@ router.get("/dashboard-v3", async (req, res) => {
                 approvedProperties,
                 pendingProperties,
                 activeStudents,
+                pendingResidentRequests,
                 totalBookings,
                 pendingBookings,
                 todayCheckIns,
@@ -2762,14 +2772,233 @@ router.get("/dashboard-v3", async (req, res) => {
             }
         });
 
-    }
-
-    catch (err) {
+    } catch (err) {
 
         return sendError(res, err.message);
 
     }
 
+});
+
+// ======================================================
+// OWNER: GET ALL RESIDENT REQUESTS
+// GET /api/owner/resident-requests
+// ======================================================
+router.get("/resident-requests", async (req, res) => {
+    try {
+        const ownerProperties = await Property.find({ owner: req.owner._id }).select("_id");
+        const propIds = ownerProperties.map(p => p._id);
+
+        const requests = await ResidentRequest.find({ property: { $in: propIds } })
+            .populate("student", "name email phone college course year profileImage")
+            .populate("property", "propertyName city state")
+            .sort({ requestedAt: -1 });
+
+        return sendSuccess(res, { requests });
+    } catch (err) {
+        return sendError(res, err.message);
+    }
+});
+
+// ======================================================
+// OWNER: GET SPECIFIC RESIDENT REQUEST
+// GET /api/owner/resident-requests/:id
+// ======================================================
+router.get("/resident-requests/:id", async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!isValidObjectId(id)) {
+            return sendError(res, "Invalid request ID format.", 400);
+        }
+
+        const request = await ResidentRequest.findById(id)
+            .populate("student", "name email phone college course year profileImage")
+            .populate("property", "propertyName city state owner");
+
+        if (!request) {
+            return sendError(res, "Resident request not found.", 404);
+        }
+
+        if (String(request.property.owner) !== String(req.owner._id)) {
+            return sendError(res, "Unauthorized to access this request.", 403);
+        }
+
+        return sendSuccess(res, { request });
+    } catch (err) {
+        return sendError(res, err.message);
+    }
+});
+
+// ======================================================
+// OWNER: APPROVE RESIDENT REQUEST
+// POST /api/owner/resident-requests/:id/approve
+// ======================================================
+router.post("/resident-requests/:id/approve", async (req, res) => {
+    try {
+        const { id } = req.params;
+        if (!isValidObjectId(id)) {
+            return sendError(res, "Invalid request ID format.", 400);
+        }
+
+        const request = await ResidentRequest.findById(id);
+        if (!request) {
+            return sendError(res, "Resident request not found.", 404);
+        }
+
+        if (request.status !== "PENDING") {
+            return sendError(res, `Request is already in ${request.status} status.`, 400);
+        }
+
+        const property = await Property.findById(request.property);
+        if (!property || String(property.owner) !== String(req.owner._id)) {
+            return sendError(res, "Unauthorized to approve this request.", 403);
+        }
+
+        // Prevent duplicate active stays
+        const activeTenancy = await Tenancy.findOne({
+            student: request.student,
+            property: request.property,
+            status: "ACTIVE"
+        });
+
+        if (activeTenancy) {
+            return sendError(res, "This student already has an active tenancy at this property.", 400);
+        }
+
+        // Create active tenancy
+        const tenancy = await Tenancy.create({
+            student: request.student,
+            property: request.property,
+            room: request.room,
+            bed: request.bed || "",
+            startDate: request.moveInDate,
+            endDate: request.expectedMoveOutDate,
+            status: "ACTIVE",
+            source: "EXISTING_RESIDENT",
+            verifiedBy: req.owner._id,
+            verifiedAt: new Date()
+        });
+
+        // Update request status
+        request.status = "APPROVED";
+        request.reviewedBy = req.owner._id;
+        request.reviewedAt = new Date();
+        await request.save();
+
+        // Notify student
+        try {
+            await Notification.create({
+                receiverId: request.student,
+                title: "Resident Request Approved 🎉",
+                message: `Your request to join "${property.propertyName}" as an existing resident has been approved.`,
+                type: "RESIDENT_REQUEST_APPROVED"
+            });
+        } catch (notifErr) {
+            console.error("Failed to create notification for student:", notifErr.message);
+        }
+
+        return sendSuccess(res, {
+            message: "Resident request approved successfully.",
+            tenancy
+        });
+    } catch (err) {
+        return sendError(res, err.message);
+    }
+});
+
+// ======================================================
+// OWNER: REJECT RESIDENT REQUEST
+// POST /api/owner/resident-requests/:id/reject
+// ======================================================
+router.post("/resident-requests/:id/reject", async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { reason } = req.body;
+
+        if (!isValidObjectId(id)) {
+            return sendError(res, "Invalid request ID format.", 400);
+        }
+
+        const request = await ResidentRequest.findById(id);
+        if (!request) {
+            return sendError(res, "Resident request not found.", 404);
+        }
+
+        if (request.status !== "PENDING") {
+            return sendError(res, `Request is already in ${request.status} status.`, 400);
+        }
+
+        const property = await Property.findById(request.property);
+        if (!property || String(property.owner) !== String(req.owner._id)) {
+            return sendError(res, "Unauthorized to reject this request.", 403);
+        }
+
+        // Update request
+        request.status = "REJECTED";
+        request.rejectionReason = reason || "";
+        request.reviewedBy = req.owner._id;
+        request.reviewedAt = new Date();
+        await request.save();
+
+        // Notify student
+        try {
+            await Notification.create({
+                receiverId: request.student,
+                title: "Resident Request Rejected ❌",
+                message: `Your resident request for "${property.propertyName}" was not approved by the property owner.`,
+                type: "RESIDENT_REQUEST_REJECTED"
+            });
+        } catch (notifErr) {
+            console.error("Failed to create notification for student:", notifErr.message);
+        }
+
+        return sendSuccess(res, { message: "Resident request rejected successfully." });
+    } catch (err) {
+        return sendError(res, err.message);
+    }
+});
+
+// ======================================================
+// OWNER: GENERATE PROPERTY INVITE LINK
+// POST /api/owner/properties/:propertyId/resident-invite
+// ======================================================
+router.post("/properties/:propertyId/resident-invite", async (req, res) => {
+    try {
+        const { propertyId } = req.params;
+        if (!isValidObjectId(propertyId)) {
+            return sendError(res, "Invalid property ID format.", 400);
+        }
+
+        const property = await Property.findOne({ _id: propertyId, owner: req.owner._id });
+        if (!property) {
+            return sendError(res, "Property not found or unauthorized.", 404);
+        }
+
+        // Generate a cryptographically secure token
+        const crypto = require("crypto");
+        const token = crypto.randomBytes(24).toString("hex");
+
+        // Expire in 7 days by default
+        const expiresAt = new Date();
+        expiresAt.setDate(expiresAt.getDate() + 7);
+
+        const invite = await PropertyInvite.create({
+            property: propertyId,
+            token,
+            expiresAt,
+            status: "ACTIVE"
+        });
+
+        return sendSuccess(res, {
+            invite: {
+                token: invite.token,
+                expiresAt: invite.expiresAt,
+                status: invite.status
+            }
+        }, 201);
+    } catch (err) {
+        return sendError(res, err.message);
+    }
 });
 
 // ======================================================

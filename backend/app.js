@@ -174,7 +174,12 @@ app.use(express.urlencoded({ extended: true, limit: "10mb" }));
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 app.use(express.static(path.join(__dirname, "../frontend")));
 
+app.get("/join-pg/:token", (req, res) => {
+    res.sendFile(path.join(__dirname, "../frontend/join-pg.html"));
+});
+
 // Routes
+try { app.use("/api", require("./routes/residents")); console.log("✅ Residents Routes Loaded"); } catch(err) { console.log("❌ Residents Routes Error", err); }
 try { app.use("/api/auth", require("./routes/auth")); console.log("✅ Auth Route Loaded"); } catch(err) { console.log("❌ Auth Route Error", err); }
 try { app.use("/api/auth/google", require("./routes/google")); console.log("✅ Google Auth Route Loaded"); } catch(err) { console.log("❌ Google Auth Route Error", err); }
 try { app.use("/api/otp", require("./routes/otp")); console.log("✅ OTP Route Loaded"); } catch(err) { console.log("❌ OTP Route Error", err); }

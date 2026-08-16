@@ -404,11 +404,17 @@ router.get("/:id", async (req, res) => {
             });
         }
 
+        const Tenancy = require("../models/Tenancy");
+        const currentResidentsCount = await Tenancy.countDocuments({ property: property._id, status: "ACTIVE" });
+        const verifiedStaysCount = await Tenancy.countDocuments({ property: property._id, status: { $in: ["ACTIVE", "ENDED"] } });
+
         res.json({
 
             success: true,
 
-            property
+            property,
+            currentResidentsCount,
+            verifiedStaysCount
 
         });
 

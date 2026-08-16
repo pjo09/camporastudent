@@ -88,10 +88,31 @@
           </div>
         </div>
         <div style="display:flex;gap:10px;flex-wrap:wrap;margin:18px 0" id="propertyChips"></div>
+
+        <!-- Verification Info Card -->
+        <div style="margin: 20px 0; padding: 20px; background: rgba(255,255,255,0.02); border: 1px solid var(--sv3-border); border-radius: 16px;">
+          <h3 style="font-size:15px; font-weight:800; margin-bottom:12px; color:#fff"><i class="fa-solid fa-shield-halved" style="color:#3b82f6; margin-right:8px"></i> Campora Verification</h3>
+          <div style="display:grid; grid-template-columns: 1fr 1fr; gap:12px; font-size:13px; color:rgba(255,255,255,0.85)">
+            <div id="verifiedPropertyBadge" style="display:none; align-items:center; gap:8px"><i class="fa-solid fa-circle-check" style="color:#22c55e"></i> Property Verified</div>
+            <div id="verifiedOwnerBadge" style="display:none; align-items:center; gap:8px"><i class="fa-solid fa-circle-check" style="color:#22c55e"></i> Owner Verified</div>
+            <div id="currentResidentsCountWrap" style="display:none; align-items:center; gap:8px"><i class="fa-solid fa-users" style="color:#3b82f6"></i> <span id="currentResidentsCount">0</span> Current Residents</div>
+            <div id="verifiedStaysCountWrap" style="display:none; align-items:center; gap:8px"><i class="fa-solid fa-clock-rotate-left" style="color:#6366f1"></i> <span id="verifiedStaysCount">0</span> Verified Stays</div>
+          </div>
+        </div>
+
         <p id="propertyDescription" style="color:var(--sv3-muted);line-height:1.7;margin-bottom:20px"></p>
         <div style="display:flex;gap:12px;flex-wrap:wrap">
           <button class="sv3-btn sv3-btn-primary" id="bookBtn" style="flex:1;min-width:200px"><i class="fa-solid fa-calendar-check"></i> Book Now</button>
           <button class="sv3-btn sv3-btn-ghost" id="contactOwnerBtn"><i class="fa-solid fa-comments"></i> Contact Owner</button>
+        </div>
+
+        <!-- Already Staying Here CTA -->
+        <div id="joinPgCta" style="margin-top:24px;padding:20px;background:rgba(255,255,255,0.03);border:1px dashed var(--sv3-border);border-radius:16px;text-align:left;display:none;">
+          <h4 style="font-size:14.5px;font-weight:700;margin-bottom:6px;color:#fff">Already living at this property?</h4>
+          <p style="font-size:13px;color:var(--sv3-muted);line-height:1.5;margin-bottom:12px">
+            Join your existing stay on Campora to access resident features, maintenance requests, messages, reviews, and your verified stay profile.
+          </p>
+          <button class="sv3-btn sv3-btn-ghost" id="joinPgBtn" style="width:100%;border-color:rgba(255,255,255,0.15)"><i class="fa-solid fa-house-chimney-user"></i> Join this PG</button>
         </div>
       </div>
     </div>
@@ -111,6 +132,89 @@
 </main>
 
 <div class="sv3-toast-container" id="toastContainer"></div>
+
+<!-- JOIN PG MODAL -->
+<div class="sv3-modal-overlay" id="joinPgModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999;backdrop-filter:blur(4px);align-items:center;justify-content:center">
+  <div class="sv3-card" style="max-width:540px;width:90%;max-height:90vh;overflow-y:auto;position:relative;border:1px solid var(--sv3-border);background:var(--sv3-bg);padding:24px;border-radius:18px">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px;border-bottom:1px solid var(--sv3-border);padding-bottom:12px">
+      <h3 style="font-size:18px;font-weight:800;color:#fff"><i class="fa-solid fa-house-chimney-user" style="color:var(--sv3-primary);margin-right:8px"></i> Join PG Request</h3>
+      <button id="closeJoinPgModal" style="background:none;border:none;color:var(--sv3-muted);cursor:pointer;font-size:20px"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    <form id="joinPgForm">
+      <div style="display:grid;grid-template-columns:1fr;gap:14px">
+        
+        <div class="sv3-form-group">
+          <label style="font-size:12px;color:var(--sv3-muted);font-weight:600;margin-bottom:6px;display:block">Full Name</label>
+          <input type="text" id="joinName" class="sv3-input" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--sv3-border);color:#fff;border-radius:10px;padding:10px" required>
+        </div>
+        
+        <div class="sv3-form-group">
+          <label style="font-size:12px;color:var(--sv3-muted);font-weight:600;margin-bottom:6px;display:block">Phone</label>
+          <input type="tel" id="joinPhone" class="sv3-input" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--sv3-border);color:#fff;border-radius:10px;padding:10px" required>
+        </div>
+
+        <div class="sv3-form-group">
+          <label style="font-size:12px;color:var(--sv3-muted);font-weight:600;margin-bottom:6px;display:block">Email (Primary Account)</label>
+          <input type="email" id="joinEmail" class="sv3-input" style="width:100%;background:rgba(255,255,255,0.01);border:1px solid var(--sv3-border);color:var(--sv3-muted);border-radius:10px;padding:10px" readonly disabled>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="sv3-form-group">
+            <label style="font-size:12px;color:var(--sv3-muted);font-weight:600;margin-bottom:6px;display:block">Room Number</label>
+            <input type="text" id="joinRoom" class="sv3-input" placeholder="e.g. B-204" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--sv3-border);color:#fff;border-radius:10px;padding:10px" required>
+          </div>
+          
+          <div class="sv3-form-group">
+            <label style="font-size:12px;color:var(--sv3-muted);font-weight:600;margin-bottom:6px;display:block">Bed Number (Optional)</label>
+            <input type="text" id="joinBed" class="sv3-input" placeholder="e.g. Bed A" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--sv3-border);color:#fff;border-radius:10px;padding:10px">
+          </div>
+        </div>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px">
+          <div class="sv3-form-group">
+            <label style="font-size:12px;color:var(--sv3-muted);font-weight:600;margin-bottom:6px;display:block">Move-in Date</label>
+            <input type="date" id="joinMoveInDate" class="sv3-input" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--sv3-border);color:#fff;border-radius:10px;padding:10px" required>
+          </div>
+          
+          <div class="sv3-form-group">
+            <label style="font-size:12px;color:var(--sv3-muted);font-weight:600;margin-bottom:6px;display:block">Expected Move-out (Optional)</label>
+            <input type="date" id="joinMoveOutDate" class="sv3-input" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--sv3-border);color:#fff;border-radius:10px;padding:10px">
+          </div>
+        </div>
+
+        <div class="sv3-form-group">
+          <label style="font-size:12px;color:var(--sv3-muted);font-weight:600;margin-bottom:6px;display:block">How did you get this accommodation?</label>
+          <select id="joinSource" class="sv3-input" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--sv3-border);color:#fff;border-radius:10px;padding:10px;cursor:pointer" required>
+            <option value="" disabled selected>Select an option</option>
+            <option value="DIRECT_OWNER">Directly from owner</option>
+            <option value="OTHER_PLATFORM">Another platform</option>
+            <option value="FRIEND">Friend</option>
+            <option value="OFFLINE">Offline</option>
+            <option value="OTHER">Other</option>
+          </select>
+        </div>
+
+        <div class="sv3-form-group">
+          <label style="font-size:12px;color:var(--sv3-muted);font-weight:600;margin-bottom:6px;display:block">Residence Proof/Document (Optional)</label>
+          <input type="file" id="joinProofFile" accept="image/*" class="sv3-input" style="width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--sv3-border);color:#fff;border-radius:10px;padding:8px">
+          <span style="font-size:11px;color:var(--sv3-muted);margin-top:4px;display:block">Upload rent agreement, payment receipt or ID proof.</span>
+        </div>
+
+        <div class="sv3-form-group">
+          <label style="font-size:12px;color:var(--sv3-muted);font-weight:600;margin-bottom:6px;display:block">Message to owner (Optional)</label>
+          <textarea id="joinMessage" rows="2" placeholder="Write a note to verify your stay..." style="width:100%;background:rgba(255,255,255,0.03);border:1px solid var(--sv3-border);color:#fff;border-radius:10px;padding:10px"></textarea>
+        </div>
+
+        <div style="margin-top:10px;display:flex;gap:12px">
+          <button type="button" class="sv3-btn sv3-btn-ghost" id="cancelJoinPg" style="flex:1">Cancel</button>
+          <button type="submit" class="sv3-btn sv3-btn-primary" id="submitJoinPg" style="flex:1"><span class="btn-label">Submit Request</span></button>
+        </div>
+
+      </div>
+    </form>
+  </div>
+</div>
+
 <script type="module" src="../../js/student-property-details.js"></script>
 </body>
 </html>

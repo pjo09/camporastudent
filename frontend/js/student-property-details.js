@@ -30,7 +30,7 @@ function setupEvents() {
   const bookBtn = $("bookBtn");
   if (bookBtn) {
     bookBtn.addEventListener("click", () => {
-window.location.href = `/pages/student/booking-details.html?id=${propertyId}`;
+      window.location.href = `/pages/student/booking-details.html?id=${propertyId}`;
     });
   }
   const saveBtn = $("saveBtn");
@@ -40,22 +40,56 @@ window.location.href = `/pages/student/booking-details.html?id=${propertyId}`;
   const contactBtn = $("contactOwnerBtn");
   if (contactBtn) {
     contactBtn.addEventListener("click", () => {
-window.location.href = `messages.html?property=${propertyId}`;
+      window.location.href = `messages.html?property=${propertyId}`;
     });
   }
+
+  // Join PG events
+  const joinPgBtn = $("joinPgBtn");
+  if (joinPgBtn) {
+    joinPgBtn.addEventListener("click", () => {
+      import("./session.js").then(({ isLoggedIn }) => {
+        if (!isLoggedIn()) {
+          const currentUrl = window.location.pathname + window.location.search + "&joinPg=true";
+          window.location.href = `/login.html?redirectTo=${encodeURIComponent(currentUrl)}`;
+        } else {
+          openJoinPgFlow();
+        }
+      });
+    });
+  }
+
+  $("closeJoinPgModal")?.addEventListener("click", () => {
+    $("joinPgModal").style.display = "none";
+  });
+  $("cancelJoinPg")?.addEventListener("click", () => {
+    $("joinPgModal").style.display = "none";
+  });
+  $("joinPgModal")?.addEventListener("click", (e) => {
+    if (e.target === $("joinPgModal")) {
+      $("joinPgModal").style.display = "none";
+    }
+  });
+
+  $("joinPgForm")?.addEventListener("submit", handleJoinSubmit);
 }
 
 async function loadProperty() {
   try {
     const data = await apiFetch(`/properties/${propertyId}`);
-    renderProperty(data.property);
+    renderProperty(data.property, data.currentResidentsCount, data.verifiedStaysCount);
     loadReviews();
+
+    // Auto-trigger Join PG flow if returning from login
+    if (params.get("joinPg") === "true") {
+      setTimeout(openJoinPgFlow, 800);
+    }
   } catch (err) {
     showError(err.message || "Unable to load property");
   }
 }
 
-function renderProperty(p) {
+function renderProperty(p, currentResidentsCount, verifiedStaysCount) {
   const loading = $("loading");
   const details = $("propertyDetails");
   if (loading) loading.style.display = "none";
@@ -74,6 +108,39 @@ function renderProperty(p) {
   if ($("propertyDescription")) $("propertyDescription").textContent = p.description || "No description available.";
   const imgEl = $("propertyImage");
   if (imgEl) { imgEl.src = img; imgEl.onerror = () => { imgEl.src = "/assets/logos/logo.png"; }; }
+
+  // Trust elements
+  const verifiedProp = $("verifiedPropertyBadge");
+  const verifiedOwner = $("verifiedOwnerBadge");
+  const currentResWrap = $("currentResidentsCountWrap");
+  const verifiedStaysWrap = $("verifiedStaysCountWrap");
+  const currentResCount = $("currentResidentsCount");
+  const verifiedStaysCountEl = $("verifiedStaysCount");
+
+  if (verifiedProp) verifiedProp.style.display = p.verified ? "flex" : "none";
+  if (verifiedOwner) verifiedOwner.style.display = (p.owner && p.owner.verified) ? "flex" : "none";
+  
+  if (currentResWrap) {
+    currentResWrap.style.display = "flex";
+    if (currentResCount) currentResCount.textContent = currentResidentsCount || 0;
+  }
+  if (verifiedStaysWrap) {
+    verifiedStaysWrap.style.display = "flex";
+    if (verifiedStaysCountEl) verifiedStaysCountEl.textContent = verifiedStaysCount || 0;
+  }
+
+  // CTA visibility
+  import("./session.js").then(({ getUser, isLoggedIn }) => {
+    const user = getUser();
+    const joinCta = $("joinPgCta");
+    if (joinCta) {
+      if (!isLoggedIn() || (user && user.role === "student")) {
+        joinCta.style.display = "block";
+      } else {
+        joinCta.style.display = "none";
+      }
+    }
+  });
 
   // Chips
   const chips = $("propertyChips");
@@ -97,6 +164,118 @@ function renderProperty(p) {
 
   // Check saved state
   checkSaved();
+}
+
+// =====================================================
+// JOIN PG MODAL FLOW
+// =====================================================
+function openJoinPgFlow() {
+  const modal = $("joinPgModal");
+  if (!modal) return;
+
+  import("./session.js").then(({ getUser }) => {
+    const user = getUser();
+    if (user) {
+      if ($("joinName")) $("joinName").value = user.name || "";
+      if ($("joinPhone")) $("joinPhone").value = user.phone || "";
+      if ($("joinEmail")) $("joinEmail").value = user.email || "";
+    }
+  });
+
+  modal.style.display = "flex";
+}
+
+async function uploadDocument(file) {
+  const token = localStorage.getItem("camporaToken") || sessionStorage.getItem("camporaToken");
+  const formData = new FormData();
+  formData.append("images", file);
+
+  const res = await fetch(`${window.__API || '/api'}/upload`, {
+    method: "POST",
+    headers: {
+      "Authorization": `Bearer ${token}`
+    },
+    body: formData
+  });
+
+  const data = await res.json();
+  if (!res.ok || !data.success) {
+    throw new Error(data.message || "Failed to upload document.");
+  }
+  return data.images && data.images[0] ? data.images[0].url : "";
+}
+
+async function handleJoinSubmit(e) {
+  e.preventDefault();
+  const submitBtn = $("submitJoinPg");
+  const originalText = submitBtn.innerHTML;
+  submitBtn.disabled = true;
+  submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Submitting...';
+
+  try {
+    const name = $("joinName").value.trim();
+    const phone = $("joinPhone").value.trim();
+    const room = $("joinRoom").value.trim();
+    const bed = $("joinBed").value.trim();
+    const moveInDate = $("joinMoveInDate").value;
+    const expectedMoveOutDate = $("joinMoveOutDate").value;
+    const residenceSource = $("joinSource").value;
+    const message = $("joinMessage").value.trim();
+    const proofFile = $("joinProofFile").files[0];
+
+    if (expectedMoveOutDate && new Date(expectedMoveOutDate) <= new Date(moveInDate)) {
+      throw new Error("Expected move-out date must be after the move-in date.");
+    }
+
+    let proofUrl = "";
+    if (proofFile) {
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Uploading document...';
+      proofUrl = await uploadDocument(proofFile);
+    }
+
+    submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Sending request...';
+    await apiFetch("/residents/requests", {
+      method: "POST",
+      body: JSON.stringify({
+        property: propertyId,
+        room,
+        bed,
+        moveInDate,
+        expectedMoveOutDate: expectedMoveOutDate || undefined,
+        residenceSource,
+        proofDocument: proofUrl,
+        message
+      })
+    });
+
+    // Update profile in background if details modified
+    try {
+      await apiFetch("/student/profile", {
+        method: "PUT",
+        body: JSON.stringify({ name, phone })
+      });
+      import("./session.js").then(({ getUser, login, getToken }) => {
+        const user = getUser();
+        if (user) {
+          user.name = name;
+          user.phone = phone;
+          login(getToken(), user);
+        }
+      });
+    } catch (profileErr) {
+      console.warn("Failed to update profile", profileErr);
+    }
+
+    alert("Resident Request Submitted!\n\nStatus: PENDING OWNER VERIFICATION\n\nThe property owner needs to confirm that you currently stay here.");
+    $("joinPgModal").style.display = "none";
+    window.location.href = "/pages/student/dashboard.html";
+
+  } catch (err) {
+    alert(err.message || "Failed to submit request.");
+  } finally {
+    submitBtn.disabled = false;
+    submitBtn.innerHTML = originalText;
+  }
 }
 
 async function checkSaved() {

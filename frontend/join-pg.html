@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campora • Join PG Invitation</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../css/student-v3.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
+<style>
+  .invite-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 24px;
+    box-sizing: border-box;
+  }
+  .invite-card {
+    max-width: 480px;
+    width: 100%;
+    border-radius: 20px;
+    border: 1px solid var(--sv3-border);
+    background: var(--sv3-bg);
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+  }
+  .invite-img-container {
+    height: 220px;
+    position: relative;
+    overflow: hidden;
+    background: #111;
+  }
+  .invite-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .invite-badge {
+    position: absolute;
+    top: 16px;
+    left: 16px;
+    background: rgba(37, 99, 235, 0.9);
+    backdrop-filter: blur(4px);
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    padding: 6px 12px;
+    border-radius: 30px;
+    letter-spacing: 0.5px;
+  }
+  .invite-body {
+    padding: 28px;
+    text-align: center;
+  }
+  .invite-title {
+    font-size: 22px;
+    font-weight: 800;
+    margin-bottom: 8px;
+    color: #fff;
+  }
+  .invite-loc {
+    font-size: 14px;
+    color: var(--sv3-muted);
+    margin-bottom: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+  .invite-prompt {
+    font-size: 15px;
+    color: rgba(255,255,255,0.9);
+    line-height: 1.6;
+    margin-bottom: 28px;
+    padding: 16px;
+    background: rgba(255,255,255,0.02);
+    border: 1px solid var(--sv3-border);
+    border-radius: 12px;
+  }
+</style>
+</head>
+<body class="sv3-body">
+<div class="sv3-bg-glow sv3-gl1"></div>
+<div class="sv3-bg-glow sv3-gl2"></div>
+
+<div class="invite-container">
+  <!-- LOADING -->
+  <div id="loading" class="sv3-card" style="max-width:400px; width:100%; text-align:center; padding:40px">
+    <i class="fa-solid fa-spinner fa-spin" style="font-size:32px; color:var(--sv3-primary)"></i>
+    <p style="margin-top:16px; color:var(--sv3-muted)">Resolving invitation token...</p>
+  </div>
+
+  <!-- ERROR -->
+  <div id="error" class="sv3-card" style="max-width:400px; width:100%; text-align:center; padding:40px; display:none">
+    <i class="fa-solid fa-triangle-exclamation" style="font-size:48px; color:var(--sv3-red)"></i>
+    <h3 style="font-size:18px; font-weight:800; margin-top:16px; color:#fff">Invalid Invite Link</h3>
+    <p id="errorMsg" style="margin-top:8px; color:var(--sv3-muted); font-size:13.5px"></p>
+    <a href="https://camporastudent.vercel.app/" class="sv3-btn sv3-btn-primary" style="margin-top:20px; display:inline-block">Back to Campora</a>
+  </div>
+
+  <!-- CARD -->
+  <div id="inviteCard" class="invite-card" style="display:none">
+    <div class="invite-img-container">
+      <img id="propertyImage" class="invite-img" src="" alt="Property" onerror="this.src='/assets/logos/logo.png'">
+      <span class="invite-badge">Existing Resident Invite</span>
+    </div>
+    <div class="invite-body">
+      <h2 id="propertyName" class="invite-title"></h2>
+      <div id="propertyLocation" class="invite-loc"><i class="fa-solid fa-location-dot" style="color:var(--sv3-primary)"></i> <span></span></div>
+      
+      <p class="invite-prompt">
+        Are you currently staying at this property? Join your PG on Campora to easily manage payments, raise maintenance requests, and get verified.
+      </p>
+
+      <button class="sv3-btn sv3-btn-primary" id="continueBtn" style="width:100%; padding:14px; font-size:15px; font-weight:700">
+        Continue <i class="fa-solid fa-arrow-right" style="margin-left:6px"></i>
+      </button>
+    </div>
+  </div>
+</div>
+
+<script type="module" src="../../js/join-pg.js"></script>
+</body>
+</html>

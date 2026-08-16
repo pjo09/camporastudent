@@ -28,6 +28,18 @@ router.get("/:propertyId", async (req, res) => {
 
         }).sort({ createdAt: -1 });
 
+        const Tenancy = require("../models/Tenancy");
+        const Booking = require("../models/Booking");
+
+        const reviewsWithVerification = await Promise.all(reviews.map(async (r) => {
+            const hasTenancy = await Tenancy.exists({ student: r.user, property: r.property, status: { $in: ["ACTIVE", "ENDED"] } });
+            const hasBooking = await Booking.exists({ userId: r.user, propertyId: r.property, bookingStatus: { $in: ["confirmed", "checked-in", "checked-out"] } });
+            return {
+                ...r.toObject(),
+                isVerifiedResident: !!(hasTenancy || hasBooking)
+            };
+        }));
+
         const average =
             reviews.length > 0
                 ? reviews.reduce((a, b) => a + b.rating, 0) / reviews.length
@@ -41,7 +53,7 @@ router.get("/:propertyId", async (req, res) => {
 
             total: reviews.length,
 
-            reviews
+            reviews: reviewsWithVerification
 
         });
 

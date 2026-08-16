@@ -26,6 +26,7 @@ const DOM = {
   pendingReviews: $("pendingReviews"),
   pendingMaintenance: $("pendingMaintenance"),
   urgentMaintenance: $("urgentMaintenance"),
+  pendingResidentRequests: $("pendingResidentRequests"),
 
   // Revenue summary strip
   revToday: $("revToday"),
@@ -99,6 +100,7 @@ document.addEventListener("DOMContentLoaded", () => {
   loadTopProperties();
   loadBookingSummary();
   loadUnreadCount();
+  setupInviteModal();
 });
 
 // =====================================================
@@ -130,6 +132,7 @@ async function loadDashboard() {
     if (DOM.pendingReviews) DOM.pendingReviews.textContent = stats.pendingReviews || 0;
     if (DOM.pendingMaintenance) DOM.pendingMaintenance.textContent = stats.pendingMaintenance || 0;
     if (DOM.urgentMaintenance) DOM.urgentMaintenance.textContent = stats.urgentMaintenance || 0;
+    if (DOM.pendingResidentRequests) DOM.pendingResidentRequests.textContent = stats.pendingResidentRequests || 0;
 
     // Occupancy rings
     renderOccupancyRing(DOM.heroOccupancyRing, DOM.heroOccupancyValue, stats.occupancy || 0);
@@ -161,11 +164,105 @@ async function loadDashboard() {
     // Render charts
     renderCharts(charts, stats);
   } catch (err) {
-    console.error("Dashboard load error:", err);
-    if (DOM.statsSkeleton) DOM.statsSkeleton.style.display = "none";
-    if (DOM.statsGrid) DOM.statsGrid.style.display = "grid";
-    showToast("Failed to load dashboard: " + err.message, "error");
+    console.error("Dashboard unread error:", err);
   }
+}
+
+// =====================================================
+// INVITE MODAL FLOW
+// =====================================================
+function setupInviteModal() {
+  const quickBtn = $("inviteResidentQuickBtn");
+  const modal = $("inviteResidentModal");
+  const closeBtn = $("closeInviteModal");
+  const select = $("invitePropertySelect");
+  const generateBtn = $("generateInviteBtn");
+  const resultDiv = $("inviteResult");
+  const linkInput = $("inviteLinkInput");
+  const copyBtn = $("copyInviteLinkBtn");
+  const qrCanvas = $("inviteQrCanvas");
+
+  if (!quickBtn || !modal) return;
+
+  quickBtn.addEventListener("click", async () => {
+    modal.style.display = "flex";
+    resultDiv.style.display = "none";
+    
+    try {
+      select.innerHTML = '<option value="" disabled selected>Loading properties...</option>';
+      const data = await apiFetch("/owner/properties?limit=100");
+      const props = data.properties || [];
+      if (props.length === 0) {
+        select.innerHTML = '<option value="" disabled selected>No properties found.</option>';
+        return;
+      }
+      select.innerHTML = '<option value="" disabled selected>Select a property</option>' + 
+        props.map(p => `<option value="${p._id}">${p.propertyName}</option>`).join("");
+    } catch (err) {
+      select.innerHTML = '<option value="" disabled selected>Error loading properties.</option>';
+      showToast("Failed to load properties: " + err.message, "error");
+    }
+  });
+
+  closeBtn?.addEventListener("click", () => {
+    modal.style.display = "none";
+  });
+
+  modal.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      modal.style.display = "none";
+    }
+  });
+
+  generateBtn?.addEventListener("click", async () => {
+    const propertyId = select.value;
+    if (!propertyId) {
+      showToast("Please select a property first.", "warning");
+      return;
+    }
+
+    generateBtn.disabled = true;
+    generateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+
+    try {
+      const data = await apiFetch(`/owner/properties/${propertyId}/resident-invite`, {
+        method: "POST"
+      });
+
+      const invite = data.invite;
+      const inviteUrl = `${window.location.origin}/join-pg/${invite.token}`;
+
+      linkInput.value = inviteUrl;
+      resultDiv.style.display = "block";
+
+      if (typeof QRCode !== "undefined" && qrCanvas) {
+        QRCode.toCanvas(qrCanvas, inviteUrl, {
+          width: 160,
+          margin: 1,
+          color: {
+            dark: "#000000",
+            light: "#ffffff"
+          }
+        }, (err) => {
+          if (err) console.error("QR Code generation error:", err);
+        });
+      }
+      
+      showToast("Invite link generated successfully!", "success");
+    } catch (err) {
+      showToast("Failed to generate invite: " + err.message, "error");
+    } finally {
+      generateBtn.disabled = false;
+      generateBtn.innerHTML = '<i class="fa-solid fa-wand-magic-sparkles"></i> Generate Invite Link';
+    }
+  });
+
+  copyBtn?.addEventListener("click", () => {
+    linkInput.select();
+    linkInput.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(linkInput.value);
+    showToast("Invite link copied to clipboard!", "success");
+  });
 }
 
 // =====================================================

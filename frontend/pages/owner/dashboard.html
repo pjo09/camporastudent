@@ -107,9 +107,9 @@
         </div>
         <div class="v3-stat-card">
             <div class="v3-stat-icon" style="background:linear-gradient(135deg,#7c3aed,#a855f7)"><i class="fa-solid fa-user-graduate"></i></div>
-            <div class="v3-stat-title">Active Students</div>
+            <div class="v3-stat-title">Current Residents</div>
             <div class="v3-stat-value" id="activeStudents">0</div>
-            <div class="v3-stat-sub">Currently housed</div>
+            <div class="v3-stat-sub">Verified stays</div>
         </div>
         <div class="v3-stat-card">
             <div class="v3-stat-icon" style="background:linear-gradient(135deg,#06b6d4,#0ea5e9)"><i class="fa-solid fa-bed"></i></div>
@@ -146,6 +146,12 @@
             <div class="v3-stat-title">Open Maintenance</div>
             <div class="v3-stat-value" id="pendingMaintenance">0</div>
             <div class="v3-stat-sub"><span id="urgentMaintenance">0</span> urgent</div>
+        </div>
+        <div class="v3-stat-card">
+            <div class="v3-stat-icon" style="background:linear-gradient(135deg,#f59e0b,#eab308)"><i class="fa-solid fa-users-viewfinder"></i></div>
+            <div class="v3-stat-title">Pending Requests</div>
+            <div class="v3-stat-value" id="pendingResidentRequests">0</div>
+            <div class="v3-stat-sub">Resident verifications</div>
         </div>
     </section>
 
@@ -419,6 +425,11 @@
                 <div><strong>Analytics</strong><span>Performance data</span></div>
                 <i class="fa-solid fa-arrow-right od-qa-arrow"></i>
             </a>
+            <a href="javascript:void(0)" class="od-quick-action qa-purple" id="inviteResidentQuickBtn">
+                <div class="od-qa-icon"><i class="fa-solid fa-qrcode"></i></div>
+                <div><strong>Invite Residents</strong><span>Generate QR / Link</span></div>
+                <i class="fa-solid fa-arrow-right od-qa-arrow"></i>
+            </a>
         </div>
     </section>
 
@@ -439,8 +450,45 @@
 
 <div id="sidebarBackdrop" class="v3-sidebar-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:998" hidden></div>
 
+<!-- INVITE RESIDENT MODAL -->
+<div class="v3-modal-overlay" id="inviteResidentModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.6);z-index:999;backdrop-filter:blur(4px);align-items:center;justify-content:center">
+  <div class="v3-modal" style="max-width:500px; width:90%; background:var(--v3-bg); border:1px solid var(--v3-border); border-radius:18px; padding:24px">
+    <div class="v3-modal-header" style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px; border-bottom:1px solid rgba(255,255,255,0.08); padding-bottom:12px">
+      <h3 style="font-size:18px; font-weight:800; color:#fff"><i class="fa-solid fa-qrcode" style="color:var(--v3-primary2); margin-right:8px"></i> Invite Existing Residents</h3>
+      <button id="closeInviteModal" style="background:none; border:none; color:var(--v3-muted); cursor:pointer; font-size:20px"><i class="fa-solid fa-xmark"></i></button>
+    </div>
+    
+    <div class="v3-form-group" style="margin-bottom:18px">
+      <label for="invitePropertySelect" style="font-size:12px; color:var(--v3-muted); font-weight:600; margin-bottom:6px; display:block">Select Property</label>
+      <select id="invitePropertySelect" class="v3-input" style="width:100%; padding:10px; border-radius:10px; background:rgba(255,255,255,0.03); color:#fff; border:1px solid var(--v3-border)" required>
+        <option value="" disabled selected>Select a property</option>
+      </select>
+    </div>
+
+    <button id="generateInviteBtn" class="v3-btn v3-btn-primary" style="width:100%; padding:12px; font-size:14px; font-weight:700"><i class="fa-solid fa-wand-magic-sparkles"></i> Generate Invite Link</button>
+
+    <div id="inviteResult" style="display:none; margin-top:24px; text-align:center">
+      <div class="v3-form-group" style="margin-bottom:16px">
+        <label style="font-size:12px; color:var(--v3-muted); font-weight:600; margin-bottom:6px; display:block">Shareable Link</label>
+        <div style="display:flex; gap:8px">
+          <input type="text" id="inviteLinkInput" class="v3-input" style="flex:1; padding:10px; border-radius:10px; background:rgba(255,255,255,0.03); color:#fff; border:1px solid var(--v3-border)" readonly>
+          <button id="copyInviteLinkBtn" class="v3-btn v3-btn-success" style="padding:10px 14px"><i class="fa-solid fa-copy"></i></button>
+        </div>
+      </div>
+      
+      <div style="margin-top:20px">
+        <label style="font-size:12px; color:var(--v3-muted); font-weight:600; margin-bottom:10px; display:block">Scan QR Code</label>
+        <div style="background:#fff; padding:16px; border-radius:12px; display:inline-block">
+          <canvas id="inviteQrCanvas"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>');
+document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"><\/script>');
 </script>
 <script type="module">
 import { initShell } from "../../js/owner-shell.js";
