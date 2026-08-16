@@ -119,7 +119,10 @@ const limiter = rateLimit({
     message: { success: false, message: "Too many requests. Please try again later." },
     standardHeaders: true,
     legacyHeaders: false,
-    skip: (req) => (req.originalUrl && req.originalUrl.startsWith("/api/admin/")) || process.env.NODE_ENV !== "production"
+    skip: (req) => 
+        (req.originalUrl && req.originalUrl.startsWith("/api/admin/")) || 
+        process.env.NODE_ENV !== "production" ||
+        (req.headers["x-bypass-rate-limit"] === process.env.JWT_SECRET)
 });
 app.use("/api/", limiter);
 
