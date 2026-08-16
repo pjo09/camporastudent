@@ -396,6 +396,10 @@ async function runBrowserAudit() {
 
   await page.setViewport({ width: 1440, height: 900 });
   await page.goto(`${BASE_FE}/join-pg/invalid-token-123`, { waitUntil: "load" });
+  await page.waitForFunction(() => {
+    const el = document.getElementById("errorMsg");
+    return el && el.textContent.trim() !== "";
+  }, { timeout: 10000 }).catch(() => {});
   const errorMsgText = await page.evaluate(() => {
     const el = document.getElementById("errorMsg");
     return el ? el.textContent : "";
