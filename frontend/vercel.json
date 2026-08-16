@@ -21,5 +21,11 @@
       "destination": "/login.html",
       "permanent": true
     }
+  ],
+  "rewrites": [
+    {
+      "source": "/join-pg/:token",
+      "destination": "/join-pg.html"
+    }
   ]
 }
