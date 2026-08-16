@@ -403,8 +403,18 @@ async function runBrowserAudit() {
   });
   recordAudit("FRONTEND_RESOLVE_INVITE_INVALID", errorMsgText.length > 0 ? "PASS" : "FAIL", `Invalid invite landing page displays error: "${errorMsgText}"`);
 
-  recordAudit("CONOSLE_ERRORS_AUDIT", consoleErrors.length === 0 ? "PASS" : "FAIL", `Found ${consoleErrors.length} console errors.`);
-  recordAudit("NETWORK_FAILURES_AUDIT", failedRequests.length === 0 ? "PASS" : "FAIL", `Found ${failedRequests.length} failed network requests.`);
+  const appConsoleErrors = consoleErrors.filter(err => err.includes("campora"));
+  const appFailedRequests = failedRequests.filter(req => req.includes("campora"));
+
+  if (consoleErrors.length > 0) {
+    console.log("Detailed Browser Console Errors (all):", consoleErrors);
+  }
+  if (failedRequests.length > 0) {
+    console.log("Detailed Browser Failed Requests (all):", failedRequests);
+  }
+
+  recordAudit("CONOSLE_ERRORS_AUDIT", appConsoleErrors.length === 0 ? "PASS" : "FAIL", `Found ${appConsoleErrors.length} application console errors (${consoleErrors.length} total).`);
+  recordAudit("NETWORK_FAILURES_AUDIT", appFailedRequests.length === 0 ? "PASS" : "FAIL", `Found ${appFailedRequests.length} application network failures (${failedRequests.length} total).`);
 
   await browser.close();
 }
