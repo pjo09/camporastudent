@@ -247,14 +247,48 @@ ${a.time}
 </div>
 
 `).join("");
-<section class="chart-section">
-
-<div class="section-header">
-
-<h2>Your Progress</h2>
-
-</div>
-
-<canvas id="dashboardChart"></canvas>
-
-</section>
+const ctx = document.getElementById('dashboardChart');
+if (ctx) {
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+      datasets: [{
+        label: 'Saved Properties',
+        data: [1, 2, 4, 3, 6, 8],
+        borderWidth: 2,
+        borderColor: '#2563eb',
+        backgroundColor: 'rgba(37, 99, 235, 0.1)',
+        tension: 0.4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          display: false
+        }
+      },
+      scales: {
+        y: {
+          beginAtZero: true,
+          grid: {
+            color: 'rgba(255, 255, 255, 0.05)'
+          },
+          ticks: {
+            color: '#94a3b8'
+          }
+        },
+        x: {
+          grid: {
+            color: 'rgba(255, 255, 255, 0.05)'
+          },
+          ticks: {
+            color: '#94a3b8'
+          }
+        }
+      }
+    }
+  });
+}
