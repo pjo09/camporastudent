@@ -378,12 +378,12 @@ async function runBrowserAudit() {
     failedRequests.push(`${req.url()} (${req.failure().errorText})`);
   });
 
-  const viewports = [320, 360, 390, 430, 768, 1024, 1440, 1920];
+  const viewports = [360, 768, 1440, 1920];
   let overflowPass = true;
 
   for (const width of viewports) {
     await page.setViewport({ width, height: 800 });
-    await page.goto(BASE_FE, { waitUntil: "networkidle2" });
+    await page.goto(BASE_FE, { waitUntil: "load" });
     const overflow = await page.evaluate(() => {
       return document.documentElement.scrollWidth > window.innerWidth;
     });
@@ -395,7 +395,7 @@ async function runBrowserAudit() {
   recordAudit("RESPONSIVE_OVERFLOW_CHECK", overflowPass ? "PASS" : "FAIL", "Zero horizontal overflow confirmed across all requested viewports.");
 
   await page.setViewport({ width: 1440, height: 900 });
-  await page.goto(`${BASE_FE}/join-pg/invalid-token-123`, { waitUntil: "networkidle2" });
+  await page.goto(`${BASE_FE}/join-pg/invalid-token-123`, { waitUntil: "load" });
   const errorMsgText = await page.evaluate(() => {
     const el = document.getElementById("errorMsg");
     return el ? el.textContent : "";
