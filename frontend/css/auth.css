@@ -251,12 +251,17 @@ body.auth-page main.container {
     line-height: 1.5;
 }
 
-/* Google OAuth Button */
 #googleButton {
     margin-bottom: 12px;
     width: 100%;
     display: flex;
     justify-content: center;
+    max-width: 100%;
+    overflow: hidden;
+}
+#googleButton iframe,
+#googleButton > div {
+    max-width: 100% !important;
 }
 
 /* Divider Styling */
@@ -752,6 +757,25 @@ body.auth-page main.container {
 }
 
 @media (max-width: 767px) {
+    .blur1 {
+        left: 0 !important;
+        top: 0 !important;
+        width: 300px !important;
+        height: 300px !important;
+    }
+    .blur2 {
+        right: 0 !important;
+        bottom: 0 !important;
+        width: 300px !important;
+        height: 300px !important;
+    }
+    .blur3 {
+        width: 250px !important;
+        height: 250px !important;
+        top: 35% !important;
+        left: 50% !important;
+        transform: translate(-50%, -50%) !important;
+    }
     .auth-navbar {
         height: 64px;
         min-height: 64px;
