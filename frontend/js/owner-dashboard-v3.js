@@ -92,7 +92,7 @@ initShell("Command Center");
 
 const ownerUser = (await import("./session.js")).getUser();
 
-document.addEventListener("DOMContentLoaded", () => {
+function initDashboard() {
   if (DOM.heroName) DOM.heroName.textContent = (ownerUser?.name || "Owner").split(" ")[0];
   loadDashboard();
   loadRevenueSummary();
@@ -101,7 +101,13 @@ document.addEventListener("DOMContentLoaded", () => {
   loadBookingSummary();
   loadUnreadCount();
   setupInviteModal();
-});
+}
+
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", initDashboard);
+} else {
+  initDashboard();
+}
 
 // =====================================================
 // LOAD DASHBOARD
@@ -221,8 +227,13 @@ function setupInviteModal() {
       return;
     }
 
+    if (typeof QRCode === "undefined") {
+      showToast("QR Code library is not loaded. Please refresh the page.", "error");
+      return;
+    }
+
     generateBtn.disabled = true;
-    generateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating...';
+    generateBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Generating invite...';
 
     try {
       const data = await apiFetch(`/owner/properties/${propertyId}/resident-invite`, {
@@ -235,7 +246,7 @@ function setupInviteModal() {
       linkInput.value = inviteUrl;
       resultDiv.style.display = "block";
 
-      if (typeof QRCode !== "undefined" && qrCanvas) {
+      if (qrCanvas) {
         QRCode.toCanvas(qrCanvas, inviteUrl, {
           width: 160,
           margin: 1,
@@ -244,7 +255,10 @@ function setupInviteModal() {
             light: "#ffffff"
           }
         }, (err) => {
-          if (err) console.error("QR Code generation error:", err);
+          if (err) {
+            console.error("QR Code generation error:", err);
+            showToast("Failed to render QR Code: " + err.message, "error");
+          }
         });
       }
       
@@ -262,6 +276,23 @@ function setupInviteModal() {
     linkInput.setSelectionRange(0, 99999);
     navigator.clipboard.writeText(linkInput.value);
     showToast("Invite link copied to clipboard!", "success");
+  });
+
+  const downloadBtn = $("downloadQrBtn");
+  downloadBtn?.addEventListener("click", () => {
+    if (!qrCanvas) return;
+    try {
+      const url = qrCanvas.toDataURL("image/png");
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `invite-qr-${select.value || "code"}.png`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      showToast("QR Code downloaded successfully!", "success");
+    } catch (err) {
+      showToast("Failed to download QR Code: " + err.message, "error");
+    }
   });
 }
 

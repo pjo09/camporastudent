@@ -478,18 +478,19 @@
       
       <div style="margin-top:20px">
         <label style="font-size:12px; color:var(--v3-muted); font-weight:600; margin-bottom:10px; display:block">Scan QR Code</label>
-        <div style="background:#fff; padding:16px; border-radius:12px; display:inline-block">
+        <div style="background:#fff; padding:16px; border-radius:12px; display:inline-block; margin-bottom:12px">
           <canvas id="inviteQrCanvas"></canvas>
+        </div>
+        <div>
+          <button id="downloadQrBtn" class="v3-btn v3-btn-ghost v3-btn-sm" style="display:inline-flex; align-items:center; gap:6px"><i class="fa-solid fa-download"></i> Download QR</button>
         </div>
       </div>
     </div>
   </div>
 </div>
 
-<script>
-document.write('<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"><\/script>');
-document.write('<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"><\/script>');
-</script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <script type="module">
 import { initShell } from "../../js/owner-shell.js";
 initShell("Command Center");
