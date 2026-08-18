@@ -108,6 +108,16 @@ function renderProperty(p, currentResidentsCount, verifiedStaysCount) {
   const rating = p.averageRating || 0;
   const img = p.images && p.images.length ? imageUrl(p.images[0]) : "/assets/logos/logo.png";
 
+  // Dynamic SEO title & canonical link
+  document.title = `Campora • ${name} in ${p.city || ''}`;
+  let canonical = document.querySelector('link[rel="canonical"]');
+  if (!canonical) {
+    canonical = document.createElement('link');
+    canonical.rel = 'canonical';
+    document.head.appendChild(canonical);
+  }
+  canonical.href = `${window.location.origin}/pages/property/property.html?id=${p._id}`;
+
   if ($("propertyName")) $("propertyName").textContent = name;
   if ($("propertyLocation")) $("propertyLocation").textContent = loc;
   if ($("propertyPrice")) $("propertyPrice").textContent = `${inr(rent)}/month`;

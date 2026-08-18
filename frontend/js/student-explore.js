@@ -16,6 +16,7 @@ const state = {
   college: "",
   maxRent: "",
   sharing: "",
+  gender: "",
   amenities: [],
   available: false,
 };
@@ -34,6 +35,7 @@ function parseUrlParams() {
   state.college = urlParams.get("college") || "";
   state.maxRent = urlParams.get("maxRent") || "";
   state.sharing = urlParams.get("sharing") || "";
+  state.gender = urlParams.get("gender") || "";
   state.filter = urlParams.get("propertyType") || "all";
 
   // Pre-populate search input value
@@ -112,6 +114,7 @@ function setupEvents() {
     if ($("mobileCollegeInput")) $("mobileCollegeInput").value = state.college;
     if ($("mobileBudgetSelect")) $("mobileBudgetSelect").value = state.maxRent;
     if ($("mobileSharingSelect")) $("mobileSharingSelect").value = state.sharing;
+    if ($("mobileGenderSelect")) $("mobileGenderSelect").value = state.gender;
     if ($("mobileAvailableOnly")) $("mobileAvailableOnly").checked = state.available;
 
     // Set active property type chips
@@ -162,6 +165,7 @@ function setupEvents() {
       state.college = "";
       state.maxRent = "";
       state.sharing = "";
+      state.gender = "";
       state.filter = "all";
       state.amenities = [];
       state.available = false;
@@ -171,6 +175,7 @@ function setupEvents() {
       if ($("mobileCollegeInput")) $("mobileCollegeInput").value = "";
       if ($("mobileBudgetSelect")) $("mobileBudgetSelect").value = "";
       if ($("mobileSharingSelect")) $("mobileSharingSelect").value = "";
+      if ($("mobileGenderSelect")) $("mobileGenderSelect").value = "";
       if ($("mobileAvailableOnly")) $("mobileAvailableOnly").checked = false;
       document.querySelectorAll(".property-type-chips .type-chip").forEach((c) => c.classList.remove("active"));
       document.querySelectorAll("#mobileAmenitiesList input[type=checkbox]").forEach((cb) => cb.checked = false);
@@ -190,6 +195,7 @@ function setupEvents() {
       state.college = $("mobileCollegeInput") ? $("mobileCollegeInput").value.trim() : "";
       state.maxRent = $("mobileBudgetSelect") ? $("mobileBudgetSelect").value : "";
       state.sharing = $("mobileSharingSelect") ? $("mobileSharingSelect").value : "";
+      state.gender = $("mobileGenderSelect") ? $("mobileGenderSelect").value : "";
 
       const activeChip = document.querySelector(".property-type-chips .type-chip.active");
       state.filter = activeChip ? activeChip.dataset.type : "all";
@@ -210,6 +216,7 @@ function setupEvents() {
       if (state.college) count++;
       if (state.maxRent) count++;
       if (state.sharing) count++;
+      if (state.gender) count++;
       if (state.filter !== "all") count++;
       if (state.amenities.length > 0) count += state.amenities.length;
       if (state.available) count++;
@@ -257,6 +264,7 @@ async function loadProperties() {
     if (state.college) q.set("college", state.college);
     if (state.maxRent) q.set("maxRent", state.maxRent);
     if (state.sharing) q.set("sharing", state.sharing);
+    if (state.gender) q.set("gender", state.gender);
     if (state.search && !state.college) q.set("college", state.search);
 
     // Apply amenities

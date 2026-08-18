@@ -145,15 +145,21 @@ export function initShell() {
   const sidebar = $("sidebar");
   const sidebarBackdrop = $("sidebarBackdrop");
   if (menuBtn && sidebar) {
+    const isMobile = window.innerWidth <= 900;
+    sidebar.setAttribute("aria-hidden", isMobile ? "true" : "false");
+
     menuBtn.addEventListener("click", () => {
       sidebar.classList.toggle("active");
-      menuBtn.setAttribute("aria-expanded", sidebar.classList.contains("active"));
-      if (sidebarBackdrop) sidebarBackdrop.hidden = !sidebar.classList.contains("active");
+      const active = sidebar.classList.contains("active");
+      menuBtn.setAttribute("aria-expanded", active);
+      sidebar.setAttribute("aria-hidden", !active);
+      if (sidebarBackdrop) sidebarBackdrop.hidden = !active;
     });
     if (sidebarBackdrop) {
       sidebarBackdrop.addEventListener("click", () => {
         sidebar.classList.remove("active");
         menuBtn.setAttribute("aria-expanded", "false");
+        sidebar.setAttribute("aria-hidden", "true");
         sidebarBackdrop.hidden = true;
       });
     }
@@ -208,6 +214,7 @@ const notificationBell = $("notificationBell");
 export async function loadUnreadCount() {
   const badge = $("unreadNotifications");
   if (!badge) return;
+  if (!getToken()) return;
   try {
     const data = await apiFetch("/student/notifications");
     const count = data.unreadCount || 0;

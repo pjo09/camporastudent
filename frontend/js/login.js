@@ -2,7 +2,7 @@
 // CAMPORA AUTHENTICATION - LOGIN PAGE
 // ===============================================
 
-import { login, logout as sessionLogout, redirectBasedOnRole } from "./session.js";
+import { login, logout as sessionLogout, redirectBasedOnRole, isValidRedirect } from "./session.js";
 import CONFIG, { API } from "./config.js";
 
 const API_BASE = API;
@@ -169,11 +169,10 @@ async function loginUser(e) {
 
         showSuccess("Welcome back, " + data.user.name + "!");
 
-        // Redirect after brief delay for success message
         const urlParams = new URLSearchParams(window.location.search);
         const redirectTo = urlParams.get("redirectTo");
         setTimeout(() => {
-            if (redirectTo) {
+            if (redirectTo && isValidRedirect(redirectTo)) {
                 window.location.href = redirectTo;
             } else {
                 redirectBasedOnRole(data.user.role);
@@ -214,7 +213,7 @@ window.handleGoogleLogin = async function (response) {
         const urlParams = new URLSearchParams(window.location.search);
         const redirectTo = urlParams.get("redirectTo");
         setTimeout(() => {
-            if (redirectTo) {
+            if (redirectTo && isValidRedirect(redirectTo)) {
                 window.location.href = redirectTo;
             } else {
                 redirectBasedOnRole(data.user.role);

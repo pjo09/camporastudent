@@ -163,6 +163,36 @@ export function redirectBasedOnRole(role) {
     }
 }
 
+export function isValidRedirect(url) {
+    if (!url) return false;
+
+    let decoded;
+
+    try {
+        decoded = decodeURIComponent(url);
+    } catch {
+        decoded = url;
+    }
+
+    if (/^(javascript|data|vbscript):/i.test(decoded)) {
+        return false;
+    }
+
+    if (decoded.startsWith("//")) {
+        return false;
+    }
+
+    if (decoded.startsWith("/")) {
+        return true;
+    }
+
+    try {
+        return decoded.startsWith(window.location.origin + "/");
+    } catch {
+        return false;
+    }
+}
+
 // ===========================================
 // PROTECT PAGE (call on dashboard pages)
 // ===========================================
@@ -170,7 +200,8 @@ export function redirectBasedOnRole(role) {
 export function protectPage() {
     const token = getToken();
     if (!token) {
-        window.location.href = getLoginUrl();
+        const currentUrl = window.location.pathname + window.location.search + window.location.hash;
+        window.location.href = `${getLoginUrl()}?redirectTo=${encodeURIComponent(currentUrl)}`;
         return null;
     }
     return getUser();
@@ -183,13 +214,15 @@ export function protectPage() {
 export function protectPageByRole(allowedRoles) {
     const token = getToken();
     if (!token) {
-        window.location.href = getLoginUrl();
+        const currentUrl = window.location.pathname + window.location.search + window.location.hash;
+        window.location.href = `${getLoginUrl()}?redirectTo=${encodeURIComponent(currentUrl)}`;
         return null;
     }
 
     const user = getUser();
     if (!user || !allowedRoles.includes(user.role)) {
-        window.location.href = getLoginUrl();
+        const currentUrl = window.location.pathname + window.location.search + window.location.hash;
+        window.location.href = `${getLoginUrl()}?redirectTo=${encodeURIComponent(currentUrl)}`;
         return null;
     }
 

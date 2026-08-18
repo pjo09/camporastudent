@@ -1,6 +1,15 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+<script>
+    (function () {
+        var path = window.location.pathname.toLowerCase();
+        var page = path.split("/").pop();
+        if (!path.includes("/pages/student/") && !path.includes("/pages/owner/") && !path.includes("/pages/admin/")) {
+            window.location.replace("pages/student/" + page + window.location.search + window.location.hash);
+        }
+    })();
+</script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Campora • My Bookings</title>
