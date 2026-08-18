@@ -14,13 +14,27 @@ const API_BASE = API;
 // =====================================================
 
 export function gateStudent() {
-  const user = protectPageByRole(["student"]);
   const token = getToken();
-  if (!user || !token) {
+  const user = getUser();
+  const path = window.location.pathname.toLowerCase();
+
+  // Publicly accessible pages
+  const isPublicPage = path.includes("properties.html") || path.includes("property.html") || path.includes("property-details.html");
+
+  if (isPublicPage) {
+    if (user && user.role === "student" && token) {
+      return user;
+    }
+    return null;
+  }
+
+  // Dashboard pages: enforce role and token
+  const roleUser = protectPageByRole(["student"]);
+  if (!roleUser || !token) {
     window.location.href = getLoginUrl();
     return null;
   }
-  return user;
+  return roleUser;
 }
 
 export const currentUser = gateStudent();

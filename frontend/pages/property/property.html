@@ -123,6 +123,32 @@
       <div class="sv3-stats-grid" style="grid-template-columns:repeat(auto-fill,minmax(150px,1fr))" id="amenitiesGrid"></div>
     </section>
 
+    <!-- NEARBY LOCATIONS -->
+    <section class="sv3-section" id="nearbySection" style="margin-top:24px;display:none">
+      <div class="sv3-section-header"><h2>Nearby &amp; Campus Distance</h2></div>
+      <div class="sv3-list" id="nearbyList" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px"></div>
+    </section>
+
+    <!-- OWNER INFO -->
+    <section class="sv3-section" id="ownerSection" style="margin-top:24px;display:none">
+      <div class="sv3-section-header"><h2>Hosted by</h2></div>
+      <div class="sv3-card" style="padding:20px;display:flex;align-items:center;gap:16px;background:rgba(255,255,255,0.02);border:1px solid var(--sv3-border);border-radius:16px">
+        <div class="sv3-avatar" style="width:48px;height:48px;font-size:20px;display:flex;align-items:center;justify-content:center;background:var(--sv3-primary);color:#fff;border-radius:50%" id="ownerInitials">O</div>
+        <div>
+          <strong style="display:block;font-size:16px;color:#fff" id="ownerName"></strong>
+          <span style="font-size:13px;color:var(--sv3-muted)" id="ownerContact">Login to view contact details</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- MAP LOCATION -->
+    <section class="sv3-section" id="mapSection" style="margin-top:24px;display:none">
+      <div class="sv3-section-header"><h2>Location Map</h2></div>
+      <div class="sv3-card" style="padding:0;overflow:hidden;height:300px;border:1px solid var(--sv3-border);border-radius:16px">
+        <iframe id="mapIframe" width="100%" height="100%" frameborder="0" scrolling="no" marginheight="0" marginwidth="0" src="" style="border:none"></iframe>
+      </div>
+    </section>
+
     <!-- REVIEWS -->
     <section class="sv3-section">
       <div class="sv3-section-header"><h2>Reviews</h2><a href="../student/reviews.html?id=" class="sv3-view-all" id="reviewsLink">View All</a></div>

@@ -46,10 +46,30 @@ async function apiGet(endpoint) {
 }
 
 async function apiPost(endpoint, body) {
+    const token = getToken();
+    const headers = { "Content-Type": "application/json" };
+    if (token) headers.Authorization = "Bearer " + token;
+
     const res = await fetch(API + endpoint, {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
+        headers,
+        body: body ? JSON.stringify(body) : undefined
+    });
+    const data = await res.json();
+    if (!res.ok || data.success === false) {
+        throw new Error(data.message || "Something went wrong");
+    }
+    return data;
+}
+
+async function apiDelete(endpoint) {
+    const token = getToken();
+    const headers = { "Content-Type": "application/json" };
+    if (token) headers.Authorization = "Bearer " + token;
+
+    const res = await fetch(API + endpoint, {
+        method: "DELETE",
+        headers
     });
     const data = await res.json();
     if (!res.ok || data.success === false) {
@@ -137,31 +157,74 @@ const Navbar = (() => {
         const header = $("header");
         const menuToggle = $("menuToggle");
         const mobileMenu = $("mobileMenu");
+        const mobileMenuBackdrop = $("mobileMenuBackdrop");
+        const stickyMobileCta = $("stickyMobileCta");
 
-        // Scroll effect
+        // Scroll & Sticky CTA Visibility tracking
         window.addEventListener("scroll", () => {
-            if (!header) return;
-            header.classList.toggle("scrolled", window.scrollY > 40);
+            if (header) {
+                header.classList.toggle("scrolled", window.scrollY > 40);
+            }
+            if (stickyMobileCta) {
+                if (window.scrollY > 200) {
+                    stickyMobileCta.classList.add("visible");
+                } else {
+                    stickyMobileCta.classList.remove("visible");
+                }
+            }
         }, { passive: true });
 
-        // Mobile menu
+        const openMenu = () => {
+            if (!mobileMenu) return;
+            mobileMenu.classList.add("active");
+            if (mobileMenuBackdrop) mobileMenuBackdrop.classList.add("active");
+            document.body.classList.add("mobile-menu-open");
+            if (menuToggle) menuToggle.setAttribute("aria-expanded", "true");
+            const first = mobileMenu.querySelector("a");
+            if (first) first.focus();
+        };
+
+        const closeMenu = () => {
+            if (!mobileMenu) return;
+            mobileMenu.classList.remove("active");
+            if (mobileMenuBackdrop) mobileMenuBackdrop.classList.remove("active");
+            document.body.classList.remove("mobile-menu-open");
+            if (menuToggle) menuToggle.setAttribute("aria-expanded", "false");
+        };
+
+        // Mobile menu toggle
         if (menuToggle && mobileMenu) {
-            menuToggle.addEventListener("click", () => {
-                mobileMenu.classList.toggle("active");
+            menuToggle.addEventListener("click", (e) => {
+                e.stopPropagation();
+                if (mobileMenu.classList.contains("active")) {
+                    closeMenu();
+                } else {
+                    openMenu();
+                }
             });
         }
+
+        if (mobileMenuBackdrop) {
+            mobileMenuBackdrop.addEventListener("click", closeMenu);
+        }
+
+        document.addEventListener("keydown", (e) => {
+            if (e.key === "Escape" || e.key === "Esc") {
+                closeMenu();
+            }
+        });
 
         // Close mobile menu on link click
         if (mobileMenu) {
             mobileMenu.querySelectorAll("a, button").forEach((el) => {
                 el.addEventListener("click", () => {
-                    mobileMenu.classList.remove("active");
+                    closeMenu();
                 });
             });
         }
 
-// Logout button
-const logoutBtn = $("navLogout");
+        // Logout button
+        const logoutBtn = $("navLogout");
         if (logoutBtn) {
             logoutBtn.addEventListener("click", () => {
                 logout();
@@ -178,17 +241,35 @@ const logoutBtn = $("navLogout");
         const registerBtn = $("navRegister");
         const dashboardBtn = $("navDashboard");
         const logoutBtn = $("navLogout");
+        const mobileGetStarted = $("mobileGetStarted");
 
         if (user && token) {
             if (loginBtn) loginBtn.style.display = "none";
             if (registerBtn) registerBtn.style.display = "none";
             if (dashboardBtn) dashboardBtn.style.display = "inline-flex";
             if (logoutBtn) logoutBtn.style.display = "inline-flex";
+
+            if (mobileGetStarted) {
+                mobileGetStarted.textContent = "Dashboard";
+                mobileGetStarted.onclick = (e) => {
+                    e.preventDefault();
+                    redirectBasedOnRole(user.role);
+                };
+            }
         } else {
             if (loginBtn) loginBtn.style.display = "inline-flex";
             if (registerBtn) registerBtn.style.display = "inline-flex";
             if (dashboardBtn) dashboardBtn.style.display = "none";
             if (logoutBtn) logoutBtn.style.display = "none";
+
+            if (mobileGetStarted) {
+                mobileGetStarted.textContent = "Get Started";
+                mobileGetStarted.onclick = (e) => {
+                    e.preventDefault();
+                    const popover = $("authPopover");
+                    if (popover) popover.classList.toggle("active");
+                };
+            }
         }
     }
 
@@ -532,6 +613,25 @@ const Properties = (() => {
             '<div class="loading-card"></div>'
         ).join("");
 
+        let savedPropertyIds = new Set();
+        if (getToken()) {
+            try {
+                // Auto trigger pending save if returning from login
+                const pendingSaveId = localStorage.getItem("pendingSavePropertyId");
+                if (pendingSaveId) {
+                    localStorage.removeItem("pendingSavePropertyId");
+                    await apiPost(`/student/saved/${pendingSaveId}`).catch(() => null);
+                }
+
+                const savedData = await apiGet("/properties/saved/list");
+                if (savedData && savedData.properties) {
+                    savedPropertyIds = new Set(savedData.properties.map(sp => sp._id));
+                }
+            } catch (e) {
+                // ignore
+            }
+        }
+
         try {
             const data = await apiGet("/properties/search?sort=rating&limit=6");
             const properties = data.properties || [];
@@ -541,39 +641,82 @@ const Properties = (() => {
                 return;
             }
 
-            grid.innerHTML = properties.map(renderCard).join("");
+            grid.innerHTML = properties.map(p => renderCard(p, savedPropertyIds)).join("");
             Animations.observeReveals();
         } catch (err) {
             grid.innerHTML = '<div class="empty-state" style="grid-column:1/-1"><h3>Could not load properties</h3><p>' + esc(err.message) + '</p></div>';
         }
     }
 
-    function renderCard(p) {
+    function renderCard(p, savedPropertyIds) {
         const name = p.propertyName || p.title || "Campora Property";
         const loc = p.city ? p.city + (p.state ? ", " + p.state : "") : "Location not specified";
         const rent = p.rent || p.price || 0;
         const rating = p.averageRating || 0;
-        const img = p.images && p.images.length ? imageUrl(p.images[0]) : "/assets/images/property-placeholder.jpg";
-        const badge = p.verified ? "Verified" : p.featured ? "Featured" : "";
-        const amenities = Array.isArray(p.amenities) && p.amenities.length
-            ? p.amenities.slice(0, 3).map((a) => '<span class="feature-item"><i class="fa-solid fa-check"></i> ' + esc(a) + "</span>").join("")
-            : '<span class="feature-item"><i class="fa-solid fa-bed"></i> ' + esc(p.sharing || "Flexible") + "</span>";
+        const isSaved = savedPropertyIds.has(p._id);
+
+        // Verification Badge (Only if verified is explicitly true)
+        const badgeHtml = p.verified 
+            ? '<span class="property-badge verified"><i class="fa-solid fa-circle-check"></i> Verified</span>' 
+            : '';
+
+        // Distance from university/campus (Only if data exists)
+        const distanceHtml = p.nearby && p.nearby.length
+            ? `<div class="property-distance" style="font-size:12px;color:var(--campora-text);margin-top:4px"><i class="fa-solid fa-person-walking"></i> ${esc(p.nearby[0].distance)} from ${esc(p.nearby[0].title || p.college || "campus")}</div>`
+            : '';
+
+        // Amenities (Only if available)
+        const amenitiesList = Array.isArray(p.amenities) ? p.amenities : [];
+        const amenitiesHtml = amenitiesList.length
+            ? amenitiesList.slice(0, 3).map((a) => '<span class="feature-item"><i class="fa-solid fa-check"></i> ' + esc(a) + '</span>').join("")
+            : '<span class="feature-item"><i class="fa-solid fa-bed"></i> ' + esc(p.sharing || "Flexible") + '</span>';
+
+        // Availability (Only if available from backend)
+        const availabilityHtml = (p.availableBeds !== undefined && p.availableBeds > 0)
+            ? `<span class="feature-item" style="color:#22c55e;font-weight:600"><i class="fa-solid fa-bed"></i> ${p.availableBeds} beds left</span>`
+            : '';
+
+        // Reusable Image Gallery Swiper logic
+        let imageAreaHtml = '';
+        if (p.images && p.images.length > 1) {
+            const slidesHtml = p.images.map((imgUrl, i) => `
+                <img src="${imageUrl(imgUrl)}" alt="${esc(name)} - Image ${i + 1}" loading="${i === 0 ? 'eager' : 'lazy'}" onerror="this.onerror=null; this.src='/assets/images/property-placeholder.jpg'">
+            `).join("");
+            imageAreaHtml = `
+                <div class="property-image-slider">
+                    <div class="property-image-slides">
+                        ${slidesHtml}
+                    </div>
+                    <span class="image-indicator">1/${p.images.length}</span>
+                </div>
+            `;
+        } else {
+            const singleImg = p.images && p.images.length ? imageUrl(p.images[0]) : "/assets/images/property-placeholder.jpg";
+            imageAreaHtml = `<img src="${singleImg}" alt="${esc(name)}" loading="lazy" onerror="this.onerror=null; this.src='/assets/images/property-placeholder.jpg'">`;
+        }
 
         return `
-        <div class="property-card reveal">
-            <div class="property-image">
-                <img src="${img}" alt="${esc(name)}" loading="lazy" onerror="this.onerror=null; this.src='/assets/images/property-placeholder.jpg'">
-                ${badge ? '<span class="property-badge">' + esc(badge) + "</span>" : ""}
+        <div class="property-card reveal" onclick="window.location.href='/pages/property/property.html?id=${p._id}'" style="cursor:pointer">
+            <div class="property-image loading">
+                ${imageAreaHtml}
+                ${badgeHtml}
                 ${p.propertyType ? '<span class="property-type">' + esc(p.propertyType) + "</span>" : ""}
+                <button class="save-home-btn" onclick="event.stopPropagation(); window.toggleSaveHome('${p._id}', this)" aria-label="Save property" style="position:absolute;top:16px;right:16px;background:rgba(11,31,58,0.6);border:none;border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;color:#fff;cursor:pointer;z-index:10;transition:all 0.2s ease">
+                    <i class="fa-${isSaved ? 'solid' : 'regular'} fa-heart" style="${isSaved ? 'color:#ef4444' : ''}"></i>
+                </button>
             </div>
             <div class="property-body">
                 <div class="property-location"><i class="fa-solid fa-location-dot"></i> ${esc(loc)}</div>
                 <h3 class="property-title">${esc(name)}</h3>
-                <div class="property-features">${amenities}</div>
+                ${distanceHtml}
+                <div class="property-features" style="margin-top:8px">
+                    ${amenitiesHtml}
+                    ${availabilityHtml}
+                </div>
                 <div class="property-footer">
                     <div class="property-price"><span>Rent / month</span><h3>${inr(rent)}</h3></div>
                     <span class="property-rating"><i class="fa-solid fa-star"></i> ${rating > 0 ? rating.toFixed(1) : "New"}</span>
-                    <a href="/pages/property/property.html?id=${p._id}" class="property-btn">Book</a>
+                    <a href="/pages/property/property.html?id=${p._id}" class="property-btn" onclick="event.stopPropagation();">View</a>
                 </div>
             </div>
         </div>`;
@@ -581,6 +724,44 @@ const Properties = (() => {
 
     return { load };
 })();
+
+// Global unauthenticated Save handler
+window.toggleSaveHome = async function(propertyId, btn) {
+    if (!getToken()) {
+        localStorage.setItem("pendingSavePropertyId", propertyId);
+        const currentUrl = window.location.pathname + window.location.search;
+        window.location.href = `login.html?redirectTo=${encodeURIComponent(currentUrl)}`;
+        return;
+    }
+    try {
+        const icon = btn.querySelector("i");
+        const isSaved = icon.classList.contains("fa-solid");
+        if (isSaved) {
+            await apiDelete(`/student/saved/${propertyId}`);
+            icon.className = "fa-regular fa-heart";
+            icon.style.color = "";
+        } else {
+            await apiPost(`/student/saved/${propertyId}`);
+            icon.className = "fa-solid fa-heart";
+            icon.style.color = "#ef4444";
+        }
+    } catch (err) {
+        // silent
+    }
+};
+
+// Global scroll event listener for swipeable galleries (using capturing scroll delegation)
+document.addEventListener("scroll", (e) => {
+    const target = e.target;
+    if (target && target.classList && target.classList.contains("property-image-slides")) {
+        const indicator = target.nextElementSibling;
+        if (indicator && indicator.classList.contains("image-indicator")) {
+            const index = Math.round(target.scrollLeft / target.clientWidth) + 1;
+            const total = target.children.length;
+            indicator.textContent = `${index}/${total}`;
+        }
+    }
+}, { capture: true, passive: true });
 
 // =====================================================
 // UNIVERSITIES

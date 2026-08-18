@@ -3,6 +3,7 @@
 // =====================================================
 
 import { $, apiFetch, initShell, loadUnreadCount, imageUrl, inr, esc } from "./student-utils.js";
+import { getToken, getLoginUrl } from "./session.js";
 
 const state = {
   page: 1,
@@ -15,6 +16,8 @@ const state = {
   college: "",
   maxRent: "",
   sharing: "",
+  amenities: [],
+  available: false,
 };
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -73,6 +76,16 @@ function setupEvents() {
     });
   }
 
+  // Mobile sort change selector
+  const mobileSortSelect = $("mobileSortSelect");
+  if (mobileSortSelect) {
+    mobileSortSelect.addEventListener("change", () => {
+      state.sort = mobileSortSelect.value;
+      state.page = 1;
+      loadProperties();
+    });
+  }
+
   document.querySelectorAll(".sv3-filter-btn").forEach((btn) => {
     btn.addEventListener("click", () => {
       state.filter = btn.dataset.filter;
@@ -82,10 +95,148 @@ function setupEvents() {
     });
   });
 
+  // Mobile bottom sheet filters toggles
+  const mobileFilterBtn = $("mobileFilterBtn");
+  const filterSheet = $("mobileFilterSheet");
+  const filterBackdrop = $("mobileFilterBackdrop");
+  const closeFilterBtn = $("closeFilterSheetBtn");
+
+  const openFilters = () => {
+    if (!filterSheet) return;
+    filterSheet.classList.add("active");
+    if (filterBackdrop) filterBackdrop.classList.add("active");
+    document.body.style.overflow = "hidden"; // lock body scroll
+
+    // Sync input fields with current state values
+    if ($("mobileCityInput")) $("mobileCityInput").value = state.city;
+    if ($("mobileCollegeInput")) $("mobileCollegeInput").value = state.college;
+    if ($("mobileBudgetSelect")) $("mobileBudgetSelect").value = state.maxRent;
+    if ($("mobileSharingSelect")) $("mobileSharingSelect").value = state.sharing;
+    if ($("mobileAvailableOnly")) $("mobileAvailableOnly").checked = state.available;
+
+    // Set active property type chips
+    document.querySelectorAll(".property-type-chips .type-chip").forEach((chip) => {
+      chip.classList.toggle("active", chip.dataset.type === state.filter);
+    });
+
+    // Check matching amenities checkboxes
+    document.querySelectorAll("#mobileAmenitiesList input[type=checkbox]").forEach((cb) => {
+      cb.checked = state.amenities.includes(cb.value);
+    });
+  };
+
+  const closeFilters = () => {
+    if (!filterSheet) return;
+    filterSheet.classList.remove("active");
+    if (filterBackdrop) filterBackdrop.classList.remove("active");
+    document.body.style.overflow = ""; // unlock scroll
+  };
+
+  if (mobileFilterBtn) mobileFilterBtn.addEventListener("click", openFilters);
+  if (closeFilterBtn) closeFilterBtn.addEventListener("click", closeFilters);
+  if (filterBackdrop) filterBackdrop.addEventListener("click", closeFilters);
+
+  // Close sheet on escape
+  document.addEventListener("keydown", (e) => {
+    if (e.key === "Escape" && filterSheet && filterSheet.classList.contains("active")) {
+      closeFilters();
+    }
+  });
+
+  // Property Type chips toggle
+  document.querySelectorAll(".property-type-chips .type-chip").forEach((chip) => {
+    chip.addEventListener("click", () => {
+      const active = chip.classList.contains("active");
+      document.querySelectorAll(".property-type-chips .type-chip").forEach((c) => c.classList.remove("active"));
+      if (!active) {
+        chip.classList.add("active");
+      }
+    });
+  });
+
+  // Reset Filters
+  const resetBtn = $("resetFilterBtn");
+  if (resetBtn) {
+    resetBtn.addEventListener("click", () => {
+      state.city = "";
+      state.college = "";
+      state.maxRent = "";
+      state.sharing = "";
+      state.filter = "all";
+      state.amenities = [];
+      state.available = false;
+
+      // Reset DOM elements
+      if ($("mobileCityInput")) $("mobileCityInput").value = "";
+      if ($("mobileCollegeInput")) $("mobileCollegeInput").value = "";
+      if ($("mobileBudgetSelect")) $("mobileBudgetSelect").value = "";
+      if ($("mobileSharingSelect")) $("mobileSharingSelect").value = "";
+      if ($("mobileAvailableOnly")) $("mobileAvailableOnly").checked = false;
+      document.querySelectorAll(".property-type-chips .type-chip").forEach((c) => c.classList.remove("active"));
+      document.querySelectorAll("#mobileAmenitiesList input[type=checkbox]").forEach((cb) => cb.checked = false);
+
+      updateFilterCount(0);
+      closeFilters();
+      state.page = 1;
+      loadProperties();
+    });
+  }
+
+  // Apply Filters
+  const applyBtn = $("applyFilterBtn");
+  if (applyBtn) {
+    applyBtn.addEventListener("click", () => {
+      state.city = $("mobileCityInput") ? $("mobileCityInput").value.trim() : "";
+      state.college = $("mobileCollegeInput") ? $("mobileCollegeInput").value.trim() : "";
+      state.maxRent = $("mobileBudgetSelect") ? $("mobileBudgetSelect").value : "";
+      state.sharing = $("mobileSharingSelect") ? $("mobileSharingSelect").value : "";
+
+      const activeChip = document.querySelector(".property-type-chips .type-chip.active");
+      state.filter = activeChip ? activeChip.dataset.type : "all";
+
+      // Read checkboxes
+      const selectedAmenities = [];
+      document.querySelectorAll("#mobileAmenitiesList input[type=checkbox]:checked").forEach((cb) => {
+        selectedAmenities.push(cb.value);
+      });
+      state.amenities = selectedAmenities;
+
+      // Available parameter
+      state.available = $("mobileAvailableOnly") ? $("mobileAvailableOnly").checked : false;
+
+      // Calculate total count
+      let count = 0;
+      if (state.city) count++;
+      if (state.college) count++;
+      if (state.maxRent) count++;
+      if (state.sharing) count++;
+      if (state.filter !== "all") count++;
+      if (state.amenities.length > 0) count += state.amenities.length;
+      if (state.available) count++;
+      updateFilterCount(count);
+
+      closeFilters();
+      state.page = 1;
+      loadProperties();
+    });
+  }
+
   const prev = $("prevPage");
   const next = $("nextPage");
   if (prev) prev.addEventListener("click", () => { if (state.page > 1) { state.page--; loadProperties(); } });
   if (next) next.addEventListener("click", () => { if (state.page < state.totalPages) { state.page++; loadProperties(); } });
+}
+
+function updateFilterCount(count) {
+  const badge = $("mobileFilterCount");
+  if (badge) {
+    if (count > 0) {
+      badge.textContent = count;
+      badge.style.display = "inline-block";
+    } else {
+      badge.style.display = "none";
+    }
+  }
 }
 
 async function loadProperties() {
@@ -108,6 +259,32 @@ async function loadProperties() {
     if (state.sharing) q.set("sharing", state.sharing);
     if (state.search && !state.college) q.set("college", state.search);
 
+    // Apply amenities
+    if (state.amenities && state.amenities.length > 0) {
+      q.set("amenities", state.amenities.join(","));
+    }
+
+    // Apply available
+    if (state.available) {
+      q.set("available", "true");
+    }
+
+    // Load saved property ids if authenticated
+    let savedIds = new Set();
+    if (getToken()) {
+      // Auto trigger pending save if returning from login page
+      const pendingSaveId = localStorage.getItem("pendingSavePropertyId");
+      if (pendingSaveId) {
+        localStorage.removeItem("pendingSavePropertyId");
+        await apiFetch(`/student/saved/${pendingSaveId}`, { method: "POST" }).catch(() => null);
+      }
+
+      const savedData = await apiFetch("/student/saved").catch(() => null);
+      if (savedData && savedData.properties) {
+        savedIds = new Set(savedData.properties.map(sp => sp._id));
+      }
+    }
+
     const data = await apiFetch(`/properties/search?${q.toString()}`);
     const properties = data.properties || [];
     state.totalPages = data.totalPages || 1;
@@ -117,6 +294,11 @@ async function loadProperties() {
       $("pagination").style.display = "none";
       return;
     }
+
+    // Map active saved state
+    properties.forEach(p => {
+      p.isSaved = savedIds.has(p._id);
+    });
 
     renderProperties(properties);
 
@@ -140,19 +322,61 @@ function renderProperties(properties) {
     const loc = p.city ? `${p.city}${p.state ? ", " + p.state : ""}` : "Location not specified";
     const rent = p.rent || p.price || 0;
     const rating = p.averageRating || 0;
-    const img = p.images && p.images.length ? imageUrl(p.images[0]) : "/assets/logos/logo.png";
-    const badge = p.verified ? "Verified" : p.featured ? "Featured" : "";
+
+    // Image gallery swiper
+    let imgAreaHtml = '';
+    if (p.images && p.images.length > 1) {
+      const slidesHtml = p.images.map((imgUrl, i) => `
+        <img src="${imageUrl(imgUrl)}" alt="${esc(name)} - Image ${i + 1}" loading="${i === 0 ? 'eager' : 'lazy'}" onerror="this.onerror=null; this.src='/assets/logos/logo.png'">
+      `).join("");
+      imgAreaHtml = `
+        <div class="property-image-slider">
+          <div class="property-image-slides">
+            ${slidesHtml}
+          </div>
+          <span class="image-indicator">1/${p.images.length}</span>
+        </div>
+      `;
+    } else {
+      const singleImg = p.images && p.images.length ? imageUrl(p.images[0]) : "/assets/logos/logo.png";
+      imgAreaHtml = `<img src="${singleImg}" alt="${esc(name)}" loading="lazy" onerror="this.onerror=null; this.src='/assets/logos/logo.png'">`;
+    }
+
+    // Verified badge
+    const badgeHtml = p.verified 
+      ? `<span class="sv3-property-badge verified" style="background:#22c55e"><i class="fa-solid fa-circle-check"></i> Verified</span>` 
+      : ``;
+
+    // Distance if real backend data exists
+    const distanceHtml = p.nearby && p.nearby.length
+      ? `<div style="font-size:12.5px;color:var(--sv3-muted);margin:4px 0"><i class="fa-solid fa-person-walking"></i> ${esc(p.nearby[0].distance)} from ${esc(p.nearby[0].title || p.college || "campus")}</div>`
+      : '';
+
+    // Amenities (up to 3)
+    const amenitiesList = Array.isArray(p.amenities) ? p.amenities : [];
+    const amenitiesHtml = amenitiesList.length
+      ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin:8px 0">${amenitiesList.slice(0, 3).map(a => `<span class="sv3-pill sv3-pill-neutral" style="font-size:11px;padding:3px 8px">${esc(a)}</span>`).join("")}</div>`
+      : '';
+
+    // Availability
+    const availabilityHtml = p.availableBeds > 0
+      ? `<div style="font-size:12px;color:#4ade80;font-weight:600;margin-top:4px"><i class="fa-solid fa-bed"></i> ${p.availableBeds} beds available</div>`
+      : '';
+
     return `
-<div class="sv3-property-card" onclick="window.location.href='/pages/property/property.html?id=${p._id}'" role="article" aria-label="${esc(name)}">
-        <div class="sv3-property-image">
-          <img src="${img}" alt="${esc(name)}" loading="lazy" onerror="this.src='/assets/logos/logo.png'">
-          ${badge ? `<span class="sv3-property-badge">${badge}</span>` : ""}
-          <button class="sv3-save-btn" onclick="event.stopPropagation();window.toggleSave('${p._id}', this)" aria-label="Save ${esc(name)}"><i class="fa-${p.isSaved ? "solid" : "regular"} fa-heart"></i></button>
+<div class="sv3-property-card" onclick="window.location.href='/pages/property/property.html?id=${p._id}'" role="article" aria-label="${esc(name)}" style="cursor:pointer">
+        <div class="sv3-property-image loading">
+          ${imgAreaHtml}
+          ${badgeHtml}
+          <button class="sv3-save-btn" onclick="event.stopPropagation();window.toggleSave('${p._id}', this)" aria-label="Save ${esc(name)}"><i class="fa-${p.isSaved ? "solid" : "regular"} fa-heart" style="${p.isSaved ? 'color:#ef4444' : ''}"></i></button>
         </div>
         <div class="sv3-property-body">
           <div class="sv3-property-title">${esc(name)}</div>
           <div class="sv3-property-loc"><i class="fa-solid fa-location-dot"></i> ${esc(loc)}</div>
-          <div class="sv3-property-price">${inr(rent)}<span>/month</span></div>
+          ${distanceHtml}
+          ${amenitiesHtml}
+          ${availabilityHtml}
+          <div class="sv3-property-price" style="margin-top:8px">${inr(rent)}<span>/month</span></div>
           <div class="sv3-property-footer">
             <span class="sv3-rating">${rating > 0 ? '<i class="fa-solid fa-star"></i> ' + rating.toFixed(1) : "New"}</span>
             <button class="sv3-btn sv3-btn-primary" style="padding:8px 16px;font-size:13px" onclick="event.stopPropagation();window.location.href='/pages/property/property.html?id=${p._id}'">View</button>
@@ -163,15 +387,23 @@ function renderProperties(properties) {
 }
 
 window.toggleSave = async function (propertyId, btn) {
+  if (!getToken()) {
+    localStorage.setItem("pendingSavePropertyId", propertyId);
+    const currentUrl = window.location.pathname + window.location.search;
+    window.location.href = `${getLoginUrl()}?redirectTo=${encodeURIComponent(currentUrl)}`;
+    return;
+  }
   try {
     const icon = btn.querySelector("i");
     const isSaved = icon.classList.contains("fa-solid");
     if (isSaved) {
       await apiFetch(`/student/saved/${propertyId}`, { method: "DELETE" });
       icon.className = "fa-regular fa-heart";
+      icon.style.color = "";
     } else {
       await apiFetch(`/student/saved/${propertyId}`, { method: "POST" });
       icon.className = "fa-solid fa-heart";
+      icon.style.color = "#ef4444";
     }
   } catch (err) {
     // silent
