@@ -1004,16 +1004,8 @@ body.sv3-body::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var
 }
 
 @media (max-width: 900px) {
-  .sv3-sidebar {
-    transform: translateX(-120%);
-    visibility: hidden;
-    pointer-events: none;
-  }
-  .sv3-sidebar.active {
-    transform: translateX(0);
-    visibility: visible;
-    pointer-events: auto;
-  }
+  .sv3-sidebar { transform: translateX(-120%); }
+  .sv3-sidebar.active { transform: translateX(0); }
   .sv3-main { margin-left: 0; padding: 16px; }
   .sv3-menu-btn { display: flex; }
 }
@@ -1322,59 +1314,4 @@ body.sv3-body::-webkit-scrollbar-thumb { background: linear-gradient(180deg, var
     border: none;
     color: #fff;
   }
-}
-
-/* Swiper Slider Styling for Property Cards */
-.property-image-slider {
-    position: relative;
-    width: 100%;
-    height: 100%;
-}
-.property-image-slides {
-    display: flex;
-    overflow-x: auto;
-    scroll-snap-type: x mandatory;
-    width: 100%;
-    height: 100%;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
-}
-.property-image-slides::-webkit-scrollbar {
-    display: none;
-}
-.property-image-slides img {
-    flex: 0 0 100%;
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    scroll-snap-align: start;
-}
-.image-indicator {
-    position: absolute;
-    bottom: 12px;
-    right: 12px;
-    background: rgba(11, 31, 58, 0.75);
-    color: #fff;
-    padding: 3px 8px;
-    border-radius: 4px;
-    font-size: 11px;
-    font-weight: 600;
-    z-index: 2;
-    pointer-events: none;
-}
-
-/* Hide scrollbar for details image slider */
-.details-slides::-webkit-scrollbar {
-    display: none;
-}
-
-@media (prefers-reduced-motion: reduce) {
-    *,
-    *::before,
-    *::after {
-        animation-duration: 0.01ms !important;
-        animation-iteration-count: 1 !important;
-        transition-duration: 0.01ms !important;
-        scroll-behavior: auto !important;
-    }
 }

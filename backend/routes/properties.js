@@ -5,9 +5,6 @@ const Property = require("../models/Property");
 const auth = require("../middleware/auth");
 const upload = require("../middleware/upload");
 
-function escapeRegex(string) {
-    return String(string).replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
-}
 
 // ==========================================
 // GET ALL PROPERTIES (public: approved only)
@@ -40,11 +37,11 @@ router.get("/", async (req, res) => {
             blacklisted: { $ne: true }
         };
 
-        if (city) filter.city = new RegExp(escapeRegex(city.trim()), "i");
-        if (state) filter.state = new RegExp(escapeRegex(state.trim()), "i");
+        if (city) filter.city = new RegExp(city.trim(), "i");
+        if (state) filter.state = new RegExp(state.trim(), "i");
 
         const targetUni = college || university;
-        if (targetUni) filter.college = new RegExp(escapeRegex(targetUni.trim()), "i");
+        if (targetUni) filter.college = new RegExp(targetUni.trim(), "i");
 
         if (propertyType) filter.propertyType = propertyType;
         if (gender) filter.gender = gender;
@@ -64,7 +61,7 @@ router.get("/", async (req, res) => {
         }
 
         if (search && search.trim()) {
-            const regex = new RegExp(escapeRegex(search.trim()), "i");
+            const regex = new RegExp(search.trim(), "i");
             filter.$or = [
                 { propertyName: regex },
                 { city: regex },
@@ -270,12 +267,12 @@ router.get("/search", async (req, res) => {
             filter.available = false;
         }
 
-        if (state) filter.state = new RegExp(escapeRegex(state.trim()), "i");
+        if (state) filter.state = state;
 
-        if (city) filter.city = new RegExp(escapeRegex(city.trim()), "i");
+        if (city) filter.city = city;
 
         if (college)
-            filter.college = new RegExp(escapeRegex(college.trim()), "i");
+            filter.college = new RegExp(college, "i");
 
         if (propertyType)
             filter.propertyType = propertyType;
