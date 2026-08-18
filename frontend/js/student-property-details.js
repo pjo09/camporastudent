@@ -3,7 +3,7 @@
 // =====================================================
 
 import { $, apiFetch, initShell, loadUnreadCount, imageUrl, inr, esc, timeAgo } from "./student-utils.js";
-import { getPropertiesUrl, getToken, getUser, isLoggedIn, getLoginUrl } from "./session.js";
+import { getPropertiesUrl } from "./session.js";
 
 const params = new URLSearchParams(window.location.search);
 const propertyId = params.get("id");
@@ -76,13 +76,6 @@ function setupEvents() {
 
 async function loadProperty() {
   try {
-    // Auto restore save if returning from login page
-    const pendingSaveId = localStorage.getItem("pendingSavePropertyId");
-    if (pendingSaveId && getToken() && pendingSaveId === propertyId) {
-      localStorage.removeItem("pendingSavePropertyId");
-      await apiFetch(`/properties/save/${propertyId}`, { method: "POST" }).catch(() => null);
-    }
-
     const data = await apiFetch(`/properties/${propertyId}`);
     renderProperty(data.property, data.currentResidentsCount, data.verifiedStaysCount);
     loadReviews();
@@ -108,60 +101,15 @@ function renderProperty(p, currentResidentsCount, verifiedStaysCount) {
   const rating = p.averageRating || 0;
   const img = p.images && p.images.length ? imageUrl(p.images[0]) : "/assets/logos/logo.png";
 
-  // Dynamic SEO title & canonical link
-  document.title = `Campora • ${name} in ${p.city || ''}`;
-  let canonical = document.querySelector('link[rel="canonical"]');
-  if (!canonical) {
-    canonical = document.createElement('link');
-    canonical.rel = 'canonical';
-    document.head.appendChild(canonical);
-  }
-  canonical.href = `${window.location.origin}/pages/property/property.html?id=${p._id}`;
-
   if ($("propertyName")) $("propertyName").textContent = name;
   if ($("propertyLocation")) $("propertyLocation").textContent = loc;
   if ($("propertyPrice")) $("propertyPrice").textContent = `${inr(rent)}/month`;
   if ($("propertyRating")) $("propertyRating").innerHTML = rating > 0 ? `<i class="fa-solid fa-star"></i> ${rating.toFixed(1)} ${p.totalReviews ? `(${p.totalReviews})` : ""}` : "New listing";
   if ($("propertyDescription")) $("propertyDescription").textContent = p.description || "No description available.";
-
-  // Image Gallery Swiper (If multiple images are returned, replace single img element with swiper)
   const imgEl = $("propertyImage");
-  if (imgEl) {
-    const imgContainer = imgEl.parentElement;
-    if (imgContainer) {
-      if (p.images && p.images.length > 1) {
-        imgContainer.innerHTML = `
-          <div class="details-slides" style="display:flex;overflow-x:auto;scroll-snap-type:x mandatory;height:100%;width:100%;scrollbar-width:none;-webkit-overflow-scrolling:touch">
-            ${p.images.map((imgUrl, i) => `
-              <img src="${imageUrl(imgUrl)}" alt="${esc(name)} - Image ${i + 1}" style="flex:0 0 100%;width:100%;height:100%;object-fit:cover;scroll-snap-align:start" onerror="this.src='/assets/logos/logo.png'">
-            `).join("")}
-          </div>
-          <span class="details-image-indicator" style="position:absolute;bottom:16px;right:16px;background:rgba(11,31,58,0.75);color:#fff;padding:4px 8px;border-radius:4px;font-size:12px;font-weight:600;z-index:2;pointer-events:none">1/${p.images.length}</span>
-          <button class="sv3-save-btn" id="saveBtn" style="width:44px;height:44px;top:16px;right:16px;z-index:10"><i class="fa-regular fa-heart"></i></button>
-        `;
-        // Scroll event updates slide indicator
-        const slides = imgContainer.querySelector('.details-slides');
-        const indicator = imgContainer.querySelector('.details-image-indicator');
-        slides.addEventListener('scroll', () => {
-          const index = Math.round(slides.scrollLeft / slides.clientWidth) + 1;
-          indicator.textContent = `${index}/${p.images.length}`;
-        }, { passive: true });
-        
-        // Re-bind save button event
-        const newSaveBtn = imgContainer.querySelector("#saveBtn");
-        if (newSaveBtn) newSaveBtn.addEventListener("click", toggleSave);
-      } else {
-        imgContainer.innerHTML = `
-          <img id="propertyImage" src="${img}" alt="${esc(name)}" style="width:100%;height:100%;object-fit:cover" onerror="this.src='/assets/logos/logo.png'">
-          <button class="sv3-save-btn" id="saveBtn" style="width:44px;height:44px;top:16px;right:16px;z-index:10"><i class="fa-regular fa-heart"></i></button>
-        `;
-        const newSaveBtn = imgContainer.querySelector("#saveBtn");
-        if (newSaveBtn) newSaveBtn.addEventListener("click", toggleSave);
-      }
-    }
-  }
+  if (imgEl) { imgEl.src = img; imgEl.onerror = () => { imgEl.src = "/assets/logos/logo.png"; }; }
 
-  // Trust/Verification elements
+  // Trust elements
   const verifiedProp = $("verifiedPropertyBadge");
   const verifiedOwner = $("verifiedOwnerBadge");
   const currentResWrap = $("currentResidentsCountWrap");
@@ -182,17 +130,19 @@ function renderProperty(p, currentResidentsCount, verifiedStaysCount) {
   }
 
   // CTA visibility
-  const joinCta = $("joinPgCta");
-  if (joinCta) {
+  import("./session.js").then(({ getUser, isLoggedIn }) => {
     const user = getUser();
-    if (!isLoggedIn() || (user && user.role === "student")) {
-      joinCta.style.display = "block";
-    } else {
-      joinCta.style.display = "none";
+    const joinCta = $("joinPgCta");
+    if (joinCta) {
+      if (!isLoggedIn() || (user && user.role === "student")) {
+        joinCta.style.display = "block";
+      } else {
+        joinCta.style.display = "none";
+      }
     }
-  }
+  });
 
-  // Chips & Availability Status
+  // Chips
   const chips = $("propertyChips");
   if (chips) {
     const parts = [];
@@ -200,9 +150,6 @@ function renderProperty(p, currentResidentsCount, verifiedStaysCount) {
     if (p.sharing) parts.push(`<span class="sv3-pill sv3-pill-neutral">${esc(p.sharing)}</span>`);
     if (p.gender) parts.push(`<span class="sv3-pill sv3-pill-purple" style="background:rgba(124,58,237,.15);color:#a78bfa">${esc(p.gender)}</span>`);
     if (p.deposit) parts.push(`<span class="sv3-pill sv3-pill-warning">Deposit ${inr(p.deposit)}</span>`);
-    if (p.availableBeds !== undefined && p.availableBeds > 0) {
-      parts.push(`<span class="sv3-pill sv3-pill-success" style="background:rgba(34,197,94,.15);color:#4ade80"><i class="fa-solid fa-bed"></i> ${p.availableBeds} beds left</span>`);
-    }
     chips.innerHTML = parts.join("");
   }
 
@@ -213,60 +160,6 @@ function renderProperty(p, currentResidentsCount, verifiedStaysCount) {
     amenities.innerHTML = list.length
       ? list.map((a) => `<div class="sv3-card" style="text-align:center;padding:18px"><i class="fa-solid fa-circle-check" style="color:#22c55e;font-size:18px;margin-bottom:8px;display:block"></i><span style="font-size:13.5px;font-weight:600">${esc(a)}</span></div>`).join("")
       : `<div class="sv3-empty" style="grid-column:1/-1"><i class="fa-solid fa-list-check"></i><p>No amenities listed</p></div>`;
-  }
-
-  // Nearby distance locations list
-  const nearbySection = $("nearbySection");
-  const nearbyList = $("nearbyList");
-  if (nearbySection && nearbyList) {
-    if (p.nearby && p.nearby.length > 0) {
-      nearbySection.style.display = "block";
-      nearbyList.innerHTML = p.nearby.map((n) => `
-        <div class="sv3-card" style="padding:16px;display:flex;align-items:center;gap:12px;background:rgba(255,255,255,0.02);border:1px solid var(--sv3-border)">
-          <i class="fa-solid fa-person-walking" style="color:#3b82f6;font-size:18px"></i>
-          <div>
-            <strong style="display:block;font-size:14px;color:#fff">${esc(n.title)}</strong>
-            <span style="font-size:12px;color:var(--sv3-muted)">${esc(n.distance)}</span>
-          </div>
-        </div>
-      `).join("");
-    } else {
-      nearbySection.style.display = "none";
-    }
-  }
-
-  // Owner details (Mask contact details if unauthenticated)
-  const ownerSection = $("ownerSection");
-  if (ownerSection && p.owner) {
-    ownerSection.style.display = "block";
-    if ($("ownerName")) $("ownerName").textContent = p.owner.name || "Campora Host";
-    if ($("ownerInitials")) $("ownerInitials").textContent = (p.owner.name || "O").charAt(0).toUpperCase();
-
-    const ownerContact = $("ownerContact");
-    if (ownerContact) {
-      if (isLoggedIn()) {
-        ownerContact.innerHTML = `<i class="fa-solid fa-phone" style="color:#22c55e;margin-right:4px"></i> ${esc(p.owner.phone || "Not available")} &nbsp;&bull;&nbsp; <i class="fa-solid fa-envelope" style="color:#3b82f6;margin-right:4px"></i> ${esc(p.owner.email || "")}`;
-      } else {
-        const redirectUrl = window.location.pathname + window.location.search;
-        ownerContact.innerHTML = `<a href="${getLoginUrl()}?redirectTo=${encodeURIComponent(redirectUrl)}" style="color:#60a5fa;text-decoration:underline"><i class="fa-solid fa-lock" style="margin-right:4px"></i> Login to view contact</a>`;
-      }
-    }
-  }
-
-  // Map coordinates OSM iframe integration (no keys needed)
-  const mapSection = $("mapSection");
-  const mapIframe = $("mapIframe");
-  if (mapSection && mapIframe) {
-    const lat = Number(p.latitude);
-    const lon = Number(p.longitude);
-    if (lat && lon && !isNaN(lat) && !isNaN(lon)) {
-      mapSection.style.display = "block";
-      const delta = 0.003;
-      const bbox = `${lon - delta}%2C${lat - delta}%2C${lon + delta}%2C${lat + delta}`;
-      mapIframe.src = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${lat}%2C${lon}`;
-    } else {
-      mapSection.style.display = "none";
-    }
   }
 
   // Check saved state
@@ -386,7 +279,6 @@ async function handleJoinSubmit(e) {
 }
 
 async function checkSaved() {
-  if (!getToken()) return;
   try {
     const data = await apiFetch(`/properties/save/${propertyId}/check`);
     const btn = $("saveBtn");
@@ -402,12 +294,6 @@ async function checkSaved() {
 async function toggleSave() {
   const btn = $("saveBtn");
   if (!btn) return;
-  if (!getToken()) {
-    localStorage.setItem("pendingSavePropertyId", propertyId);
-    const currentUrl = window.location.pathname + window.location.search;
-    window.location.href = `${getLoginUrl()}?redirectTo=${encodeURIComponent(currentUrl)}`;
-    return;
-  }
   const isSaved = btn.querySelector("i").classList.contains("fa-solid");
   try {
     if (isSaved) {

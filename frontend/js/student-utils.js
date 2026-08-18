@@ -14,27 +14,13 @@ const API_BASE = API;
 // =====================================================
 
 export function gateStudent() {
+  const user = protectPageByRole(["student"]);
   const token = getToken();
-  const user = getUser();
-  const path = window.location.pathname.toLowerCase();
-
-  // Publicly accessible pages
-  const isPublicPage = path.includes("properties.html") || path.includes("property.html") || path.includes("property-details.html");
-
-  if (isPublicPage) {
-    if (user && user.role === "student" && token) {
-      return user;
-    }
-    return null;
-  }
-
-  // Dashboard pages: enforce role and token
-  const roleUser = protectPageByRole(["student"]);
-  if (!roleUser || !token) {
+  if (!user || !token) {
     window.location.href = getLoginUrl();
     return null;
   }
-  return roleUser;
+  return user;
 }
 
 export const currentUser = gateStudent();
@@ -145,21 +131,15 @@ export function initShell() {
   const sidebar = $("sidebar");
   const sidebarBackdrop = $("sidebarBackdrop");
   if (menuBtn && sidebar) {
-    const isMobile = window.innerWidth <= 900;
-    sidebar.setAttribute("aria-hidden", isMobile ? "true" : "false");
-
     menuBtn.addEventListener("click", () => {
       sidebar.classList.toggle("active");
-      const active = sidebar.classList.contains("active");
-      menuBtn.setAttribute("aria-expanded", active);
-      sidebar.setAttribute("aria-hidden", !active);
-      if (sidebarBackdrop) sidebarBackdrop.hidden = !active;
+      menuBtn.setAttribute("aria-expanded", sidebar.classList.contains("active"));
+      if (sidebarBackdrop) sidebarBackdrop.hidden = !sidebar.classList.contains("active");
     });
     if (sidebarBackdrop) {
       sidebarBackdrop.addEventListener("click", () => {
         sidebar.classList.remove("active");
         menuBtn.setAttribute("aria-expanded", "false");
-        sidebar.setAttribute("aria-hidden", "true");
         sidebarBackdrop.hidden = true;
       });
     }
@@ -214,7 +194,6 @@ const notificationBell = $("notificationBell");
 export async function loadUnreadCount() {
   const badge = $("unreadNotifications");
   if (!badge) return;
-  if (!getToken()) return;
   try {
     const data = await apiFetch("/student/notifications");
     const count = data.unreadCount || 0;

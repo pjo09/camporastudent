@@ -253,19 +253,12 @@ router.get("/search", async (req, res) => {
             minRent,
             maxRent,
             amenities,
-            available,
             sort = "latest",
             page = 1,
             limit = 12
         } = req.query;
 
         const filter = {};
-
-        if (available === "true") {
-            filter.available = true;
-        } else if (available === "false") {
-            filter.available = false;
-        }
 
         if (state) filter.state = state;
 
