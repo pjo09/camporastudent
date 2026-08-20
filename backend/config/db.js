@@ -14,6 +14,7 @@
 // ===============================================
 
 const mongoose = require("mongoose");
+const dbConfig = require("./database");
 
 // Base retry delay (ms)
 const BASE_RETRY_DELAY_MS = 5 * 1000;
@@ -35,6 +36,12 @@ function getRetryDelay() {
 
 async function attemptConnection() {
     if (connecting || shuttingDown) return;
+
+    if (dbConfig.isSupabase()) {
+        console.log("MongoDB connection: SKIPPED (Supabase provider active)");
+        isConnected = false;
+        return;
+    }
 
     connecting = true;
     try {

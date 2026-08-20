@@ -38,8 +38,18 @@ connectDB().then(() => {
 // Single centralized configuration (no duplicates).
 // ===============================================
 
+// Helper to normalize origin strings (trim whitespace and trailing slashes)
+function normalizeOrigin(urlStr) {
+    if (!urlStr || typeof urlStr !== "string") return "";
+    let trimmed = urlStr.trim();
+    while (trimmed.endsWith("/")) {
+        trimmed = trimmed.slice(0, -1);
+    }
+    return trimmed;
+}
+
 // Explicit allowlist of known production + development origins.
-const ALLOWED_ORIGINS = [
+const DEFAULT_ALLOWED_ORIGINS = [
     "https://camporastudent.vercel.app",
     "http://localhost:3000",
     "http://localhost:5000",
@@ -48,6 +58,26 @@ const ALLOWED_ORIGINS = [
     "http://127.0.0.1:5000",
     "http://127.0.0.1:5500"
 ];
+
+function getResolvedAllowedOrigins() {
+    const set = new Set(DEFAULT_ALLOWED_ORIGINS.map(normalizeOrigin));
+
+    if (process.env.FRONTEND_URL) {
+        process.env.FRONTEND_URL.split(",")
+            .map(normalizeOrigin)
+            .filter(Boolean)
+            .forEach(o => set.add(o));
+    }
+
+    if (process.env.ALLOWED_ORIGINS) {
+        process.env.ALLOWED_ORIGINS.split(",")
+            .map(normalizeOrigin)
+            .filter(Boolean)
+            .forEach(o => set.add(o));
+    }
+
+    return Array.from(set);
+}
 
 app.use(cors({
     origin(origin, callback) {
@@ -58,22 +88,26 @@ app.use(cors({
             return callback(null, true);
         }
 
-        // Explicit allowlist (exact match)
-        if (ALLOWED_ORIGINS.includes(origin)) {
+        const normOrigin = normalizeOrigin(origin);
+        const allowedList = getResolvedAllowedOrigins();
+
+        // Explicit allowlist (exact match after normalization)
+        if (allowedList.includes(normOrigin)) {
             return callback(null, true);
         }
 
         // Vercel preview deployments: https://<project>-<hash>-<scope>.vercel.app
-        if (/^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/.test(origin)) {
+        if (/^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/.test(normOrigin)) {
             return callback(null, true);
         }
 
         // Render preview deployments: https://<service>-<hash>.onrender.com
-        if (/^https:\/\/[a-zA-Z0-9-]+\.onrender\.com$/.test(origin)) {
+        if (/^https:\/\/[a-zA-Z0-9-]+\.onrender\.com$/.test(normOrigin)) {
             return callback(null, true);
         }
 
-        return callback(new Error("Not allowed by CORS"));
+        // Reject disallowed origins safely without throwing Express error exceptions
+        return callback(null, false);
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
@@ -93,7 +127,7 @@ app.use((req, res, next) => {
 });
 
 app.use(helmet({
-    crossOriginOpenerPolicy: { policy: "unsafe-none" },
+    crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
     contentSecurityPolicy: {
         useDefaults: true,
         directives: {
