@@ -1,4 +1,4 @@
-const provider = (process.env.DATABASE_PROVIDER || 'mongodb').toLowerCase().trim();
+const provider = (process.env.DATABASE_PROVIDER || 'supabase').toLowerCase().trim();
 
 const ALLOWED_PROVIDERS = ['mongodb', 'supabase'];
 
