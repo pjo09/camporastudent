@@ -27,10 +27,10 @@ async function findUserByEmail(email) {
 async function findUserById(id) {
     if (!id) return null;
     const db = await getSupabaseClient();
-    const pgId = mongoIdToPostgresId(id) || id;
+    const strId = String(id);
     const res = await db.query(
-        `SELECT * FROM profiles WHERE id = $1 OR mongo_id = $2 LIMIT 1`,
-        [pgId, String(id)]
+        `SELECT * FROM profiles WHERE id::text = $1 OR mongo_id = $1 LIMIT 1`,
+        [strId]
     );
     if (res.rows.length === 0) return null;
     const row = res.rows[0];

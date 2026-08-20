@@ -18,14 +18,20 @@ const { configureDnsResolvers } = require("./config/dns");
 const app = express();
 app.set("trust proxy", 1);
 
+const dbConfig = require("./config/database");
+
 configureDnsResolvers();
 connectDB().then(() => {
     try {
-        const { syncAllBookingConversations, checkAndSendMoveInReminders } = require("./utils/bookingHelper");
-        syncAllBookingConversations();
-        checkAndSendMoveInReminders();
-        // Run reminders check every 6 hours
-        setInterval(checkAndSendMoveInReminders, 6 * 60 * 60 * 1000);
+        if (!dbConfig.isSupabase()) {
+            const { syncAllBookingConversations, checkAndSendMoveInReminders } = require("./utils/bookingHelper");
+            syncAllBookingConversations();
+            checkAndSendMoveInReminders();
+            // Run reminders check every 6 hours
+            setInterval(checkAndSendMoveInReminders, 6 * 60 * 60 * 1000);
+        } else {
+            console.log("[BookingHelper] Mongoose background helper skipped (Supabase provider active)");
+        }
     } catch (err) {
         console.error("Failed to run booking helper startup:", err.message);
     }

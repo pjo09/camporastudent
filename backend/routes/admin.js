@@ -22,63 +22,15 @@ const Setting = require("../models/Setting");
 // ADMIN AUTH
 // ======================================================
 
+const { requireAreaAdmin, requireSuperAdmin } = require("../middleware/areaAdminAuth");
+const userRepository = require("../repositories/userRepository");
+const propertyRepository = require("../repositories/propertyRepository");
+const bookingRepository = require("../repositories/bookingRepository");
+const { getSupabaseClient } = require("../config/supabase");
+
 router.use(auth);
+router.use(requireAreaAdmin);
 
-router.use(async (req, res, next) => {
-
-    try {
-
-        // Validate that the token contained a usable ObjectId-like user id
-        if (!req.user || !req.user.id) {
-            return res.status(401).json({ success: false, message: "Access denied. Token missing user id." });
-        }
-
-        if (!mongoose.Types.ObjectId.isValid(req.user.id)) {
-            // Token payload contains an ID that is not a valid ObjectId string
-            return res.status(400).json({ success: false, message: "Invalid User ID in token." });
-        }
-
-        const admin = await User.findById(req.user.id);
-
-        if (!admin) {
-
-            return res.status(401).json({
-                success: false,
-                message: "User not found"
-            });
-
-        }
-
-        if (admin.role !== "admin") {
-
-            return res.status(403).json({
-                success: false,
-                message: "Admin access only"
-            });
-
-        }
-
-        req.admin = admin;
-
-        return next();
-
-    }
-
-    catch (err) {
-
-        // If Mongoose cast error slipped through, return 400
-        if (err && err.name === "CastError") {
-            return res.status(400).json({ success: false, message: "Invalid ID format." });
-        }
-
-        return res.status(500).json({
-            success: false,
-            message: "Internal server error"
-        });
-
-    }
-
-});
 
 // ======================================================
 // DEDICATED AUTHENTICATED ADMIN RATE LIMITERS
@@ -138,6 +90,94 @@ function failure(res, message, status = 500) {
     });
 
 }
+
+// ======================================================
+// AREA ADMIN SCOPE MANAGEMENT (SUPER ADMIN ONLY)
+// ======================================================
+
+router.get("/scopes", async (req, res) => {
+    try {
+        const db = await getSupabaseClient();
+        const resScopes = await db.query(`
+            SELECT s.*, p.name as admin_name, p.email as admin_email, p.role as admin_role
+            FROM admin_scopes s
+            JOIN profiles p ON s.admin_user_id = p.id
+            ORDER BY s.created_at DESC
+        `);
+        return res.json({ success: true, scopes: resScopes.rows, currentAdminScope: req.adminScope });
+    } catch (err) {
+        console.error("GET /scopes Error:", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+router.post("/scopes", requireSuperAdmin, async (req, res) => {
+    try {
+        const { adminUserId, scopeType, state, city } = req.body;
+        if (!adminUserId || !scopeType) {
+            return res.status(400).json({ success: false, message: "adminUserId and scopeType are required." });
+        }
+
+        const validTypes = ['GLOBAL', 'STATE', 'CITY'];
+        if (!validTypes.includes(scopeType.toUpperCase())) {
+            return res.status(400).json({ success: false, message: "scopeType must be GLOBAL, STATE, or CITY." });
+        }
+
+        const sType = scopeType.toUpperCase();
+        const stateClean = (state || '').trim();
+        const cityClean = (city || '').trim();
+
+        if (sType === 'STATE' && !stateClean) {
+            return res.status(400).json({ success: false, message: "State is required for STATE scope type." });
+        }
+        if (sType === 'CITY' && (!stateClean || !cityClean)) {
+            return res.status(400).json({ success: false, message: "Both State and City are required for CITY scope type." });
+        }
+
+        const db = await getSupabaseClient();
+
+        // Ensure user is an admin
+        const targetUser = await userRepository.findUserById(adminUserId);
+        if (!targetUser) {
+            return res.status(404).json({ success: false, message: "Admin user not found." });
+        }
+
+        // Promote role to admin if not already
+        if (targetUser.role !== 'admin') {
+            await db.query(`UPDATE profiles SET role = 'admin', updated_at = NOW() WHERE id = $1`, [targetUser.id]);
+        }
+
+        const insertRes = await db.query(`
+            INSERT INTO admin_scopes (admin_user_id, scope_type, state, city)
+            VALUES ($1, $2, $3, $4)
+            RETURNING *
+        `, [targetUser.id, sType, sType === 'GLOBAL' ? '' : stateClean, sType === 'CITY' ? cityClean : '']);
+
+        return res.status(201).json({
+            success: true,
+            message: `Scope '${sType}' successfully assigned to ${targetUser.email}`,
+            scope: insertRes.rows[0]
+        });
+    } catch (err) {
+        console.error("POST /scopes Error:", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+router.delete("/scopes/:id", requireSuperAdmin, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const db = await getSupabaseClient();
+        const delRes = await db.query(`DELETE FROM admin_scopes WHERE id = $1 RETURNING *`, [id]);
+        if (delRes.rows.length === 0) {
+            return res.status(404).json({ success: false, message: "Scope not found." });
+        }
+        return res.json({ success: true, message: "Scope successfully revoked.", scope: delRes.rows[0] });
+    } catch (err) {
+        console.error("DELETE /scopes/:id Error:", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
 
 function validId(id) {
 

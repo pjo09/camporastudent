@@ -5,8 +5,10 @@ async function findUserByEmail(email) {
     return await User.findOne({ email: new RegExp('^' + email.trim() + '$', 'i') });
 }
 
+const mongoose = require('mongoose');
+
 async function findUserById(id) {
-    if (!id) return null;
+    if (!id || !mongoose.Types.ObjectId.isValid(id)) return null;
     return await User.findById(id);
 }
 

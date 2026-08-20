@@ -60,12 +60,17 @@ async function seedSupabaseData(db) {
                 profile_image, bio, status, account_status, last_login, email_verified,
                 phone_verified, emergency_contact, kyc_verified, gst_number, property_count,
                 rating, notification_settings, created_at, updated_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32)
-            ON CONFLICT (email) DO NOTHING
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9,
+                $10, $11, $12, $13, $14, $15, $16, $17,
+                $18, $19, $20, $21, $22, $23,
+                $24, $25, $26, $27, $28,
+                $29, $30, $31, $32
+            ) ON CONFLICT DO NOTHING
         `, [
             pgId,
             mongoIdStr,
-            u.name || 'Unknown',
+            u.name || 'User',
             emailClean,
             u.password || null,
             u.authProvider || 'password',
@@ -82,8 +87,8 @@ async function seedSupabaseData(db) {
             u.city || '',
             u.profileImage || '',
             u.bio || '',
-            u.status || 'active',
-            u.accountStatus || 'ACTIVE',
+            (u.status || 'active').toLowerCase(),
+            u.accountStatus || (u.role === 'owner' ? 'PENDING' : 'ACTIVE'),
             u.lastLogin ? new Date(u.lastLogin) : null,
             !!u.emailVerified,
             !!u.phoneVerified,
@@ -101,41 +106,42 @@ async function seedSupabaseData(db) {
     // STEP B: PROPERTIES
     for (const p of rawProperties) {
         const pgId = getId(p._id);
-        const mongoIdStr = typeof p._id === 'object' && p._id.$oid ? p._id.$oid : p._id.toString();
-        let ownerPgId = null;
-        if (p.owner) {
-            const ownerStr = typeof p.owner === 'object' && p.owner.$oid ? p.owner.$oid : p.owner.toString();
-            ownerPgId = validUserMongoIds.has(ownerStr) ? getId(ownerStr) : adminPgId;
-        } else {
-            ownerPgId = adminPgId;
-        }
-
-        const resolvedPropName = p.propertyName || p.title || p.name || 'Property';
+        let ownerPgId = p.owner && validUserMongoIds.has(typeof p.owner === 'object' && p.owner.$oid ? p.owner.$oid : p.owner.toString()) ? getId(p.owner) : null;
+        
+        // Property name fallback order
+        const resolvedName = p.propertyName || p.title || p.name || 'Property';
 
         await db.query(`
             INSERT INTO properties (
                 id, mongo_id, owner_id, property_name, property_type, state, city, college,
                 address, latitude, longitude, rent, deposit, gender, sharing, amenities,
                 description, images, available_beds, total_beds, featured, verified, status,
-                average_rating, total_reviews, views, house_rules, maintenance_charge,
-                electricity_charge, food_charge, available, published, blacklisted, created_at, updated_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30, $31, $32, $33, $34, $35)
-            ON CONFLICT (id) DO NOTHING
+                average_rating, total_reviews, views, maintenance_charge, electricity_charge,
+                food_charge, available, published, blacklisted, house_rules,
+                created_at, updated_at
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8,
+                $9, $10, $11, $12, $13, $14, $15, $16,
+                $17, $18, $19, $20, $21, $22, $23,
+                $24, $25, $26, $27, $28,
+                $29, $30, $31, $32, $33,
+                $34, $35
+            ) ON CONFLICT DO NOTHING
         `, [
             pgId,
-            mongoIdStr,
+            typeof p._id === 'object' ? p._id.$oid : p._id.toString(),
             ownerPgId,
-            resolvedPropName,
+            resolvedName,
             p.propertyType || 'PG',
-            p.state || 'Maharashtra',
-            p.city || 'Pune',
+            p.state || '',
+            p.city || '',
             p.college || '',
             p.address || '',
             p.latitude || null,
             p.longitude || null,
             p.rent || 0,
             p.deposit || 0,
-            p.gender || 'Co-ed',
+            p.gender || 'Boys',
             p.sharing || 'Single',
             p.amenities || [],
             p.description || '',
@@ -144,17 +150,17 @@ async function seedSupabaseData(db) {
             p.totalBeds || 0,
             !!p.featured,
             !!p.verified,
-            p.status || 'pending',
+            (p.status || 'approved').toLowerCase(),
             p.averageRating || 0,
             p.totalReviews || 0,
             p.views || 0,
-            JSON.stringify(p.houseRules || {}),
             p.maintenanceCharge || 0,
             p.electricityCharge || 0,
             p.foodCharge || 0,
             p.available !== undefined ? !!p.available : true,
-            !!p.published,
+            p.published !== undefined ? !!p.published : true,
             !!p.blacklisted,
+            JSON.stringify(p.houseRules || {}),
             p.createdAt ? new Date(p.createdAt) : new Date(),
             p.updatedAt ? new Date(p.updatedAt) : new Date()
         ]);
@@ -163,51 +169,33 @@ async function seedSupabaseData(db) {
     // STEP C: BOOKINGS
     for (const b of rawBookings) {
         const pgId = getId(b._id);
-        const mongoIdStr = typeof b._id === 'object' && b._id.$oid ? b._id.$oid : b._id.toString();
-
         let propPgId = b.propertyId && validPropMongoIds.has(typeof b.propertyId === 'object' && b.propertyId.$oid ? b.propertyId.$oid : b.propertyId.toString()) ? getId(b.propertyId) : null;
         let userPgId = b.userId && validUserMongoIds.has(typeof b.userId === 'object' && b.userId.$oid ? b.userId.$oid : b.userId.toString()) ? getId(b.userId) : null;
         let ownerPgId = b.ownerId && validUserMongoIds.has(typeof b.ownerId === 'object' && b.ownerId.$oid ? b.ownerId.$oid : b.ownerId.toString()) ? getId(b.ownerId) : null;
 
         await db.query(`
             INSERT INTO bookings (
-                id, mongo_id, property_id, property_name, user_id, user_name, user_email,
-                price, owner_id, check_in, check_out, duration, number_of_guests, payment_status,
-                booking_status, payment_id, payment_date, payment_method, special_request,
-                cancel_reason, check_in_instructions, check_in_window, meeting_instructions,
-                special_instructions, reminder_sent_7days, reminder_sent_1day,
-                inventory_reserved, inventory_released, created_at, updated_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22, $23, $24, $25, $26, $27, $28, $29, $30)
-            ON CONFLICT (id) DO NOTHING
+                id, mongo_id, property_id, user_id, owner_id, price, check_in, payment_status,
+                booking_status, inventory_reserved, inventory_released, cancel_reason,
+                created_at, updated_at
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8,
+                $9, $10, $11, $12,
+                $13, $14
+            ) ON CONFLICT DO NOTHING
         `, [
             pgId,
-            mongoIdStr,
+            typeof b._id === 'object' ? b._id.$oid : b._id.toString(),
             propPgId,
-            b.propertyName || '',
             userPgId,
-            b.userName || '',
-            b.userEmail || '',
-            b.price || 0,
             ownerPgId,
-            b.checkIn ? new Date(b.checkIn) : null,
-            b.checkOut ? new Date(b.checkOut) : null,
-            b.duration || '',
-            b.numberOfGuests || 1,
+            b.totalAmount || b.rentAmount || 0,
+            b.moveInDate || b.checkInDate ? new Date(b.moveInDate || b.checkInDate) : new Date(),
             b.paymentStatus || 'pending',
             b.bookingStatus || 'pending',
-            b.paymentId || '',
-            b.paymentDate ? new Date(b.paymentDate) : null,
-            b.paymentMethod || 'UPI',
-            b.specialRequest || '',
-            b.cancelReason || '',
-            b.checkInInstructions || '',
-            b.checkInWindow || '',
-            b.meetingInstructions || '',
-            b.specialInstructions || '',
-            !!b.reminderSent7Days,
-            !!b.reminderSent1Day,
             !!b.inventoryReserved,
             !!b.inventoryReleased,
+            b.cancelReason || '',
             b.createdAt ? new Date(b.createdAt) : new Date(),
             b.updatedAt ? new Date(b.updatedAt) : new Date()
         ]);
@@ -216,27 +204,22 @@ async function seedSupabaseData(db) {
     // STEP D: REVIEWS
     for (const r of rawReviews) {
         const pgId = getId(r._id);
-        const mongoIdStr = typeof r._id === 'object' && r._id.$oid ? r._id.$oid : r._id.toString();
-        let propPgId = r.property && validPropMongoIds.has(typeof r.property === 'object' && r.property.$oid ? r.property.$oid : r.property.toString()) ? getId(r.property) : null;
-        let userPgId = r.user && validUserMongoIds.has(typeof r.user === 'object' && r.user.$oid ? r.user.$oid : r.user.toString()) ? getId(r.user) : null;
+        let propPgId = r.propertyId && validPropMongoIds.has(typeof r.propertyId === 'object' && r.propertyId.$oid ? r.propertyId.$oid : r.propertyId.toString()) ? getId(r.propertyId) : null;
+        let userPgId = r.userId && validUserMongoIds.has(typeof r.userId === 'object' && r.userId.$oid ? r.userId.$oid : r.userId.toString()) ? getId(r.userId) : null;
 
         await db.query(`
             INSERT INTO reviews (
-                id, mongo_id, property_id, user_id, name, rating, comment, status, reported, likes, owner_reply, created_at, updated_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-            ON CONFLICT (id) DO NOTHING
+                id, mongo_id, property_id, user_id, rating, comment, created_at, updated_at
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8
+            ) ON CONFLICT DO NOTHING
         `, [
             pgId,
-            mongoIdStr,
+            typeof r._id === 'object' ? r._id.$oid : r._id.toString(),
             propPgId,
             userPgId,
-            r.name || '',
-            r.rating || 5,
+            Math.max(1, Math.min(5, r.rating || 5)),
             r.comment || '',
-            r.status || 'approved',
-            !!r.reported,
-            r.likes || 0,
-            r.ownerReply || '',
             r.createdAt ? new Date(r.createdAt) : new Date(),
             r.updatedAt ? new Date(r.updatedAt) : new Date()
         ]);
@@ -245,31 +228,29 @@ async function seedSupabaseData(db) {
     // STEP E: CONVERSATIONS & MESSAGES
     for (const c of rawConversations) {
         const pgId = getId(c._id);
-        const mongoIdStr = typeof c._id === 'object' && c._id.$oid ? c._id.$oid : c._id.toString();
-        let ownerPgId = c.ownerId && validUserMongoIds.has(typeof c.ownerId === 'object' && c.ownerId.$oid ? c.ownerId.$oid : c.ownerId.toString()) ? getId(c.ownerId) : null;
-        let studentPgId = c.studentId && validUserMongoIds.has(typeof c.studentId === 'object' && c.studentId.$oid ? c.studentId.$oid : c.studentId.toString()) ? getId(c.studentId) : null;
         let propPgId = c.propertyId && validPropMongoIds.has(typeof c.propertyId === 'object' && c.propertyId.$oid ? c.propertyId.$oid : c.propertyId.toString()) ? getId(c.propertyId) : null;
         let bookingPgId = c.bookingId && validBookingMongoIds.has(typeof c.bookingId === 'object' && c.bookingId.$oid ? c.bookingId.$oid : c.bookingId.toString()) ? getId(c.bookingId) : null;
+        let studentPgId = c.studentId && validUserMongoIds.has(typeof c.studentId === 'object' && c.studentId.$oid ? c.studentId.$oid : c.studentId.toString()) ? getId(c.studentId) : null;
+        let ownerPgId = c.ownerId && validUserMongoIds.has(typeof c.ownerId === 'object' && c.ownerId.$oid ? c.ownerId.$oid : c.ownerId.toString()) ? getId(c.ownerId) : null;
 
         await db.query(`
             INSERT INTO conversations (
-                id, mongo_id, owner_id, student_id, property_id, booking_id, status,
-                last_message, last_message_at, last_sender, unread_by_owner, unread_by_student, created_at, updated_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14)
-            ON CONFLICT (id) DO NOTHING
+                id, mongo_id, property_id, booking_id, student_id, owner_id, last_message,
+                last_message_at, unread_by_student, unread_by_owner, created_at, updated_at
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12
+            ) ON CONFLICT DO NOTHING
         `, [
             pgId,
-            mongoIdStr,
-            ownerPgId,
-            studentPgId,
+            typeof c._id === 'object' ? c._id.$oid : c._id.toString(),
             propPgId,
             bookingPgId,
-            c.status || 'active',
+            studentPgId,
+            ownerPgId,
             c.lastMessage || '',
             c.lastMessageAt ? new Date(c.lastMessageAt) : new Date(),
-            c.lastSender || 'owner',
-            c.unreadByOwner || 0,
-            c.unreadByStudent || 0,
+            c.unreadCountStudent || 0,
+            c.unreadCountOwner || 0,
             c.createdAt ? new Date(c.createdAt) : new Date(),
             c.updatedAt ? new Date(c.updatedAt) : new Date()
         ]);
@@ -277,46 +258,54 @@ async function seedSupabaseData(db) {
 
     for (const m of rawMessages) {
         const pgId = getId(m._id);
-        const mongoIdStr = typeof m._id === 'object' && m._id.$oid ? m._id.$oid : m._id.toString();
+        let convPgId = m.conversationId && getId(m.conversationId);
         let senderPgId = m.senderId && validUserMongoIds.has(typeof m.senderId === 'object' && m.senderId.$oid ? m.senderId.$oid : m.senderId.toString()) ? getId(m.senderId) : null;
 
         await db.query(`
             INSERT INTO messages (
-                id, mongo_id, conversation_id, sender, sender_id, text, attachment, is_read, read_at, is_broadcast, broadcast_type, created_at, updated_at
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
-            ON CONFLICT (id) DO NOTHING
+                id, mongo_id, conversation_id, sender_id, sender, text,
+                is_read, created_at, updated_at
+            ) VALUES (
+                $1, $2, $3, $4, $5, $6, $7, $8, $9
+            ) ON CONFLICT DO NOTHING
         `, [
             pgId,
-            mongoIdStr,
-            getId(m.conversationId),
-            m.sender || 'owner',
+            typeof m._id === 'object' ? m._id.$oid : m._id.toString(),
+            convPgId,
             senderPgId,
-            m.text || '',
-            JSON.stringify(m.attachment || { url: '', type: '' }),
+            m.senderRole || 'student',
+            m.content || m.text || '',
             !!m.isRead,
-            m.readAt ? new Date(m.readAt) : null,
-            !!m.isBroadcast,
-            m.broadcastType || '',
             m.createdAt ? new Date(m.createdAt) : new Date(),
             m.updatedAt ? new Date(m.updatedAt) : new Date()
         ]);
     }
 
-    // STEP F: TENANCIES, RESIDENT REQUESTS, NOTIFICATIONS, AUDIT LOGS, CONTACTS, INVITES, SETTINGS
+    // STEP F: OTHER TABLES
     for (const t of rawTenancies) {
         const pgId = getId(t._id);
-        await db.query(`
-            INSERT INTO tenancies (id, mongo_id, student_id, property_id, room, bed, start_date, end_date, status, source, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) ON CONFLICT DO NOTHING
-        `, [pgId, typeof t._id === 'object' ? t._id.$oid : t._id.toString(), getId(t.student), getId(t.property), t.room || 'R1', t.bed || '', t.startDate ? new Date(t.startDate) : new Date(), t.endDate ? new Date(t.endDate) : null, t.status || 'ACTIVE', t.source || 'BOOKING', t.createdAt ? new Date(t.createdAt) : new Date(), t.updatedAt ? new Date(t.updatedAt) : new Date()]);
+        let sPgId = t.studentId && validUserMongoIds.has(typeof t.studentId === 'object' && t.studentId.$oid ? t.studentId.$oid : t.studentId.toString()) ? getId(t.studentId) : null;
+        let pPgId = t.propertyId && validPropMongoIds.has(typeof t.propertyId === 'object' && t.propertyId.$oid ? t.propertyId.$oid : t.propertyId.toString()) ? getId(t.propertyId) : null;
+
+        if (sPgId && pPgId) {
+            await db.query(`
+                INSERT INTO tenancies (id, mongo_id, student_id, property_id, room, bed, start_date, status, source, created_at, updated_at)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT DO NOTHING
+            `, [pgId, typeof t._id === 'object' ? t._id.$oid : t._id.toString(), sPgId, pPgId, t.roomNumber || t.room || '101', t.bedNumber || t.bed || 'A', t.moveInDate || t.startDate ? new Date(t.moveInDate || t.startDate) : new Date(), (t.status || 'ACTIVE').toUpperCase(), 'BOOKING', t.createdAt ? new Date(t.createdAt) : new Date(), t.updatedAt ? new Date(t.updatedAt) : new Date()]);
+        }
     }
 
     for (const rr of rawResidentRequests) {
         const pgId = getId(rr._id);
-        await db.query(`
-            INSERT INTO resident_requests (id, mongo_id, student_id, property_id, room, bed, move_in_date, residence_source, proof_document, message, status, created_at, updated_at)
-            VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13) ON CONFLICT DO NOTHING
-        `, [pgId, typeof rr._id === 'object' ? rr._id.$oid : rr._id.toString(), getId(rr.student), getId(rr.property), rr.room || 'R1', rr.bed || '', rr.moveInDate ? new Date(rr.moveInDate) : new Date(), rr.residenceSource || 'DIRECT_OWNER', rr.proofDocument || '', rr.message || '', rr.status || 'PENDING', rr.createdAt ? new Date(rr.createdAt) : new Date(), rr.updatedAt ? new Date(rr.updatedAt) : new Date()]);
+        let sPgId = rr.studentId && validUserMongoIds.has(typeof rr.studentId === 'object' && rr.studentId.$oid ? rr.studentId.$oid : rr.studentId.toString()) ? getId(rr.studentId) : null;
+        let pPgId = rr.propertyId && validPropMongoIds.has(typeof rr.propertyId === 'object' && rr.propertyId.$oid ? rr.propertyId.$oid : rr.propertyId.toString()) ? getId(rr.propertyId) : null;
+
+        if (sPgId && pPgId) {
+            await db.query(`
+                INSERT INTO resident_requests (id, mongo_id, student_id, property_id, room, bed, move_in_date, residence_source, status, created_at, updated_at)
+                VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) ON CONFLICT DO NOTHING
+            `, [pgId, typeof rr._id === 'object' ? rr._id.$oid : rr._id.toString(), sPgId, pPgId, rr.roomType || rr.room || '101', rr.bed || 'A', rr.moveInDate ? new Date(rr.moveInDate) : new Date(), 'DIRECT_OWNER', (rr.status || 'PENDING').toUpperCase(), rr.createdAt ? new Date(rr.createdAt) : new Date(), rr.updatedAt ? new Date(rr.updatedAt) : new Date()]);
+        }
     }
 
     for (const n of rawNotifications) {
@@ -359,6 +348,14 @@ async function seedSupabaseData(db) {
             INSERT INTO platform_settings (id, mongo_id, site_name, site_description, support_email, support_phone, maintenance_mode, allow_registration, allow_property_upload, featured_property_fee, commission_percentage, currency, created_at, updated_at)
             VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14) ON CONFLICT DO NOTHING
         `, [pgId, typeof st._id === 'object' ? st._id.$oid : st._id.toString(), st.siteName || 'Campora', st.siteDescription || "India's Smart Student Accommodation Platform", st.supportEmail || 'support@campora.in', st.supportPhone || '', !!st.maintenanceMode, st.allowRegistration !== undefined ? !!st.allowRegistration : true, st.allowPropertyUpload !== undefined ? !!st.allowPropertyUpload : true, st.featuredPropertyFee || 0, st.commissionPercentage || 5, st.currency || 'INR', st.createdAt ? new Date(st.createdAt) : new Date(), st.updatedAt ? new Date(st.updatedAt) : new Date()]);
+    }
+
+    // STEP G: DEFAULT GLOBAL ADMIN SCOPE SEEDING
+    if (adminPgId) {
+        await db.query(`
+            INSERT INTO admin_scopes (admin_user_id, scope_type, state, city)
+            VALUES ($1, 'GLOBAL', '', '') ON CONFLICT DO NOTHING
+        `, [adminPgId]);
     }
 }
 
