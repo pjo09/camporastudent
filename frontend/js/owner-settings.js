@@ -136,7 +136,7 @@ async function handleDeleteAccount() {
   try {
     // Owner route has no account-delete endpoint; attempt via a best-effort
     // We block deletion server-side unless present. For now, inform user.
-    showToast("Account deletion is not available in this demo. Please contact support.", "info");
+    showToast("Account deletion is currently unavailable. Please contact CAMPORA support.", "info");
   } catch (err) {
     showToast("Failed to delete account: " + err.message, "error");
   } finally {

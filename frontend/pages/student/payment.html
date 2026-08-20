@@ -8,7 +8,7 @@
 <meta name="viewport"
 content="width=device-width,initial-scale=1.0">
 
-<title>Campora | Secure Payment</title>
+<title>Campora | Payments</title>
 
     <link rel="stylesheet"
 href="../../css/theme.css">
@@ -49,19 +49,19 @@ alt="Campora">
 
 <h2>Campora</h2>
 
-<p>Secure Student Payments</p>
+<p>Student Dashboard</p>
 
 </div>
 
 </div>
 
 <a
-href="../../booking.html"
+href="bookings.html"
 class="back-btn">
 
 <i class="fa-solid fa-arrow-left"></i>
 
-Back
+Back to Bookings
 
 </a>
 
@@ -71,237 +71,25 @@ Back
 <!-- MAIN -->
 <!-- ====================================== -->
 
-<main class="payment-container">
+<main class="payment-container" style="display:flex;align-items:center;justify-content:center;min-height:60vh">
 
-<!-- LEFT -->
+<section class="payment-card glass" style="text-align:center;max-width:500px;padding:48px 32px">
 
-<section class="payment-card glass">
+<i class="fa-solid fa-credit-card" style="font-size:48px;color:#94a3b8;margin-bottom:16px"></i>
 
-<h1>
-
-Complete Payment
-
+<h1 style="font-size:22px;margin-bottom:12px">
+Online Payments Currently Unavailable
 </h1>
 
-<p>
-
-Your booking is almost confirmed.
-
+<p style="color:#64748b;margin-bottom:24px">
+Online payment functionality will be introduced in a future Campora release.
 </p>
 
-<div class="payment-methods">
-
-<button class="method active">
-
-<i class="fa-solid fa-credit-card"></i>
-
-Card
-
-</button>
-
-<button class="method">
-
-<i class="fa-brands fa-google-pay"></i>
-
-UPI
-
-</button>
-
-<button class="method">
-
-<i class="fa-solid fa-building-columns"></i>
-
-Net Banking
-
-</button>
-
-</div>
-
-<form id="paymentForm">
-
-<div class="input-group">
-
-<label>
-
-Card Holder Name
-
-</label>
-
-<input
-
-id="cardName"
-
-type="text"
-
-placeholder="John Doe"
-
-required>
-
-</div>
-
-<div class="input-group">
-
-<label>
-
-Card Number
-
-</label>
-
-<input
-
-id="cardNumber"
-
-maxlength="19"
-
-placeholder="1234 5678 9012 3456"
-
-required>
-
-</div>
-
-<div class="row">
-
-<div class="input-group">
-
-<label>
-
-Expiry
-
-</label>
-
-<input
-
-id="expiry"
-
-placeholder="MM/YY"
-
-required>
-
-</div>
-
-<div class="input-group">
-
-<label>
-
-CVV
-
-</label>
-
-<input
-
-id="cvv"
-
-maxlength="3"
-
-type="password"
-
-required>
-
-</div>
-
-</div>
-
-<div class="input-group">
-
-<label>
-
-Coupon Code</label>
-
-<input
-
-id="coupon"
-
-placeholder="Optional">
-
-</div>
-
-<button
-
-type="submit"
-
-class="pay-btn">
-
-Pay Securely
-
-</button>
-
-</form>
+<a href="bookings.html" class="pay-btn" style="display:inline-block;text-decoration:none;text-align:center">
+<i class="fa-solid fa-calendar-check"></i> View My Bookings
+</a>
 
 </section>
-
-<!-- RIGHT -->
-
-<aside class="summary glass">
-
-<img
-
-id="propertyImage"
-
-src="/images/property-placeholder.jpg"
-
-alt="Property">
-
-<h2
-
-id="propertyTitle">
-
-Loading...
-
-</h2>
-
-<p
-
-id="propertyLocation">
-
-Loading...
-
-</p>
-
-<div class="price">
-
-₹
-
-<span id="amount">
-
-0
-
-</span>
-
-</div>
-
-<hr>
-
-<div class="summary-row">
-
-<span>Booking</span>
-
-<span id="bookingFee">
-
-₹1000</span>
-
-</div>
-
-<div class="summary-row">
-
-<span>Deposit</span>
-
-<span id="deposit">
-
-₹0</span>
-
-</div>
-
-<div class="summary-row total">
-
-<span>Total</span>
-
-<span id="total">
-
-₹0</span>
-
-</div>
-
-</aside>
 
 </main>
 
@@ -311,26 +99,9 @@ Loading...
 
 <div id="toastContainer" class="toast-container"></div>
 
-<!-- ====================================== -->
-<!-- RAZORPAY CHECKOUT SDK -->
-<!-- ====================================== -->
-
-<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-
-<script>
-// Expose Razorpay key for the checkout modal.
-// In production, replace with your public key:
-// window.__RAZORPAY_KEY_ID = "rzp_live_xxxxxxxx";
-window.__RAZORPAY_KEY_ID = "rzp_test_xxxxxxxx";
-</script>
-
-<script
-
-type="module"
-
-src="../../js/payment.js">
-
-</script>
+<!-- Payment integration disabled for current production phase.
+     Razorpay SDK and payment.js are NOT loaded on this page.
+     Retained for future integration. -->
 
 </body>
 

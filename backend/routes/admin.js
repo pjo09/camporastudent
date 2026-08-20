@@ -1153,8 +1153,22 @@ router.patch("/users/:id/activate", async (req, res) => {
 
 });
 
+// Shared owner approval state mutation helper
+async function updateOwnerApprovalState(owner, isApproved) {
+    if (isApproved) {
+        owner.accountStatus = "ACTIVE";
+        owner.verified = true;
+        owner.status = "active";
+    } else {
+        owner.accountStatus = "REJECTED";
+        owner.verified = false;
+    }
+    await owner.save();
+    return owner;
+}
+
 // ======================================================
-// VERIFY OWNER
+// VERIFY OWNER (Legacy alias for APPROVE)
 // ======================================================
 
 router.patch("/owners/:id/verify", async (req, res) => {
@@ -1175,9 +1189,7 @@ router.patch("/owners/:id/verify", async (req, res) => {
 
         }
 
-        owner.verified = true;
-
-        await owner.save();
+        await updateOwnerApprovalState(owner, true);
 
         return success(res, {
 
@@ -1253,10 +1265,7 @@ router.patch("/owners/:id/approve", async (req, res) => {
             return failure(res, "User is not an owner", 400);
         }
 
-        owner.accountStatus = "ACTIVE";
-        owner.verified = true;
-        owner.status = "active";
-        await owner.save();
+        await updateOwnerApprovalState(owner, true);
 
         return success(res, {
             message: "Owner approved",
@@ -1289,8 +1298,7 @@ router.patch("/owners/:id/reject", async (req, res) => {
             return failure(res, "User is not an owner", 400);
         }
 
-        owner.accountStatus = "REJECTED";
-        await owner.save();
+        await updateOwnerApprovalState(owner, false);
 
         return success(res, {
             message: "Owner rejected",

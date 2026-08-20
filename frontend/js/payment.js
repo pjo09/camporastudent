@@ -1,7 +1,11 @@
 // =====================================================
 // CAMPORA PAYMENT PAGE
-// Razorpay Checkout + Real Booking Load
 // =====================================================
+// NOTE: Payment integration is INTENTIONALLY DISABLED for
+// the current production phase. This file is retained for
+// future Razorpay integration. No active page imports it.
+// =====================================================
+// Razorpay Checkout + Real Booking Load
 
 import { getToken, getUser, protectPageByRole } from "./session.js";
 import { API } from "./config.js";
@@ -175,10 +179,8 @@ function setupCardFormatting() {
   if (coupon) {
     coupon.addEventListener("change", () => {
       const code = coupon.value.trim().toUpperCase();
-      if (code === "CAMPORA100") {
-        showToast("Coupon applied! (Demo)", "success");
-      } else if (code) {
-        showToast("Invalid coupon code", "error");
+      if (code) {
+        showToast("Coupon functionality is currently unavailable.", "error");
       }
     });
   }

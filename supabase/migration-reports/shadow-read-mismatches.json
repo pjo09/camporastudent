@@ -1,0 +1,80 @@
+[
+  {
+    "timestamp": "2026-08-20T07:59:53.507Z",
+    "domain": "properties",
+    "operation": "findPropertyById",
+    "mongoId": "6a42881131898d22a9519805",
+    "field": "propertyName",
+    "supabaseValue": "Property",
+    "severity": "HIGH"
+  },
+  {
+    "timestamp": "2026-08-20T09:27:22.143Z",
+    "domain": "properties",
+    "operation": "findPropertyById",
+    "mongoId": "6a42881131898d22a9519805",
+    "field": "propertyName",
+    "supabaseValue": "Campora Residency",
+    "severity": "HIGH"
+  },
+  {
+    "timestamp": "2026-08-20T09:27:22.713Z",
+    "domain": "bookings",
+    "operation": "listBookings",
+    "mongoId": "N/A",
+    "field": "listCount",
+    "mongoValue": 15,
+    "supabaseValue": 13,
+    "severity": "HIGH"
+  },
+  {
+    "timestamp": "2026-08-20T09:28:14.579Z",
+    "domain": "properties",
+    "operation": "findPropertyById",
+    "mongoId": "6a42881131898d22a9519805",
+    "field": "propertyName",
+    "mongoValue": "",
+    "supabaseValue": "Campora Residency",
+    "severity": "HIGH"
+  },
+  {
+    "timestamp": "2026-08-20T09:28:15.219Z",
+    "domain": "bookings",
+    "operation": "listBookings",
+    "mongoId": "N/A",
+    "field": "listCount",
+    "mongoValue": 15,
+    "supabaseValue": 13,
+    "severity": "HIGH"
+  },
+  {
+    "timestamp": "2026-08-20T09:28:55.311Z",
+    "domain": "properties",
+    "operation": "findPropertyById",
+    "mongoId": "6a42881131898d22a9519805",
+    "field": "propertyName",
+    "mongoValue": "",
+    "supabaseValue": "Campora Residency",
+    "severity": "HIGH"
+  },
+  {
+    "timestamp": "2026-08-20T09:28:56.588Z",
+    "domain": "bookings",
+    "operation": "listBookings",
+    "mongoId": "N/A",
+    "field": "listCount",
+    "mongoValue": 15,
+    "supabaseValue": 13,
+    "severity": "HIGH"
+  },
+  {
+    "timestamp": "2026-08-20T09:29:38.825Z",
+    "domain": "bookings",
+    "operation": "listBookings",
+    "mongoId": "N/A",
+    "field": "listCount",
+    "mongoValue": 15,
+    "supabaseValue": 13,
+    "severity": "HIGH"
+  }
+]

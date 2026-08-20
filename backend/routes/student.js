@@ -839,6 +839,10 @@ router.patch("/bookings/:id/cancel", auth, requireRole("student"), async (req, r
             return res.status(404).json({ success: false, message: "Booking not found" });
         }
 
+        if (booking.bookingStatus === "cancelled") {
+            return res.status(400).json({ success: false, message: "Booking is already cancelled." });
+        }
+
         if (booking.bookingStatus === "checked-in" || booking.bookingStatus === "checked-out") {
             return res.status(400).json({
                 success: false,
@@ -846,9 +850,47 @@ router.patch("/bookings/:id/cancel", auth, requireRole("student"), async (req, r
             });
         }
 
-        booking.bookingStatus = "cancelled";
-        booking.cancelReason = req.body.reason || "Cancelled by student";
-        await booking.save();
+        let session = null;
+        let useTransaction = false;
+        try {
+            session = await mongoose.startSession();
+            session.startTransaction();
+            useTransaction = true;
+        } catch (e) {
+            useTransaction = false;
+            if (session) {
+                session.endSession();
+                session = null;
+            }
+        }
+
+        if (useTransaction) {
+            try {
+                const { releaseBookingInventory } = require("../utils/inventoryHelper");
+                await releaseBookingInventory(booking._id, session);
+
+                booking.bookingStatus = "cancelled";
+                booking.cancelReason = req.body.reason || "Cancelled by student";
+                await booking.save({ session });
+                
+                await session.commitTransaction();
+            } catch (err) {
+                if (session.inTransaction()) {
+                    await session.abortTransaction();
+                }
+                session.endSession();
+                throw err;
+            } finally {
+                if (session) session.endSession();
+            }
+        } else {
+            const { releaseBookingInventory } = require("../utils/inventoryHelper");
+            await releaseBookingInventory(booking._id);
+
+            booking.bookingStatus = "cancelled";
+            booking.cancelReason = req.body.reason || "Cancelled by student";
+            await booking.save();
+        }
 
         // Notify owner
         try {
@@ -941,157 +983,7 @@ router.get("/documents", auth, requireRole("student"), async (req, res) => {
 
 });
 
-// ======================================================
-// STUDENT ANALYTICS
-// ======================================================
 
-router.get("/analytics", auth, requireRole("student"), async (req, res) => {
-
-    try {
-
-        const studentId = req.user.id;
-
-        const Invoice = require("../models/Invoice");
-        const Maintenance = require("../models/Maintenance");
-
-        const [bookings, invoices, savingProps, maintenance] = await Promise.all([
-            Booking.find({ userId: studentId }).sort({ createdAt: 1 }),
-            Invoice.find({ studentId }),
-            User.findById(studentId).populate("savedProperties").then(u => u.savedProperties || []),
-            Maintenance.find({ studentId })
-        ]);
-
-        const totalSpent = invoices.reduce((s, i) => s + (i.amountPaid || 0), 0);
-        const totalPaidBookings = bookings.filter(b => b.paymentStatus === "paid").length;
-        const totalCancelled = bookings.filter(b => b.bookingStatus === "cancelled").length;
-
-        // Favorite locations
-        const cityCounts = {};
-        savingProps.forEach(p => {
-            if (p.city) cityCounts[p.city] = (cityCounts[p.city] || 0) + 1;
-        });
-// ======================================================
-// CANCEL BOOKING (student)
-// ======================================================
-
-router.patch("/bookings/:id/cancel", auth, requireRole("student"), async (req, res) => {
-
-    try {
-
-        if (!isValidObjectId(req.params.id)) {
-            return res.status(400).json({ success: false, message: "Invalid booking ID" });
-        }
-
-        const booking = await Booking.findOne({
-            _id: req.params.id,
-            userId: req.user.id
-        });
-
-        if (!booking) {
-            return res.status(404).json({ success: false, message: "Booking not found" });
-        }
-
-        if (booking.bookingStatus === "checked-in" || booking.bookingStatus === "checked-out") {
-            return res.status(400).json({
-                success: false,
-                message: "You cannot cancel a booking that has already started."
-            });
-        }
-
-        booking.bookingStatus = "cancelled";
-        booking.cancelReason = req.body.reason || "Cancelled by student";
-        await booking.save();
-
-        // Notify owner
-        try {
-            await Notification.create({
-                receiverId: booking.ownerId,
-                title: "Booking Cancelled",
-                message: `A student cancelled their booking for "${booking.propertyName || 'a property'}".`,
-                type: "booking"
-            });
-        } catch (e) { /* non-fatal */ }
-
-        return res.json({ success: true, message: "Booking cancelled", booking });
-
-    } catch (err) {
-
-        return res.status(500).json({ success: false, message: err.message });
-
-    }
-
-});
-
-// ======================================================
-// STUDENT DOCUMENTS
-// ======================================================
-
-router.get("/documents", auth, requireRole("student"), async (req, res) => {
-
-    try {
-
-        const user = await User.findById(req.user.id).select("-password");
-
-        if (!user) {
-            return res.status(404).json({ success: false, message: "User not found" });
-        }
-
-        // Documents derived from user data + bookings
-        const bookings = await Booking.find({ userId: user._id })
-            .populate("propertyId", "propertyName city state address rent")
-            .sort({ createdAt: -1 });
-
-        const agreements = bookings
-            .filter(b => b.bookingStatus === "confirmed" || b.bookingStatus === "checked-in")
-            .map(b => ({
-                id: b._id,
-                type: "agreement",
-                title: "Rental Agreement - " + (b.propertyName || "Property"),
-                date: b.createdAt,
-                property: b.propertyName || "Property",
-                bookingId: b._id
-            }));
-
-        const receipts = bookings
-            .filter(b => b.paymentStatus === "paid")
-            .map(b => ({
-                id: b._id,
-                type: "receipt",
-                title: "Payment Receipt - " + (b.propertyName || "Property"),
-                amount: b.price || 0,
-                date: b.paymentDate || b.createdAt,
-                property: b.propertyName || "Property",
-                bookingId: b._id
-            }));
-
-        const idProofs = [];
-
-        if (user.profileImage) {
-            idProofs.push({
-                id: "profile",
-                type: "idproof",
-                title: "Profile ID",
-                url: user.profileImage,
-                date: user.createdAt
-            });
-        }
-
-        return res.json({
-            success: true,
-            documents: {
-                agreements,
-                receipts,
-                idProofs
-            }
-        });
-
-    } catch (err) {
-
-        return res.status(500).json({ success: false, message: err.message });
-
-    }
-
-});
 
 // ======================================================
 // STUDENT ANALYTICS
@@ -1159,46 +1051,7 @@ router.get("/analytics", auth, requireRole("student"), async (req, res) => {
         return res.status(500).json({ success: false, message: err.message });
     }
 });
-        const favoriteLocations = Object.entries(cityCounts)
-            .map(([city, count]) => ({ city, count }))
-            .sort((a, b) => b.count - a.count)
-            .slice(0, 5);
 
-        // Monthly spending
-        const monthly = {};
-        invoices.forEach(inv => {
-            inv.transactions.forEach(t => {
-                const d = new Date(t.paidAt);
-                const key = `${d.getFullYear()}-${d.getMonth() + 1}`;
-                monthly[key] = (monthly[key] || 0) + t.amount;
-            });
-        });
-
-        // Booking timeline
-        const bookingTimeline = bookings.map(b => ({
-            month: b.createdAt ? new Date(b.createdAt).getMonth() + 1 : 0,
-            year: b.createdAt ? new Date(b.createdAt).getFullYear() : 0,
-            status: b.bookingStatus
-        }));
-
-        return res.json({
-            success: true,
-            analytics: {
-                totalBookings: bookings.length,
-                totalSpent,
-                totalPaidBookings,
-                totalCancelled,
-                totalMaintenance: maintenance.length,
-                pendingMaintenance: maintenance.filter(m => !["resolved", "rejected"].includes(m.status)).length,
-                favoriteLocations,
-                monthly,
-                bookingTimeline
-            }
-        });
-    } catch (err) {
-        return res.status(500).json({ success: false, message: err.message });
-    }
-});
 
 // ======================================================
 // STUDENT MOVE-IN CENTER

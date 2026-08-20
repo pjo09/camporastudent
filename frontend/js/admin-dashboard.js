@@ -457,22 +457,29 @@ async function loadUsers() {
         return;
       }
 
-      DOM.usersTable.innerHTML = users.map((u) => `
+      DOM.usersTable.innerHTML = users.map((u) => {
+        const displayStatus = u.role === "owner" ? (u.accountStatus || "PENDING") : (u.status || "active");
+        const statusBadgeClass = (displayStatus === "ACTIVE" || displayStatus === "active") ? "approved" : displayStatus === "PENDING" ? "pending" : "suspended";
+        return `
         <tr>
           <td><div class="admin-avatar admin-avatar-sm">${(u.name || "?").charAt(0).toUpperCase()}</div></td>
           <td><strong>${u.name || "Unknown"}</strong></td>
           <td style="color:#94a3b8">${u.email || ""}</td>
           <td><span class="admin-status" style="background:${u.role === 'admin' ? 'rgba(239,68,68,.12)' : u.role === 'owner' ? 'rgba(124,58,237,.12)' : 'rgba(37,99,235,.12)'};color:${u.role === 'admin' ? '#ef4444' : u.role === 'owner' ? '#a78bfa' : '#60a5fa'}">${u.role || "student"}</span></td>
-          <td><span class="admin-status ${u.status || 'active'}">${u.status || "active"}</span></td>
+          <td><span class="admin-status ${statusBadgeClass}">${displayStatus}</span></td>
           <td style="color:#64748b;font-size:13px">${u.createdAt ? new Date(u.createdAt).toLocaleDateString() : ""}</td>
           <td>
             <div class="action-group">
               <button class="admin-btn admin-btn-sm admin-btn-primary" onclick="window.viewUser('${u._id}')">View</button>
               ${u.status !== "suspended" ? `<button class="admin-btn admin-btn-sm admin-btn-danger" onclick="window.suspendUser('${u._id}')">Suspend</button>` : `<button class="admin-btn admin-btn-sm admin-btn-success" onclick="window.activateUser('${u._id}')">Activate</button>`}
-              ${u.role === "owner" && !u.verified ? `<button class="admin-btn admin-btn-sm admin-btn-success" onclick="window.verifyOwner('${u._id}')">Verify</button>` : ""}
+              ${u.role === "owner" && (u.accountStatus === "PENDING" || !u.verified) ? `
+                <button class="admin-btn admin-btn-sm admin-btn-success" onclick="window.approveOwner('${u._id}')">Approve</button>
+                <button class="admin-btn admin-btn-sm admin-btn-danger" onclick="window.rejectOwner('${u._id}')">Reject</button>
+              ` : ""}
             </div>
           </td>
-        </tr>`).join("");
+        </tr>`;
+      }).join("");
     }
   } catch (err) {
     console.error("Users load error:", err);
@@ -945,10 +952,40 @@ window.activateUser = async (id) => {
   } catch (err) { showToast("Failed", "error"); }
 };
 
+window.approveOwner = async (id) => {
+  try {
+    const res = await fetch(`${API}/admin/owners/${id}/approve`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    const data = await res.json();
+    if (data.success) {
+      showToast("Owner approved successfully!", "success"); loadUsers();
+    } else {
+      showToast(data.message || "Failed to approve owner", "error");
+    }
+  } catch (err) { showToast("Failed to approve owner", "error"); }
+};
+
+window.rejectOwner = async (id) => {
+  if (!confirm("Reject this owner application?")) return;
+  try {
+    const res = await fetch(`${API}/admin/owners/${id}/reject`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    const data = await res.json();
+    if (data.success) {
+      showToast("Owner rejected", "info"); loadUsers();
+    } else {
+      showToast(data.message || "Failed to reject owner", "error");
+    }
+  } catch (err) { showToast("Failed to reject owner", "error"); }
+};
+
 window.verifyOwner = async (id) => {
   try {
-    await fetch(`${API}/admin/owners/${id}/verify`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
-    showToast("Owner verified!", "success"); loadUsers();
+    const res = await fetch(`${API}/admin/owners/${id}/approve`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    const data = await res.json();
+    if (data.success) {
+      showToast("Owner verified & approved!", "success"); loadUsers();
+    } else {
+      showToast(data.message || "Failed", "error");
+    }
   } catch (err) { showToast("Failed", "error"); }
 };
 

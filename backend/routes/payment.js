@@ -1,3 +1,11 @@
+// =====================================================
+// CAMPORA PAYMENT ROUTES
+// =====================================================
+// NOTE: Payment integration is INTENTIONALLY DISABLED for
+// the current production phase. This router is NOT mounted
+// by app.js. The file is retained for future Razorpay
+// integration — do not delete.
+// =====================================================
 const express = require("express");
 const Razorpay = require("razorpay");
 const crypto = require("crypto");

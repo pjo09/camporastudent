@@ -49,50 +49,171 @@ router.post("/", auth, async (req, res) => {
 
         }
 
+        if (req.user.role !== "student") {
+            return res.status(403).json({
+                success: false,
+                message: "Unauthorized: Only students can create bookings"
+            });
+        }
+
         const selectedProperty = await Property.findById(propertyId || property);
 
         if (!selectedProperty) {
-
             return res.status(404).json({
-
                 success: false,
                 message: "Property not found"
-
             });
+        }
 
+        // Validate property status
+        if (selectedProperty.status !== "approved" || selectedProperty.published !== true || selectedProperty.blacklisted === true) {
+            return res.status(409).json({
+                success: false,
+                message: "Property is not currently bookable."
+            });
+        }
+
+        if (selectedProperty.availableBeds <= 0) {
+            return res.status(409).json({
+                success: false,
+                message: "No beds available for this property."
+            });
+        }
+
+        // Check for active duplicate bookings
+        const duplicateBooking = await Booking.findOne({
+            userId: student._id,
+            propertyId: selectedProperty._id,
+            bookingStatus: { $in: ["pending", "confirmed", "checked-in"] }
+        });
+
+        if (duplicateBooking) {
+            return res.status(400).json({
+                success: false,
+                message: "You already have an active booking for this property."
+            });
         }
 
         await selectedProperty.populate("owner", "email");
 
-        const booking = await Booking.create({
+        let useTransaction = false;
+        let session = null;
+        try {
+            session = await mongoose.startSession();
+            // Do NOT start a transaction here; executeTransactionWithRetry will handle it.
+            useTransaction = true;
+        } catch (e) {
+            useTransaction = false;
+            if (session) {
+                session.endSession();
+                session = null;
+            }
+        }
 
-            propertyId: selectedProperty._id,
+        let booking;
+        if (useTransaction) {
+            try {
+                const { reserveBookingInventory, executeTransactionWithRetry } = require("../utils/inventoryHelper");
+                
+                await executeTransactionWithRetry(session, async (s) => {
+                    const reservedProperty = await reserveBookingInventory(selectedProperty._id, s);
+                    if (!reservedProperty) {
+                        const err = new Error("No beds available for this property.");
+                        err.code = 409;
+                        throw err;
+                    }
 
-            propertyName: selectedProperty.propertyName || selectedProperty.title,
+                    const newBookings = await Booking.create([{
+                        propertyId: selectedProperty._id,
+                        propertyName: selectedProperty.propertyName || selectedProperty.title,
+                        userId: student._id,
+                        userName: student.name,
+                        userEmail: student.email,
+                        price: selectedProperty.rent || selectedProperty.price,
+                        ownerId: selectedProperty.owner && selectedProperty.owner._id
+                            ? selectedProperty.owner._id
+                            : selectedProperty.owner,
+                        checkIn: moveInDate ? new Date(moveInDate) : null,
+                        duration: duration || "",
+                        status: "pending",
+                        bookingStatus: "pending",
+                        specialRequest: specialRequest || "",
+                        inventoryReserved: true,
+                        inventoryReleased: false
+                    }], { session: s });
 
-            userId: student._id,
+                    booking = newBookings[0];
+                });
+            } catch (err) {
+                if (err.code === 409 || err.message.includes("No beds available")) {
+                    return res.status(409).json({
+                        success: false,
+                        message: "No beds available for this property."
+                    });
+                }
+                if (err.code === 112 || err.message.includes("WriteConflict") || err.message.includes("write conflict")) {
+                    return res.status(409).json({
+                        success: false,
+                        message: "No beds are currently available for this property."
+                    });
+                }
+                console.error('Transaction error', err);
+                return res.status(500).json({ success: false, message: err.message });
+            } finally {
+                if (session) session.endSession();
+            }
+        } else {
+            // Fallback: Programmatic Rollback Mode
+            const { reserveBookingInventory } = require("../utils/inventoryHelper");
+            const reservedProperty = await reserveBookingInventory(selectedProperty._id);
+            if (!reservedProperty) {
+                return res.status(409).json({
+                    success: false,
+                    message: "No beds available for this property."
+                });
+            }
 
-            userName: student.name,
-
-            userEmail: student.email,
-
-            price: selectedProperty.rent || selectedProperty.price,
-
-            ownerId: selectedProperty.owner && selectedProperty.owner._id
-                ? selectedProperty.owner._id
-                : selectedProperty.owner,
-
-            checkIn: moveInDate ? new Date(moveInDate) : null,
-
-            duration: duration || "",
-
-            status: "pending",
-
-            bookingStatus: "pending",
-
-            specialRequest: specialRequest || ""
-
-        });
+            let propertyReserved = true;
+            try {
+                booking = await Booking.create({
+                    propertyId: selectedProperty._id,
+                    propertyName: selectedProperty.propertyName || selectedProperty.title,
+                    userId: student._id,
+                    userName: student.name,
+                    userEmail: student.email,
+                    price: selectedProperty.rent || selectedProperty.price,
+                    ownerId: selectedProperty.owner && selectedProperty.owner._id
+                        ? selectedProperty.owner._id
+                        : selectedProperty.owner,
+                    checkIn: moveInDate ? new Date(moveInDate) : null,
+                    duration: duration || "",
+                    status: "pending",
+                    bookingStatus: "pending",
+                    specialRequest: specialRequest || "",
+                    inventoryReserved: true,
+                    inventoryReleased: false
+                });
+            } catch (err) {
+                if (propertyReserved) {
+                    try {
+                        const Property = require("../models/Property");
+                        await Property.updateOne(
+                            { _id: selectedProperty._id },
+                            { $inc: { availableBeds: 1 } }
+                        );
+                    } catch (rollbackErr) {
+                        console.error(`🚨 CRITICAL INVENTORY-INTEGRITY ERROR: Fallback rollback failed for propertyId: ${selectedProperty._id}. Error: ${rollbackErr.message}`);
+                    }
+                }
+                if (err.code === 112 || err.message.includes("WriteConflict") || err.message.includes("write conflict")) {
+                    return res.status(409).json({
+                        success: false,
+                        message: "No beds are currently available for this property."
+                    });
+                }
+                return res.status(500).json({ success: false, message: err.message });
+            }
+        }
 
         // =====================================
         // EMAIL TO STUDENT

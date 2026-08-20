@@ -1284,13 +1284,51 @@ router.patch(
 
             }
 
-            booking.bookingStatus = "cancelled";
+            if (booking.bookingStatus === "cancelled") {
+                return sendError(res, "Booking is already cancelled", 400);
+            }
 
-            booking.cancelReason =
+            let session = null;
+            let useTransaction = false;
+            try {
+                session = await mongoose.startSession();
+                session.startTransaction();
+                useTransaction = true;
+            } catch (e) {
+                useTransaction = false;
+                if (session) {
+                    session.endSession();
+                    session = null;
+                }
+            }
 
-                req.body.reason || "";
+            if (useTransaction) {
+                try {
+                    const { releaseBookingInventory } = require("../utils/inventoryHelper");
+                    await releaseBookingInventory(booking._id, session);
 
-            await booking.save();
+                    booking.bookingStatus = "cancelled";
+                    booking.cancelReason = req.body.reason || "";
+                    await booking.save({ session });
+                    
+                    await session.commitTransaction();
+                } catch (err) {
+                    if (session.inTransaction()) {
+                        await session.abortTransaction();
+                    }
+                    session.endSession();
+                    throw err;
+                } finally {
+                    if (session) session.endSession();
+                }
+            } else {
+                const { releaseBookingInventory } = require("../utils/inventoryHelper");
+                await releaseBookingInventory(booking._id);
+
+                booking.bookingStatus = "cancelled";
+                booking.cancelReason = req.body.reason || "";
+                await booking.save();
+            }
 
             return sendSuccess(res, {
 
@@ -1418,11 +1456,51 @@ router.patch(
 
             }
 
-            booking.bookingStatus = "checked-out";
+            if (booking.bookingStatus === "checked-out") {
+                return sendError(res, "Student is already checked out", 400);
+            }
 
-            booking.checkOutDate = new Date();
+            let session = null;
+            let useTransaction = false;
+            try {
+                session = await mongoose.startSession();
+                session.startTransaction();
+                useTransaction = true;
+            } catch (e) {
+                useTransaction = false;
+                if (session) {
+                    session.endSession();
+                    session = null;
+                }
+            }
 
-            await booking.save();
+            if (useTransaction) {
+                try {
+                    const { releaseBookingInventory } = require("../utils/inventoryHelper");
+                    await releaseBookingInventory(booking._id, session);
+
+                    booking.bookingStatus = "checked-out";
+                    booking.checkOutDate = new Date();
+                    await booking.save({ session });
+                    
+                    await session.commitTransaction();
+                } catch (err) {
+                    if (session.inTransaction()) {
+                        await session.abortTransaction();
+                    }
+                    session.endSession();
+                    throw err;
+                } finally {
+                    if (session) session.endSession();
+                }
+            } else {
+                const { releaseBookingInventory } = require("../utils/inventoryHelper");
+                await releaseBookingInventory(booking._id);
+
+                booking.bookingStatus = "checked-out";
+                booking.checkOutDate = new Date();
+                await booking.save();
+            }
 
             return sendSuccess(res, {
 

@@ -112,10 +112,10 @@ function renderChecklist(checklist, booking, owner) {
       action: ""
     },
     {
-      title: "Rent Payment Complete",
-      desc: booking.paymentStatus === "paid" ? "Initial rent/depost has been processed." : "Prepayment required before move-in.",
+      title: "Rent Payment",
+      desc: booking.paymentStatus === "paid" ? "Initial rent/deposit has been processed." : "Coordinate rent payment with your property owner.",
       done: checklist.paymentStatus,
-      action: booking.paymentStatus === "paid" ? "" : `<button class="sv3-btn sv3-btn-primary sv3-btn-sm" onclick="window.location.href='payments.html'">Pay Now</button>`
+      action: ""
     },
     {
       title: "Required Documents Submitted",

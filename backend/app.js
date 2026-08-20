@@ -208,7 +208,10 @@ try {
 }
 try { app.use("/api/admin", require("./routes/admin")); console.log("✅ Admin Route Loaded"); } catch(err) { console.log("❌ Admin Route Error", err); }
 try { app.use("/api/bookings", require("./routes/bookings")); console.log("✅ Bookings Route Loaded"); } catch(err) { console.log("❌ Bookings Route Error", err); }
-try { app.use("/api/payments", require("./routes/payment")); console.log("✅ Payments Route Loaded"); } catch(err) { console.log("❌ Payments Route Error", err); }
+// Payment gateway intentionally disabled for current production phase.
+// Payment routes file (./routes/payment.js) is retained for future integration.
+// try { app.use("/api/payments", require("./routes/payment")); console.log("✅ Payments Route Loaded"); } catch(err) { console.log("❌ Payments Route Error", err); }
+console.log("ℹ️  Payment routes disabled for current production phase.");
 try { app.use("/api/reviews", require("./routes/reviews")); console.log("✅ Reviews Route Loaded"); } catch(err) { console.log("❌ Reviews Route Error", err); }
 try { app.use("/api/statistics", require("./routes/statistics")); console.log("✅ Statistics Route Loaded"); } catch(err) { console.log("❌ Statistics Route Error", err); }
 try { app.use("/api/location", require("./routes/location")); console.log("✅ Location Route Loaded"); } catch(err) { console.log("❌ Location Route Error", err); }

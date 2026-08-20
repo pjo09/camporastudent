@@ -90,6 +90,14 @@ const bookingSchema = new mongoose.Schema({
         type: Boolean,
         default: false
     },
+    inventoryReserved: {
+        type: Boolean,
+        default: false
+    },
+    inventoryReleased: {
+        type: Boolean,
+        default: false
+    },
     requiredDocuments: [
         {
             name: { type: String, required: true },
