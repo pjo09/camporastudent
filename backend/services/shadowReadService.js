@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const shadowConfig = require('../config/shadowReadConfig');
+const dbConfig = require('../config/database');
 
 const mismatchesLogPath = path.join(__dirname, '../../supabase/migration-reports/shadow-read-mismatches.json');
 
@@ -44,7 +45,12 @@ function logMismatch(mismatchEntry) {
 }
 
 async function executeShadowRead({ domain, operation, mongoRead, supabaseRead, compareFields }) {
-    // 1. ALWAYS execute MongoDB read (Authoritative Production Result)
+    // In Supabase production mode, Supabase PostgreSQL is authoritative. Skip Mongo reads.
+    if (dbConfig.isSupabase()) {
+        return await supabaseRead();
+    }
+
+    // 1. ALWAYS execute MongoDB read (Authoritative Production Result in Mongo mode)
     const authoritativeResult = await mongoRead();
 
     // 2. Check if Shadow Reads are enabled for this domain
