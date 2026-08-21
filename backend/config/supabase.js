@@ -1,7 +1,6 @@
 const { PGlite } = require('@electric-sql/pglite');
 const fs = require('fs');
 const path = require('path');
-const dbConfig = require('./database');
 const { seedSupabaseData } = require('../utils/supabaseDataSeeder');
 
 let pgliteInstance = null;
@@ -50,16 +49,11 @@ async function getSupabaseClient() {
             return pgliteInstance;
         })().catch(err => {
             console.error("[Supabase] Fatal PGlite init error:", err);
-            initPromise = null; // reset so retry is possible
+            initPromise = null;
             throw err;
         });
     }
     return initPromise;
-}
-
-// Pre-warm immediately on module import if provider is Supabase
-if (dbConfig.isSupabase()) {
-    getSupabaseClient().catch(err => console.error("[Supabase] Pre-warm background failed:", err));
 }
 
 module.exports = {
