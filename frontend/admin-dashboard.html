@@ -129,6 +129,7 @@
         <button class="admin-nav-item" data-tab="reviews"><i class="fa-solid fa-star"></i>Reviews</button>
         <button class="admin-nav-item" data-tab="reports"><i class="fa-solid fa-file-lines"></i>Reports</button>
         <button class="admin-nav-item" data-tab="settings"><i class="fa-solid fa-gear"></i>Platform Settings</button>
+        <button class="admin-nav-item" id="adminMgmtNavItem" data-tab="admin-management" style="display:none"><i class="fa-solid fa-user-shield"></i>Admin Management</button>
         <button class="admin-nav-item" data-tab="system"><i class="fa-solid fa-server"></i>System</button>
     </nav>
     <div class="admin-footer">
@@ -284,6 +285,33 @@
                     <div class="setting-item" style="background:rgba(255,255,255,.04);border-radius:12px"><div class="setting-info"><h4 style="font-size:14px">Allow Property Upload</h4></div><label class="toggle-switch"><input type="checkbox" id="setPropertyUpload" checked /><span class="toggle-slider"></span></label></div>
                 </div>
                 <button id="savePlatformSettings" class="admin-btn admin-btn-primary" style="margin-top:20px;width:100%;padding:12px">Save Settings</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ======================== ADMIN MANAGEMENT ======================== -->
+    <div id="tab-admin-management" class="admin-tab-content">
+        <div class="admin-section">
+            <div class="admin-section-header" style="display:flex;justify-content:space-between;align-items:center;margin-bottom:20px">
+                <h2>Admin Management</h2>
+                <button class="admin-btn admin-btn-primary" id="openCreateAdminModal"><i class="fa-solid fa-user-plus" style="margin-right:6px"></i>Add Admin</button>
+            </div>
+            <div class="admin-table-wrap">
+                <table class="admin-table">
+                    <thead>
+                        <tr>
+                            <th>Administrator</th>
+                            <th>Role</th>
+                            <th>Status</th>
+                            <th>Assigned Areas</th>
+                            <th>Created Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="adminManagementTable">
+                        <tr><td colspan="6" style="text-align:center;color:#64748b">Loading administrators...</td></tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

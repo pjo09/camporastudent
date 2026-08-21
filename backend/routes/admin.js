@@ -27,6 +27,7 @@ const userRepository = require("../repositories/userRepository");
 const propertyRepository = require("../repositories/propertyRepository");
 const bookingRepository = require("../repositories/bookingRepository");
 const { getSupabaseClient } = require("../config/supabase");
+const bcrypt = require("bcryptjs");
 
 router.use(auth);
 router.use(requireAreaAdmin);
@@ -95,6 +96,41 @@ function failure(res, message, status = 500) {
 // AREA ADMIN SCOPE MANAGEMENT (SUPER ADMIN ONLY)
 // ======================================================
 
+router.get("/administrators", requireSuperAdmin, async (req, res) => {
+    try {
+        const db = await getSupabaseClient();
+        const adminsRes = await db.query(`
+            SELECT id, name, email, role, status, account_status, created_at, last_login
+            FROM profiles
+            WHERE role = 'admin'
+            ORDER BY created_at DESC
+        `);
+
+        const scopesRes = await db.query(`
+            SELECT s.*, p.email as admin_email
+            FROM admin_scopes s
+            JOIN profiles p ON s.admin_user_id = p.id
+            ORDER BY s.created_at DESC
+        `);
+
+        const scopesMap = new Map();
+        for (const s of scopesRes.rows) {
+            if (!scopesMap.has(s.admin_user_id)) scopesMap.set(s.admin_user_id, []);
+            scopesMap.get(s.admin_user_id).push(s);
+        }
+
+        const administrators = adminsRes.rows.map(a => ({
+            ...a,
+            scopes: scopesMap.get(a.id) || []
+        }));
+
+        return res.json({ success: true, administrators, currentAdminScope: req.adminScope });
+    } catch (err) {
+        console.error("GET /administrators Error:", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
 router.get("/scopes", async (req, res) => {
     try {
         const db = await getSupabaseClient();
@@ -107,6 +143,75 @@ router.get("/scopes", async (req, res) => {
         return res.json({ success: true, scopes: resScopes.rows, currentAdminScope: req.adminScope });
     } catch (err) {
         console.error("GET /scopes Error:", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+router.post("/create-admin", requireSuperAdmin, async (req, res) => {
+    try {
+        const { name, email, password, role, scopeType, state, city, status } = req.body;
+
+        if (!name || !email || !password) {
+            return res.status(400).json({ success: false, message: "Name, email, and password are required." });
+        }
+
+        const cleanEmail = email.toLowerCase().trim();
+        const db = await getSupabaseClient();
+
+        // Check if email exists
+        const existing = await db.query(`SELECT id FROM profiles WHERE LOWER(email) = $1 LIMIT 1`, [cleanEmail]);
+        if (existing.rows.length > 0) {
+            return res.status(400).json({ success: false, message: "A user with this email address already exists." });
+        }
+
+        // Validate scope
+        const sType = (scopeType || (role === 'SUPER_ADMIN' ? 'GLOBAL' : 'STATE')).toUpperCase();
+        const stateClean = (state || '').trim();
+        const cityClean = (city || '').trim();
+
+        if (sType === 'STATE' && !stateClean) {
+            return res.status(400).json({ success: false, message: "State is required for AREA_ADMIN with STATE scope." });
+        }
+        if (sType === 'CITY' && (!stateClean || !cityClean)) {
+            return res.status(400).json({ success: false, message: "State and City are required for AREA_ADMIN with CITY scope." });
+        }
+
+        // Hash password
+        const passwordHash = await bcrypt.hash(password, 10);
+        const accountStatus = (status || 'ACTIVE').toUpperCase() === 'DISABLED' ? 'BANNED' : 'ACTIVE';
+
+        // Insert Admin Profile
+        const profileRes = await db.query(`
+            INSERT INTO profiles (
+                name, email, password_hash, role, status, account_status, verified, email_verified, phone_verified
+            ) VALUES (
+                $1, $2, $3, 'admin', $4, $5, true, true, true
+            ) RETURNING *
+        `, [name.trim(), cleanEmail, passwordHash, accountStatus === 'ACTIVE' ? 'active' : 'inactive', accountStatus]);
+
+        const newAdmin = profileRes.rows[0];
+
+        // Insert Initial Scope
+        const scopeRes = await db.query(`
+            INSERT INTO admin_scopes (admin_user_id, scope_type, state, city, is_active)
+            VALUES ($1, $2, $3, $4, $5)
+            RETURNING *
+        `, [newAdmin.id, sType, sType === 'GLOBAL' ? '' : stateClean, sType === 'CITY' ? cityClean : '', accountStatus === 'ACTIVE']);
+
+        // Record Audit Log
+        await db.query(`
+            INSERT INTO audit_logs (user_id, user_email, role, action, resource, resource_id, details)
+            VALUES ($1, $2, 'admin', 'ADMIN_CREATED', 'AdminManagement', $3, $4)
+        `, [req.user.id, req.user.email, newAdmin.id, JSON.stringify({ name, email: cleanEmail, scopeType: sType, state: stateClean, city: cityClean })]);
+
+        return res.status(201).json({
+            success: true,
+            message: `Administrator '${name}' created successfully.`,
+            admin: newAdmin,
+            scope: scopeRes.rows[0]
+        });
+    } catch (err) {
+        console.error("POST /create-admin Error:", err);
         return res.status(500).json({ success: false, message: err.message });
     }
 });
@@ -153,6 +258,12 @@ router.post("/scopes", requireSuperAdmin, async (req, res) => {
             RETURNING *
         `, [targetUser.id, sType, sType === 'GLOBAL' ? '' : stateClean, sType === 'CITY' ? cityClean : '']);
 
+        // Record Audit Log
+        await db.query(`
+            INSERT INTO audit_logs (user_id, user_email, role, action, resource, resource_id, details)
+            VALUES ($1, $2, 'admin', 'ADMIN_SCOPE_ASSIGNED', 'AdminManagement', $3, $4)
+        `, [req.user.id, req.user.email, targetUser.id, JSON.stringify({ scopeType: sType, state: stateClean, city: cityClean })]);
+
         return res.status(201).json({
             success: true,
             message: `Scope '${sType}' successfully assigned to ${targetUser.email}`,
@@ -172,9 +283,64 @@ router.delete("/scopes/:id", requireSuperAdmin, async (req, res) => {
         if (delRes.rows.length === 0) {
             return res.status(404).json({ success: false, message: "Scope not found." });
         }
-        return res.json({ success: true, message: "Scope successfully revoked.", scope: delRes.rows[0] });
+
+        const scope = delRes.rows[0];
+        // Record Audit Log
+        await db.query(`
+            INSERT INTO audit_logs (user_id, user_email, role, action, resource, resource_id, details)
+            VALUES ($1, $2, 'admin', 'ADMIN_SCOPE_REMOVED', 'AdminManagement', $3, $4)
+        `, [req.user.id, req.user.email, scope.admin_user_id, JSON.stringify({ scopeId: id, scopeType: scope.scope_type })]);
+
+        return res.json({ success: true, message: "Scope successfully revoked.", scope });
     } catch (err) {
         console.error("DELETE /scopes/:id Error:", err);
+        return res.status(500).json({ success: false, message: err.message });
+    }
+});
+
+router.patch("/scopes/status/:userId", requireSuperAdmin, async (req, res) => {
+    try {
+        const { userId } = req.params;
+        const { status } = req.body;
+
+        if (!status || !['ACTIVE', 'DISABLED'].includes(status.toUpperCase())) {
+            return res.status(400).json({ success: false, message: "Status must be ACTIVE or DISABLED." });
+        }
+
+        const targetStatus = status.toUpperCase();
+        const accountStatus = targetStatus === 'DISABLED' ? 'BANNED' : 'ACTIVE';
+        const isActive = targetStatus === 'ACTIVE';
+
+        const db = await getSupabaseClient();
+        const userRes = await db.query(`
+            UPDATE profiles SET account_status = $1, status = $2, updated_at = NOW()
+            WHERE id::text = $3 OR mongo_id = $3
+            RETURNING *
+        `, [accountStatus, isActive ? 'active' : 'inactive', userId]);
+
+        if (userRes.rows.length === 0) {
+            return res.status(404).json({ success: false, message: "Admin user not found." });
+        }
+
+        const targetUser = userRes.rows[0];
+
+        // Update scopes active flag
+        await db.query(`UPDATE admin_scopes SET is_active = $1, updated_at = NOW() WHERE admin_user_id = $2`, [isActive, targetUser.id]);
+
+        // Record Audit Log
+        const action = targetStatus === 'DISABLED' ? 'ADMIN_DISABLED' : 'ADMIN_ENABLED';
+        await db.query(`
+            INSERT INTO audit_logs (user_id, user_email, role, action, resource, resource_id, details)
+            VALUES ($1, $2, 'admin', $3, 'AdminManagement', $4, $5)
+        `, [req.user.id, req.user.email, action, targetUser.id, JSON.stringify({ adminEmail: targetUser.email, targetStatus })]);
+
+        return res.json({
+            success: true,
+            message: `Administrator ${targetUser.email} status updated to ${targetStatus}.`,
+            user: targetUser
+        });
+    } catch (err) {
+        console.error("PATCH /scopes/status/:userId Error:", err);
         return res.status(500).json({ success: false, message: err.message });
     }
 });

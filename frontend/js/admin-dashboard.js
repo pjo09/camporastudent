@@ -208,6 +208,7 @@ init();
 async function init() {
   renderAdminInfo();
   setupEventListeners();
+  await checkSuperAdminPermissions();
   await loadTabData("overview");
   DOM.loading.style.display = "none";
   updateLastUpdate();
@@ -290,7 +291,7 @@ function switchTab(tab) {
   if (content) content.classList.add("active");
 
   // Update title
-  const titles = { overview: "Dashboard Overview", analytics: "Analytics", users: "Users Management", properties: "Properties", bookings: "Bookings", payments: "Payments", reviews: "Reviews", reports: "Reports", settings: "Platform Settings", system: "System" };
+  const titles = { overview: "Dashboard Overview", analytics: "Analytics", users: "Users Management", properties: "Properties", bookings: "Bookings", payments: "Payments", reviews: "Reviews", reports: "Reports", settings: "Platform Settings", "admin-management": "Admin Management", system: "System" };
   DOM.pageTitle.textContent = titles[tab] || "Admin";
 
   // Load tab data
@@ -320,6 +321,7 @@ async function loadTabData(tab, force = false) {
       case "reviews": await loadReviews(); break;
       case "reports": await loadReports(); break;
       case "settings": await loadSettings(); break;
+      case "admin-management": await loadAdminManagement(); break;
       case "system": await loadSystem(); break;
     }
     state.loadedTabs[tab] = true;
@@ -1122,9 +1124,332 @@ checkMobile();
 window.addEventListener("resize", checkMobile);
 
 // =====================================================
-// EXPOSE TOAST
+// EXPOSE TOAST & ADMIN MANAGEMENT UI
 // =====================================================
 
 window.showToast = showToast;
+
+async function checkSuperAdminPermissions() {
+  try {
+    const res = await fetch(`${API}/admin/scopes`, { headers: { Authorization: `Bearer ${state.token}` } });
+    if (!res.ok) return;
+    const data = await res.json();
+    if (data.success && data.currentAdminScope && data.currentAdminScope.isGlobal) {
+      const navItem = document.getElementById("adminMgmtNavItem");
+      if (navItem) navItem.style.display = "flex";
+      state.isSuperAdmin = true;
+    }
+  } catch (e) {
+    console.error("Failed checking super admin permissions", e);
+  }
+}
+
+async function loadAdminManagement(force = false) {
+  const tbody = document.getElementById("adminManagementTable");
+  if (!tbody) return;
+  
+  try {
+    const res = await fetch(`${API}/admin/administrators`, { headers: { Authorization: `Bearer ${state.token}` } });
+    if (res.status === 403) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#ef4444">Access denied. Super Admin privileges required.</td></tr>`;
+      return;
+    }
+    
+    const data = await res.json();
+    if (!data.success || !data.administrators) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#64748b">No administrators found.</td></tr>`;
+      return;
+    }
+
+    if (data.administrators.length === 0) {
+      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#64748b">No administrators found.</td></tr>`;
+      return;
+    }
+
+    tbody.innerHTML = data.administrators.map(a => {
+      const isSuper = (a.scopes || []).some(s => s.scope_type === 'GLOBAL') || a.email === 'camporaforstudents@gmail.com';
+      const roleBadge = isSuper 
+        ? `<span class="admin-status active" style="background:rgba(124,58,237,.15);color:#a78bfa"><i class="fa-solid fa-crown" style="margin-right:4px"></i>SUPER_ADMIN</span>`
+        : `<span class="admin-status info" style="background:rgba(59,130,246,.15);color:#60a5fa"><i class="fa-solid fa-location-dot" style="margin-right:4px"></i>AREA_ADMIN</span>`;
+      
+      const isActive = a.account_status === 'ACTIVE' || a.status === 'active';
+      const statusBadge = isActive
+        ? `<span class="admin-status active">ACTIVE</span>`
+        : `<span class="admin-status suspended">DISABLED</span>`;
+
+      const areasHTML = (a.scopes && a.scopes.length > 0)
+        ? a.scopes.map(s => {
+            const label = s.scope_type === 'GLOBAL' ? 'GLOBAL (India)' : s.scope_type === 'STATE' ? `${s.state} (State)` : `${s.city}, ${s.state} (City)`;
+            return `<span style="display:inline-flex;align-items:center;gap:4px;padding:2px 8px;border-radius:6px;background:rgba(255,255,255,.08);font-size:11px;margin:2px">
+              ${label}
+              ${!isSuper ? `<i class="fa-solid fa-xmark" style="cursor:pointer;color:#ef4444;margin-left:4px" title="Remove Scope" onclick="window.removeAdminScope('${s.id}')"></i>` : ''}
+            </span>`;
+          }).join('')
+        : `<span style="color:#64748b;font-size:12px">No scopes assigned</span>`;
+
+      const actionButtons = `
+        <div class="action-group">
+          <button class="admin-btn admin-btn-sm admin-btn-primary" onclick="window.openAddScopeModal('${a.id}', '${a.name}')">+ Scope</button>
+          ${isActive 
+            ? `<button class="admin-btn admin-btn-sm admin-btn-danger" onclick="window.toggleAdminStatus('${a.id}', 'DISABLED')">Disable</button>`
+            : `<button class="admin-btn admin-btn-sm admin-btn-success" onclick="window.toggleAdminStatus('${a.id}', 'ACTIVE')">Enable</button>`
+          }
+        </div>
+      `;
+
+      return `
+        <tr>
+          <td>
+            <div style="font-weight:600;color:#fff">${a.name || 'Admin User'}</div>
+            <div style="font-size:12px;color:#94a3b8">${a.email}</div>
+          </td>
+          <td>${roleBadge}</td>
+          <td>${statusBadge}</td>
+          <td>${areasHTML}</td>
+          <td style="font-size:12px;color:#94a3b8">${new Date(a.created_at || Date.now()).toLocaleDateString()}</td>
+          <td>${actionButtons}</td>
+        </tr>
+      `;
+    }).join('');
+
+  } catch (err) {
+    console.error("loadAdminManagement error:", err);
+    tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#ef4444">Failed to load administrators.</td></tr>`;
+  }
+}
+
+function openCreateAdminModalDialog() {
+  openModal(`Create New Administrator`, `
+    <form id="createAdminForm" style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px">Full Name *</label>
+        <input type="text" id="adminNameInput" class="admin-filter-bar" style="width:100%" placeholder="e.g. Rahul Sharma" required />
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px">Email Address *</label>
+        <input type="email" id="adminEmailInput" class="admin-filter-bar" style="width:100%" placeholder="e.g. admin.delhi@campora.in" required />
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px">Password *</label>
+        <input type="password" id="adminPasswordInput" class="admin-filter-bar" style="width:100%" placeholder="Min 6 characters" required minlength="6" />
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px">Admin Role *</label>
+        <select id="adminRoleSelect" class="admin-filter-bar" style="width:100%">
+          <option value="AREA_ADMIN">AREA_ADMIN (Geographic Scope)</option>
+          <option value="SUPER_ADMIN">SUPER_ADMIN (Global Access)</option>
+        </select>
+      </div>
+      <div id="newScopeTypeGroup">
+        <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px">Initial Scope Type *</label>
+        <select id="newScopeTypeSelect" class="admin-filter-bar" style="width:100%">
+          <option value="STATE">STATE (State-Level Admin)</option>
+          <option value="CITY">CITY (City-Level Admin)</option>
+        </select>
+      </div>
+      <div id="newStateGroup">
+        <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px">State *</label>
+        <input type="text" id="newStateInput" class="admin-filter-bar" style="width:100%" placeholder="e.g. Delhi, Maharashtra" required />
+      </div>
+      <div id="newCityGroup" style="display:none">
+        <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px">City *</label>
+        <input type="text" id="newCityInput" class="admin-filter-bar" style="width:100%" placeholder="e.g. Mumbai, Pune, Delhi" />
+      </div>
+      <div>
+        <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px">Initial Status *</label>
+        <select id="adminStatusSelect" class="admin-filter-bar" style="width:100%">
+          <option value="ACTIVE">ACTIVE</option>
+          <option value="DISABLED">DISABLED</option>
+        </select>
+      </div>
+      <button type="submit" class="admin-btn admin-btn-primary" style="margin-top:10px;padding:12px">Create Administrator</button>
+    </form>
+  `);
+
+  const roleSelect = document.getElementById("adminRoleSelect");
+  const scopeTypeGroup = document.getElementById("newScopeTypeGroup");
+  const scopeTypeSelect = document.getElementById("newScopeTypeSelect");
+  const stateGrp = document.getElementById("newStateGroup");
+  const cityGrp = document.getElementById("newCityGroup");
+  const stateInp = document.getElementById("newStateInput");
+  const cityInp = document.getElementById("newCityInput");
+
+  roleSelect?.addEventListener("change", (e) => {
+    const val = e.target.value;
+    if (val === "SUPER_ADMIN") {
+      scopeTypeGroup.style.display = "none";
+      stateGrp.style.display = "none";
+      cityGrp.style.display = "none";
+      stateInp.required = false;
+      cityInp.required = false;
+    } else {
+      scopeTypeGroup.style.display = "block";
+      stateGrp.style.display = "block";
+      stateInp.required = true;
+      if (scopeTypeSelect.value === "CITY") {
+        cityGrp.style.display = "block";
+        cityInp.required = true;
+      }
+    }
+  });
+
+  scopeTypeSelect?.addEventListener("change", (e) => {
+    const val = e.target.value;
+    if (val === "CITY") {
+      cityGrp.style.display = "block";
+      cityInp.required = true;
+    } else {
+      cityGrp.style.display = "none";
+      cityInp.required = false;
+    }
+  });
+
+  document.getElementById("createAdminForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const name = document.getElementById("adminNameInput").value.trim();
+    const email = document.getElementById("adminEmailInput").value.trim();
+    const password = document.getElementById("adminPasswordInput").value;
+    const role = roleSelect.value;
+    const scopeType = role === "SUPER_ADMIN" ? "GLOBAL" : scopeTypeSelect.value;
+    const state = stateInp.value.trim();
+    const city = cityInp.value.trim();
+    const status = document.getElementById("adminStatusSelect").value;
+
+    try {
+      const res = await fetch(`${API}/admin/create-admin`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${state.token}` },
+        body: JSON.stringify({ name, email, password, role, scopeType, state, city, status })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Administrator created successfully!", "success");
+        closeModal();
+        loadAdminManagement(true);
+      } else {
+        showToast(data.message || "Failed to create administrator", "error");
+      }
+    } catch (err) {
+      showToast("Error creating administrator", "error");
+    }
+  });
+}
+
+window.openAddScopeModal = (adminId, adminName) => {
+  openModal(`Add Area Scope for ${adminName}`, `
+    <form id="addScopeForm" style="display:flex;flex-direction:column;gap:14px">
+      <div>
+        <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px">Scope Type *</label>
+        <select id="scopeTypeInput" class="admin-filter-bar" style="width:100%" required>
+          <option value="STATE">STATE (State-Level Admin)</option>
+          <option value="CITY">CITY (City-Level Admin)</option>
+          <option value="GLOBAL">GLOBAL (India-Wide Super Admin)</option>
+        </select>
+      </div>
+      <div id="stateFieldGroup">
+        <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px">State *</label>
+        <input type="text" id="stateInput" class="admin-filter-bar" style="width:100%" placeholder="e.g. Delhi, Maharashtra, Karnataka" required />
+      </div>
+      <div id="cityFieldGroup" style="display:none">
+        <label style="display:block;font-size:13px;color:#94a3b8;margin-bottom:4px">City *</label>
+        <input type="text" id="cityInput" class="admin-filter-bar" style="width:100%" placeholder="e.g. Mumbai, Pune, Bangalore" />
+      </div>
+      <button type="submit" class="admin-btn admin-btn-primary" style="margin-top:10px;padding:12px">Assign Scope</button>
+    </form>
+  `);
+
+  const scopeTypeSelect = document.getElementById("scopeTypeInput");
+  const stateGrp = document.getElementById("stateFieldGroup");
+  const cityGrp = document.getElementById("cityFieldGroup");
+  const stateInp = document.getElementById("stateInput");
+  const cityInp = document.getElementById("cityInput");
+
+  scopeTypeSelect?.addEventListener("change", (e) => {
+    const val = e.target.value;
+    if (val === "GLOBAL") {
+      stateGrp.style.display = "none";
+      cityGrp.style.display = "none";
+      stateInp.required = false;
+      cityInp.required = false;
+    } else if (val === "STATE") {
+      stateGrp.style.display = "block";
+      cityGrp.style.display = "none";
+      stateInp.required = true;
+      cityInp.required = false;
+    } else if (val === "CITY") {
+      stateGrp.style.display = "block";
+      cityGrp.style.display = "block";
+      stateInp.required = true;
+      cityInp.required = true;
+    }
+  });
+
+  document.getElementById("addScopeForm")?.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const scopeType = scopeTypeSelect.value;
+    const state = stateInp.value.trim();
+    const city = cityInp.value.trim();
+
+    try {
+      const res = await fetch(`${API}/admin/scopes`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json", Authorization: `Bearer ${state.token}` },
+        body: JSON.stringify({ adminUserId: adminId, scopeType, state, city })
+      });
+      const data = await res.json();
+      if (data.success) {
+        showToast("Scope assigned successfully!", "success");
+        closeModal();
+        loadAdminManagement(true);
+      } else {
+        showToast(data.message || "Failed to assign scope", "error");
+      }
+    } catch (err) {
+      showToast("Error assigning scope", "error");
+    }
+  });
+};
+
+window.removeAdminScope = async (scopeId) => {
+  if (!confirm("Are you sure you want to remove this area scope?")) return;
+  try {
+    const res = await fetch(`${API}/admin/scopes/${scopeId}`, {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${state.token}` }
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast("Scope removed successfully", "info");
+      loadAdminManagement(true);
+    } else {
+      showToast(data.message || "Failed to remove scope", "error");
+    }
+  } catch (err) {
+    showToast("Error removing scope", "error");
+  }
+};
+
+window.toggleAdminStatus = async (adminId, status) => {
+  const actionText = status === "DISABLED" ? "disable" : "enable";
+  if (!confirm(`Are you sure you want to ${actionText} this administrator?`)) return;
+  try {
+    const res = await fetch(`${API}/admin/scopes/status/${adminId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json", Authorization: `Bearer ${state.token}` },
+      body: JSON.stringify({ status })
+    });
+    const data = await res.json();
+    if (data.success) {
+      showToast(`Administrator ${actionText}d successfully`, "success");
+      loadAdminManagement(true);
+    } else {
+      showToast(data.message || "Failed to update administrator status", "error");
+    }
+  } catch (err) {
+    showToast("Error updating status", "error");
+  }
+};
+
+document.getElementById("openCreateAdminModal")?.addEventListener("click", openCreateAdminModalDialog);
 
 console.log("✅ Campora Admin Dashboard Loaded");
