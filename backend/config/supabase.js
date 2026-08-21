@@ -1,6 +1,7 @@
 const { PGlite } = require('@electric-sql/pglite');
 const fs = require('fs');
 const path = require('path');
+const dbConfig = require('./database');
 const { seedSupabaseData } = require('../utils/supabaseDataSeeder');
 
 let pgliteInstance = null;
@@ -54,6 +55,13 @@ async function getSupabaseClient() {
         });
     }
     return initPromise;
+}
+
+// Pre-warm asynchronously in setImmediate so PORT binds instantly, while WASM compiles in background
+if (dbConfig.isSupabase()) {
+    setImmediate(() => {
+        getSupabaseClient().catch(err => console.error("[Supabase] Background pre-warm failed:", err));
+    });
 }
 
 module.exports = {
