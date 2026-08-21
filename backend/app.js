@@ -31,6 +31,9 @@ connectDB().then(() => {
             setInterval(checkAndSendMoveInReminders, 6 * 60 * 60 * 1000);
         } else {
             console.log("[BookingHelper] Mongoose background helper skipped (Supabase provider active)");
+            const { getSupabaseClient } = require("./config/supabase");
+            getSupabaseClient().then(() => console.log("✅ Supabase client pre-warmed and ready"))
+                .catch(err => console.error("❌ Supabase init error:", err));
         }
     } catch (err) {
         console.error("Failed to run booking helper startup:", err.message);
