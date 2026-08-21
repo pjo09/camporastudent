@@ -8,6 +8,7 @@ const User = require("../models/User");
 const Otp = require("../models/Otp");
 const auth = require("../middleware/auth");
 const sendEmail = require("../utils/sendEmail");
+const userRepository = require("../repositories/userRepository");
 
 // ==========================================
 // CONSTANTS
@@ -32,8 +33,9 @@ const ADMIN_EMAIL = (process.env.ADMIN_EMAIL || "camporaforstudents@gmail.com").
  * Expires in 7 days.
  */
 function generateToken(user) {
+    const userId = user.id || user._id;
     return jwt.sign(
-        { id: user._id, email: user.email, role: user.role },
+        { id: userId, email: user.email, role: user.role },
         process.env.JWT_SECRET,
         { expiresIn: JWT_EXPIRY }
     );
@@ -43,8 +45,10 @@ function generateToken(user) {
  * Strip sensitive / internal fields and return a safe user object.
  */
 function sanitizeUser(user) {
+    const userId = user.id || user._id;
     return {
-        id: user._id,
+        id: userId,
+        _id: userId,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -172,7 +176,7 @@ router.post("/register", async (req, res) => {
         }
 
         // --- Check for existing user ---
-        const existingUser = await User.findOne({ email });
+        const existingUser = await userRepository.findUserByEmail(email);
         if (existingUser) {
             return respondError(res, 409, "An account with this email already exists.");
         }
@@ -181,7 +185,7 @@ router.post("/register", async (req, res) => {
         const hashedPassword = await bcrypt.hash(password, BCRYPT_ROUNDS);
 
         // --- Create user ---
-        const user = await User.create({
+        const user = await userRepository.createUser({
             name: name.trim(),
             email,
             password: hashedPassword,
@@ -243,7 +247,7 @@ router.post("/login", async (req, res) => {
         }
 
         // --- Find user ---
-        let user = await User.findOne({ email });
+        let user = await userRepository.findUserByEmail(email);
         if (!user) {
             return respondError(res, 401, "No account found with this email address.");
         }
@@ -591,7 +595,7 @@ router.post("/reset-password", async (req, res) => {
 
 router.get("/me", auth, async (req, res) => {
     try {
-        const user = await User.findById(req.user.id).select("-password");
+        const user = await userRepository.findUserById(req.user.id);
         if (!user) {
             return respondError(res, 404, "User not found. Your account may have been deleted.");
         }

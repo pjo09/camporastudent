@@ -13,6 +13,7 @@ function formatUserRow(row) {
         verified: row.verified,
         status: row.status,
         phone: row.phone || '',
+        password: row.password_hash || '',
         googleId: row.google_id || '',
         avatar: row.avatar_url || row.profile_image || '',
         profileImage: row.profile_image || row.avatar_url || '',
