@@ -34,8 +34,12 @@ const isVercelBuild = Boolean(process.env.VERCEL || process.env.CI || process.en
 
 // Fail build immediately if anon key is missing during Vercel deployment
 if (isVercelBuild && !anonKey) {
-    console.error('❌ Fatal Vercel Build Error: VITE_SUPABASE_ANON_KEY is missing in Vercel Production Environment Variables.');
-    console.error('👉 Ensure VITE_SUPABASE_ANON_KEY is checked for the Production environment scope in Vercel Dashboard Settings.');
+    console.error('❌ FATAL VERCEL BUILD FAILURE: VITE_SUPABASE_ANON_KEY environment variable is not defined in Vercel Production Environment Variables.');
+    console.error('👉 REQUIRED ACTION IN VERCEL DASHBOARD:');
+    console.error('   1. Go to Vercel Dashboard -> Project Settings -> Environment Variables.');
+    console.error('   2. Add/Edit VITE_SUPABASE_ANON_KEY with your Supabase Public Anon Key.');
+    console.error('   3. Ensure the "Production" target scope checkbox is checked.');
+    console.error('   4. Save and trigger a manual Redeploy under Deployments tab.');
     process.exit(1);
 }
 
