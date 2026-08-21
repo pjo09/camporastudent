@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 const crypto = require('crypto');
 
-const backupDir = 'C:\\Users\\piyus\\.gemini\\antigravity\\brain\\ea8e4fcd-6d54-4f7b-bbb6-9bbce5e9d5ab\\scratch\\backup';
+const backupDir = path.join(__dirname, '../scratch/backup');
 
 async function seedSupabaseData(db) {
     if (!fs.existsSync(backupDir)) {
