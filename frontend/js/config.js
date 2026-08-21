@@ -1,35 +1,23 @@
 // =====================================================
-// CAMPORA FRONTEND CONFIGURATION
+// CAMPORA FRONTEND CONFIGURATION — 100% SUPABASE NATIVE
 // =====================================================
 
-const isProduction =
-    window.location.hostname !== "localhost" &&
-    window.location.hostname !== "127.0.0.1";
-
 const CONFIG = {
-    API_BASE: isProduction
-        ? "https://camporastudent.onrender.com/api"
-        : "http://localhost:5000/api",
+    SUPABASE_URL: (typeof window !== "undefined" && window.__ENV && window.__ENV.VITE_SUPABASE_URL) || "https://aws-0-ap-south-1.pooler.supabase.com",
+    SUPABASE_ANON_KEY: (typeof window !== "undefined" && window.__ENV && window.__ENV.VITE_SUPABASE_ANON_KEY) || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhbXBvcmEiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoyMDAwMDAwMDAwfQ.placeholder_public_anon_key",
 
     REQUEST_TIMEOUT: 15000,
     UPLOAD_TIMEOUT: 60000,
-
     DEFAULT_PAGE_SIZE: 12,
 
     ENABLE_ANALYTICS: true,
     ENABLE_NOTIFICATIONS: true,
     ENABLE_REALTIME_CHAT: false,
-    ENABLE_PWA: false,
-
     TOKEN_KEY: "camporaToken"
 };
 
 if (typeof window !== "undefined") {
     window.__CONFIG = CONFIG;
-    window.__API = CONFIG.API_BASE;
 }
 
-const API = CONFIG.API_BASE;
-
 export default CONFIG;
-export { API };

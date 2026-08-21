@@ -1,22 +1,42 @@
 // =====================================================
-// CAMPORA SUPABASE NATIVE CLIENT ABSTRACTION
-// Production-safe, zero-secret public client
+// CAMPORA SUPABASE NATIVE CLIENT
+// 100% Native PostgREST & Auth Client (No Render Dependency)
 // =====================================================
 
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import CONFIG from "./config.js";
 
-const supabaseUrl = (typeof window !== "undefined" && window.__ENV && window.__ENV.VITE_SUPABASE_URL) || "https://aws-0-ap-south-1.pooler.supabase.com";
-const supabaseAnonKey = (typeof window !== "undefined" && window.__ENV && window.__ENV.VITE_SUPABASE_ANON_KEY) || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhbXBvcmEiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoyMDAwMDAwMDAwfQ.placeholder_public_anon_key";
+const getEnvUrl = () => {
+    if (typeof window !== "undefined") {
+        if (window.__ENV && window.__ENV.VITE_SUPABASE_URL) return window.__ENV.VITE_SUPABASE_URL;
+        if (window.VITE_SUPABASE_URL) return window.VITE_SUPABASE_URL;
+    }
+    return CONFIG.SUPABASE_URL;
+};
+
+const getEnvKey = () => {
+    if (typeof window !== "undefined") {
+        if (window.__ENV && window.__ENV.VITE_SUPABASE_ANON_KEY) return window.__ENV.VITE_SUPABASE_ANON_KEY;
+        if (window.VITE_SUPABASE_ANON_KEY) return window.VITE_SUPABASE_ANON_KEY;
+    }
+    return CONFIG.SUPABASE_ANON_KEY;
+};
+
+const supabaseUrl = getEnvUrl();
+const supabaseAnonKey = getEnvKey();
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     auth: {
         autoRefreshToken: true,
         persistSession: true,
-        detectSessionInUrl: true
+        detectSessionInUrl: true,
+        storageKey: "campora_supabase_auth"
+    },
+    global: {
+        headers: {
+            "x-client-info": "campora-student-web"
+        }
     }
 });
 
-// Feature flag for gradual parallel cutover (Defaults to native Supabase, set USE_SUPABASE_NATIVE=false in localStorage for instant Render rollback)
-export const USE_SUPABASE_NATIVE = (typeof window !== "undefined" && window.localStorage.getItem("USE_SUPABASE_NATIVE") !== "false");
-
-console.log("[SupabaseClient] Initialized native client. Feature flag USE_SUPABASE_NATIVE =", USE_SUPABASE_NATIVE);
+console.log("⚡ Supabase Native Client initialized. URL:", supabaseUrl);
