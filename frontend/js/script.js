@@ -1,10 +1,13 @@
 // =====================================================
-// CAMPORA LANDING PAGE — MODULAR ARCHITECTURE
+// CAMPORA LANDING PAGE — SUPABASE NATIVE ARCHITECTURE
 // =====================================================
 
-import CONFIG, { API } from "./config.js";
+import CONFIG from "./config.js";
 import { login, logout, getUser, getToken, redirectBasedOnRole } from "./session.js";
 import { getImageUrl } from "./image-utils.js";
+import { apiClient } from "./migration-adapter.js";
+
+console.log("📡 Using backend:", apiClient.provider || "supabase");
 
 // =====================================================
 // SHARED HELPERS
@@ -32,58 +35,8 @@ function imageUrl(path) {
     return getImageUrl(path, "/assets/images/property-placeholder.jpg");
 }
 
-async function apiGet(endpoint, isRetry = false) {
-    const token = getToken();
-    const headers = { "Content-Type": "application/json" };
-    if (token) headers.Authorization = "Bearer " + token;
-
-    try {
-        const res = await fetch(API + endpoint, { headers });
-        if (!res.ok && (res.status === 503 || res.status === 502) && !isRetry) {
-            await new Promise(r => setTimeout(r, 2500));
-            return apiGet(endpoint, true);
-        }
-        const data = await res.json();
-        if (!res.ok || data.success === false) {
-            throw new Error(data.message || "Something went wrong");
-        }
-        return data;
-    } catch (err) {
-        if (!isRetry) {
-            await new Promise(r => setTimeout(r, 2500));
-            return apiGet(endpoint, true);
-        }
-        throw err;
-    }
-}
-
-async function apiPost(endpoint, body, isRetry = false) {
-    try {
-        const res = await fetch(API + endpoint, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(body)
-        });
-        if (!res.ok && (res.status === 503 || res.status === 502) && !isRetry) {
-            await new Promise(r => setTimeout(r, 2500));
-            return apiPost(endpoint, body, true);
-        }
-        const data = await res.json();
-        if (!res.ok || data.success === false) {
-            throw new Error(data.message || "Something went wrong");
-        }
-        return data;
-    } catch (err) {
-        if (!isRetry) {
-            await new Promise(r => setTimeout(r, 2500));
-            return apiPost(endpoint, body, true);
-        }
-        throw err;
-    }
-}
-
 // =====================================================
-// APP
+// APP BOOTSTRAP
 // =====================================================
 
 const App = (() => {
@@ -136,8 +89,7 @@ const Intro = (() => {
             intro.classList.add("hide");
             document.body.classList.add("intro-done");
 
-            // Show the login/create-account popup after intro completes,
-            // but only for visitors who are not already signed in.
+            // Show the login/create-account popup after intro completes
             if (!getToken()) {
                 AuthModal.open("login");
             }
@@ -184,10 +136,11 @@ const Navbar = (() => {
             });
         }
 
-// Logout button
-const logoutBtn = $("navLogout");
+        // Logout button
+        const logoutBtn = $("navLogout");
         if (logoutBtn) {
-            logoutBtn.addEventListener("click", () => {
+            logoutBtn.addEventListener("click", async () => {
+                await apiClient.signOut().catch(() => {});
                 logout();
             });
         }
@@ -341,10 +294,10 @@ const AuthModal = (() => {
         setLoading(btn, true, "Logging in...");
 
         try {
-            const data = await apiPost("/auth/login", { email, password });
+            const data = await apiClient.signIn(email, password);
             login(data.token, data.user, remember);
-            showMessage(errorBox, "Welcome back, " + data.user.name + "!", "success");
-            setTimeout(() => { close(); redirectBasedOnRole(data.user.role); }, 600);
+            showMessage(errorBox, "Welcome back, " + (data.user?.name || "User") + "!", "success");
+            setTimeout(() => { close(); redirectBasedOnRole(data.user?.role || "student"); }, 600);
         } catch (err) {
             showMessage(errorBox, err.message, "error");
         } finally {
@@ -379,17 +332,16 @@ const AuthModal = (() => {
             const payload = {
                 name,
                 email,
-                password,
                 role: currentRole
             };
             if (currentRole === "owner") {
                 payload.businessName = $("registerBusiness") ? $("registerBusiness").value.trim() : "";
             }
 
-            const data = await apiPost("/auth/register", payload);
+            const data = await apiClient.signUp(email, password, payload);
             login(data.token, data.user, false);
             showMessage(errorBox, "Account created successfully!", "success");
-            setTimeout(() => { close(); redirectBasedOnRole(data.user.role); }, 700);
+            setTimeout(() => { close(); redirectBasedOnRole(data.user?.role || "student"); }, 700);
         } catch (err) {
             showMessage(errorBox, err.message, "error");
         } finally {
@@ -416,64 +368,24 @@ const AuthModal = (() => {
         );
     }
 
-    // ---------- GOOGLE ----------
+    // ---------- GOOGLE LOGIN ----------
 
     function initGoogle() {
-        if (typeof google === "undefined" || typeof google.accounts === "undefined") {
-            const tryAgain = () => {
-                if (typeof google !== "undefined" && typeof google.accounts !== "undefined") setup();
-            };
-            setTimeout(tryAgain, 800);
-            return;
-        }
-        setup();
-    }
-
-    function setup() {
-        const clientId = CONFIG.GOOGLE_CLIENT_ID || "45569590642-4mehsdjfru09l14mmslif775edv7jego.apps.googleusercontent.com";
-
-        try {
-            google.accounts.id.initialize({
-                client_id: clientId,
-                callback: handleGoogle
-            });
-        } catch (e) {
-            // already initialized
-        }
-
         const loginGoogle = $("loginGoogleButton");
-        if (loginGoogle) {
-            loginGoogle.innerHTML = "";
-            google.accounts.id.renderButton(loginGoogle, {
-                theme: "outline",
-                size: "large",
-                shape: "pill",
-                width: Math.max(200, Math.min(300, window.innerWidth - 80))
-            });
-        }
-
         const registerGoogle = $("registerGoogleButton");
+
+        if (loginGoogle) {
+            loginGoogle.addEventListener("click", handleGoogleTrigger);
+        }
         if (registerGoogle) {
-            registerGoogle.innerHTML = "";
-            google.accounts.id.renderButton(registerGoogle, {
-                theme: "filled_blue",
-                size: "large",
-                shape: "pill",
-                width: Math.max(200, Math.min(300, window.innerWidth - 80))
-            });
+            registerGoogle.addEventListener("click", handleGoogleTrigger);
         }
     }
 
-    async function handleGoogle(response) {
+    async function handleGoogleTrigger(e) {
+        if (e) e.preventDefault();
         try {
-            const role = currentRole || "student";
-            const data = await apiPost("/auth/google", {
-                credential: response.credential,
-                role
-            });
-            login(data.token, data.user, false);
-            close();
-            redirectBasedOnRole(data.user.role);
+            await apiClient.signInWithGoogle();
         } catch (err) {
             const errorBox = $("loginError");
             showMessage(errorBox, err.message || "Google login failed.", "error");
@@ -488,7 +400,7 @@ const AuthModal = (() => {
         el.className = "auth-message " + (type === "error" ? "error" : "success");
     }
 
-function clearMessage(el) {
+    function clearMessage(el) {
         if (!el) return;
         el.textContent = "";
         el.className = "auth-message";
@@ -500,7 +412,7 @@ function clearMessage(el) {
         btn.textContent = text;
     }
 
-return { init, open };
+    return { init, open };
 })();
 
 // =====================================================
@@ -557,7 +469,7 @@ const Properties = (() => {
         ).join("");
 
         try {
-            const data = await apiGet("/properties/search?sort=rating&limit=6");
+            const data = await apiClient.getProperties({ sort: "rating", limit: 6 });
             const properties = data.properties || [];
 
             if (properties.length === 0) {
@@ -573,10 +485,10 @@ const Properties = (() => {
     }
 
     function renderCard(p) {
-        const name = p.propertyName || p.title || "Campora Property";
+        const name = p.property_name || p.propertyName || p.title || "Campora Property";
         const loc = p.city ? p.city + (p.state ? ", " + p.state : "") : "Location not specified";
         const rent = p.rent || p.price || 0;
-        const rating = p.averageRating || 0;
+        const rating = parseFloat(p.average_rating || p.averageRating || 0);
         const img = p.images && p.images.length ? imageUrl(p.images[0]) : "/assets/images/property-placeholder.jpg";
         const badge = p.verified ? "Verified" : p.featured ? "Featured" : "";
         const amenities = Array.isArray(p.amenities) && p.amenities.length
@@ -588,7 +500,7 @@ const Properties = (() => {
             <div class="property-image">
                 <img src="${img}" alt="${esc(name)}" loading="lazy" onerror="this.onerror=null; this.src='/assets/images/property-placeholder.jpg'">
                 ${badge ? '<span class="property-badge">' + esc(badge) + "</span>" : ""}
-                ${p.propertyType ? '<span class="property-type">' + esc(p.propertyType) + "</span>" : ""}
+                ${p.property_type || p.propertyType ? '<span class="property-type">' + esc(p.property_type || p.propertyType) + "</span>" : ""}
             </div>
             <div class="property-body">
                 <div class="property-location"><i class="fa-solid fa-location-dot"></i> ${esc(loc)}</div>
@@ -597,7 +509,7 @@ const Properties = (() => {
                 <div class="property-footer">
                     <div class="property-price"><span>Rent / month</span><h3>${inr(rent)}</h3></div>
                     <span class="property-rating"><i class="fa-solid fa-star"></i> ${rating > 0 ? rating.toFixed(1) : "New"}</span>
-                    <a href="/pages/property/property.html?id=${p._id}" class="property-btn">Book</a>
+                    <a href="/pages/property/property.html?id=${p.id || p._id}" class="property-btn">Book</a>
                 </div>
             </div>
         </div>`;
@@ -625,10 +537,9 @@ const Universities = (() => {
         ).join("");
 
         try {
-            const data = await apiGet("/properties/search?limit=100");
+            const data = await apiClient.getProperties({ limit: 100 });
             const properties = data.properties || [];
 
-            // Derive distinct universities (college field) from properties
             const universities = [];
             const seen = new Set();
 
@@ -648,7 +559,6 @@ const Universities = (() => {
                 return;
             }
 
-            // Show up to 6
             grid.innerHTML = universities.slice(0, 6).map((u) => renderCard(u)).join("");
             Animations.observeReveals();
         } catch (err) {
@@ -691,10 +601,9 @@ const Cities = (() => {
         ).join("");
 
         try {
-            const data = await apiGet("/properties/search?limit=100");
+            const data = await apiClient.getProperties({ limit: 100 });
             const properties = data.properties || [];
 
-            // Derive distinct cities
             const cities = [];
             const seen = new Set();
 
@@ -753,45 +662,39 @@ const Statistics = (() => {
 
         let stats = null;
         try {
-            const data = await apiGet("/statistics");
+            const data = await apiClient.getStatistics();
             stats = data.statistics || null;
         } catch (e) {
-            // No statistics endpoint available — show empty/zero states, never fake numbers
+            // Error fallback
         }
 
         if (stats) {
-            // Update hero-stats (4 elements)
             const heroBoxes = document.querySelectorAll(".hero-stats .stat-number[data-count]");
             const heroMap = ["students", "properties", "cities", "bookings"];
             heroBoxes.forEach((box, idx) => {
                 const key = heroMap[idx];
                 if (key && stats[key] !== undefined) {
-                    const val = Number(stats[key] || 0);
-                    box.dataset.count = String(val);
+                    box.dataset.count = String(Number(stats[key] || 0));
                     box.dataset.label = key;
                 }
             });
 
-            // Update trust-strip (4 elements)
             const trustBoxes = document.querySelectorAll(".trust-strip .stat-number[data-count]");
             const trustMap = ["students", "properties", "cities", "verifiedOwners"];
             trustBoxes.forEach((box, idx) => {
                 const key = trustMap[idx];
                 if (key && stats[key] !== undefined) {
-                    const val = Number(stats[key] || 0);
-                    box.dataset.count = String(val);
+                    box.dataset.count = String(Number(stats[key] || 0));
                     box.dataset.label = key;
                 }
             });
 
-            // Update statistics-grid (4 elements)
             const gridBoxes = document.querySelectorAll(".statistics-grid .stat-number[data-count]");
             const gridMap = ["students", "properties", "cities", "bookings"];
             gridBoxes.forEach((box, idx) => {
                 const key = gridMap[idx];
                 if (key && stats[key] !== undefined) {
-                    const val = Number(stats[key] || 0);
-                    box.dataset.count = String(val);
+                    box.dataset.count = String(Number(stats[key] || 0));
                     box.dataset.label = key;
                 }
             });
@@ -815,7 +718,7 @@ const Statistics = (() => {
         counters.forEach((c) => io.observe(c));
     }
 
-function animateCounter(el) {
+    function animateCounter(el) {
         const target = Number(el.dataset.count) || 0;
         if (target <= 0) {
             el.textContent = "0+";
@@ -837,16 +740,6 @@ function animateCounter(el) {
         requestAnimationFrame(tick);
     }
 
-    // Expose a method to update a stat box from a real value
-    function setStat(key, value) {
-        const boxes = document.querySelectorAll(".stat-number[data-count]");
-        boxes.forEach((box) => {
-            if (box.dataset.label === key) {
-                box.dataset.count = String(Number(value) || 0);
-            }
-        });
-    }
-
     return { load };
 })();
 
@@ -864,30 +757,16 @@ const Testimonials = (() => {
         const grid = $("testimonialGrid");
         if (!grid) return;
 
-grid.innerHTML = Array(3).fill(
+        grid.innerHTML = Array(3).fill(
             '<div class="loading-card"></div>'
         ).join("");
 
         try {
-            // Load a featured property, then pull its reviews
-            const pData = await apiGet("/properties/search?sort=rating&limit=1");
+            const pData = await apiClient.getProperties({ sort: "rating", limit: 1 });
             const prop = (pData.properties || [])[0];
 
-            let reviews = [];
-            if (prop && prop._id) {
-                const rData = await apiGet("/reviews/" + prop._id);
-                reviews = Array.isArray(rData.reviews) ? rData.reviews : [];
-            }
-
-if (reviews.length === 0) {
-                grid.innerHTML = renderEmpty();
-                return;
-            }
-
-            grid.innerHTML = reviews.slice(0, 3).map(renderCard).join("");
-            Animations.observeReveals();
+            grid.innerHTML = renderEmpty();
         } catch (e) {
-            // No reviews API available — show empty state, never fake data
             grid.innerHTML = renderEmpty();
         }
     }
@@ -900,28 +779,7 @@ if (reviews.length === 0) {
         </div>`;
     }
 
-    function renderCard(r) {
-        const name = r.studentName || r.userName || r.name || "Student";
-        const college = r.college || r.university || "Student";
-        const text = r.comment || r.review || r.text || "";
-        const rating = Number(r.rating || 5);
-        const stars = "★".repeat(Math.min(5, Math.max(1, rating)));
-
-        return `
-        <div class="testimonial-card reveal">
-            <div class="quote-icon"><i class="fa-solid fa-quote-right"></i></div>
-            <p class="review">${esc(text)}</p>
-            <div class="student-info">
-                <div>
-                    <h4 class="student-name">${esc(name)}</h4>
-                    <p class="student-college">${esc(college)}</p>
-                </div>
-            </div>
-            <div class="rating">${stars}</div>
-        </div>`;
-    }
-
-return { load };
+    return { load };
 })();
 
 // =====================================================
@@ -943,14 +801,12 @@ const Showcase = (() => {
                 const target = tab.dataset.showcase;
                 if (!target) return;
 
-                // Update tab state
                 tabs.forEach((t) => {
                     const isActive = t.dataset.showcase === target;
                     t.classList.toggle("active", isActive);
                     t.setAttribute("aria-selected", isActive ? "true" : "false");
                 });
 
-                // Toggle panels
                 const panels = {
                     students: $("showcaseStudents"),
                     owners: $("showcaseOwners"),
@@ -1014,17 +870,12 @@ const Waitlist = (() => {
             }
 
             try {
-                // Attempt to store via contact API (non-critical)
-                try {
-                    await apiPost("/contact", {
-                        name: "Waitlist: " + city,
-                        email,
-                        subject: "Campora Waitlist — " + city,
-                        message: "Waitlist signup for city: " + city
-                    });
-                } catch (apiErr) {
-                    // Waitlist is best-effort; never block the user for backend errors
-                }
+                await apiClient.postContact({
+                    name: "Waitlist: " + city,
+                    email,
+                    subject: "Campora Waitlist — " + city,
+                    message: "Waitlist signup for city: " + city
+                }).catch(() => {});
 
                 if (errorBox) errorBox.style.display = "none";
                 if (successBox) {
@@ -1107,7 +958,7 @@ const Contact = (() => {
             btn.textContent = "Sending...";
 
             try {
-                await apiPost("/contact", { name, email, subject, message });
+                await apiClient.postContact({ name, email, subject, message });
                 alert("Message sent successfully. We'll get back to you soon!");
                 form.reset();
             } catch (err) {
@@ -1181,6 +1032,13 @@ const Animations = (() => {
 
     return { init, observeReveals };
 })();
+
+// Export apiClient to window for global developer console testing
+if (typeof window !== "undefined") {
+    window.apiClient = apiClient;
+}
+
+export { apiClient };
 
 // =====================================================
 // BOOTSTRAP
