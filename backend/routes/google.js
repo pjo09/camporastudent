@@ -5,7 +5,7 @@
 const express = require("express");
 const jwt = require("jsonwebtoken");
 const { OAuth2Client } = require("google-auth-library");
-const User = require("../models/User");
+const userRepository = require("../repositories/userRepository");
 
 const router = express.Router();
 
@@ -20,16 +20,19 @@ const client = new OAuth2Client(
 const JWT_EXPIRY = "7d";
 
 function generateToken(user) {
+    const userId = user.id || user._id;
     return jwt.sign(
-        { id: user._id, email: user.email, role: user.role },
+        { id: userId, email: user.email, role: user.role },
         process.env.JWT_SECRET,
         { expiresIn: JWT_EXPIRY }
     );
 }
 
 function sanitizeUser(user) {
+    const userId = user.id || user._id;
     return {
-        id: user._id,
+        id: userId,
+        _id: userId,
         name: user.name,
         email: user.email,
         role: user.role,
@@ -130,11 +133,11 @@ router.post("/", async (req, res) => {
 
         const normalizedEmail = email.toLowerCase().trim();
 
-        // Check if user exists by email
+        // Check if user exists by email via repository
         currentStage = "USER_LOOKUP";
         let user;
         try {
-            user = await User.findOne({ email: normalizedEmail });
+            user = await userRepository.findUserByEmail(normalizedEmail);
         } catch (lookupErr) {
             console.error("[GOOGLE_AUTH_STAGE] DB Lookup failed:", {
                 stage: "USER_LOOKUP",
@@ -156,21 +159,17 @@ router.post("/", async (req, res) => {
             currentStage = "USER_UPDATE";
             try {
                 // Existing user — update Google ID and avatar if needed
-                if (!user.googleId) {
-                    user.googleId = sub;
-                }
-                if (picture && !user.profileImage) {
-                    user.profileImage = picture;
-                }
-                user.lastLogin = new Date();
-                await user.save();
+                const userId = user.id || user._id;
+                user = await userRepository.updateUser(userId, {
+                    googleId: sub,
+                    profileImage: picture || user.profileImage || user.avatar
+                }) || user;
             } catch (updateErr) {
                 console.error("[GOOGLE_AUTH_STAGE] User update failed:", {
                     stage: "USER_UPDATE",
                     name: updateErr?.name,
                     message: updateErr?.message,
-                    code: updateErr?.code,
-                    validationPaths: updateErr?.errors ? Object.keys(updateErr.errors) : []
+                    code: updateErr?.code
                 });
                 res.setHeader("X-Campora-Google-Stage", "USER_UPDATE");
                 return res.status(500).json({
@@ -182,7 +181,7 @@ router.post("/", async (req, res) => {
         } else {
             currentStage = "USER_CREATE";
             try {
-                // New user — create account
+                // New user — create account via repository
                 isNewUser = true;
                 const validRole = (role && ["student", "owner"].includes(role))
                     ? role
@@ -191,15 +190,13 @@ router.post("/", async (req, res) => {
                 const isAdminEmail = normalizedEmail === process.env.ADMIN_EMAIL || normalizedEmail === "camporaforstudents@gmail.com";
                 const finalRole = isAdminEmail ? "admin" : validRole;
 
-                user = await User.create({
+                user = await userRepository.createUser({
                     name: name || "Google User",
                     email: normalizedEmail,
                     avatar: picture || "",
                     profileImage: picture || "",
                     googleId: sub,
                     provider: "google",
-                    authProvider: "google",
-                    password: null,
                     role: finalRole,
                     verified: true,
                     accountStatus: isAdminEmail ? "ACTIVE" : (finalRole === "owner" ? "PENDING" : "ACTIVE")
@@ -209,8 +206,7 @@ router.post("/", async (req, res) => {
                     stage: "USER_CREATE",
                     name: createErr?.name,
                     message: createErr?.message,
-                    code: createErr?.code,
-                    validationPaths: createErr?.errors ? Object.keys(createErr.errors) : []
+                    code: createErr?.code
                 });
                 res.setHeader("X-Campora-Google-Stage", "USER_CREATE");
                 return res.status(500).json({
@@ -252,44 +248,38 @@ router.post("/", async (req, res) => {
             console.error("[GOOGLE_AUTH_STAGE] JWT generation failed:", {
                 stage: "JWT_GENERATION",
                 name: jwtErr?.name,
-                message: jwtErr?.message,
-                jwtSecretPresent: !!process.env.JWT_SECRET
+                message: jwtErr?.message
             });
             res.setHeader("X-Campora-Google-Stage", "JWT_GENERATION");
             return res.status(500).json({
                 success: false,
                 message: "Google authentication failed.",
-                errorCode: "GOOGLE_JWT_FAILED"
+                errorCode: "GOOGLE_TOKEN_GENERATION_FAILED"
             });
         }
 
-        currentStage = "RESPONSE";
-        const safeUser = sanitizeUser(user);
-        res.setHeader("X-Campora-Google-Stage", "RESPONSE");
-        return res.json({
+        res.setHeader("X-Campora-Google-Stage", "SUCCESS");
+        return res.status(isNewUser ? 201 : 200).json({
             success: true,
-            message: !isNewUser ? "Login successful." : "Registration successful.",
+            message: isNewUser ? "Account created via Google." : "Google login successful.",
             token,
-            user: safeUser,
-            role: safeUser.role,
-            data: {
-                token,
-                user: safeUser,
-                role: safeUser.role
-            }
+            user: sanitizeUser(user)
         });
 
     } catch (err) {
-        console.error("[GOOGLE_AUTH_STAGE] Uncaught error:", {
+        console.error("[GOOGLE_AUTH_STAGE] Fatal error:", {
             stage: currentStage,
             name: err?.name,
-            message: err?.message
+            message: err?.message,
+            stack: err?.stack
         });
+
         res.setHeader("X-Campora-Google-Stage", currentStage);
         return res.status(500).json({
             success: false,
-            message: "Google authentication failed.",
-            errorCode: "GOOGLE_AUTH_INTERNAL_ERROR"
+            message: "Google authentication error.",
+            stage: currentStage,
+            errorCode: `GOOGLE_FATAL_${currentStage}`
         });
     }
 });

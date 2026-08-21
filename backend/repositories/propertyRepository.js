@@ -75,7 +75,15 @@ async function listProperties(filter = {}) {
     });
 }
 
+async function searchProperties(options = {}) {
+    if (dbConfig.isSupabase()) {
+        return await supabasePropertyAdapter.searchProperties(options);
+    }
+    return await mongoPropertyAdapter.searchProperties(options);
+}
+
 module.exports = {
     findPropertyById,
-    listProperties
+    listProperties,
+    searchProperties
 };

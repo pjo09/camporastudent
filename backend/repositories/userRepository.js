@@ -73,12 +73,23 @@ async function findUserById(id) {
 }
 
 async function createUser(userData) {
-    // Standard authoritative write to MongoDB
+    if (dbConfig.isSupabase()) {
+        return await supabaseUserAdapter.createUser(userData);
+    }
     return await mongoUserAdapter.createUser(userData);
 }
 
+async function updateUser(id, updates) {
+    if (dbConfig.isSupabase()) {
+        return await supabaseUserAdapter.updateUser(id, updates);
+    }
+    return await mongoUserAdapter.updateUserApprovalStatus(id, updates.accountStatus || 'ACTIVE');
+}
+
 async function updateUserApprovalStatus(id, accountStatus) {
-    // Standard authoritative write to MongoDB
+    if (dbConfig.isSupabase()) {
+        return await supabaseUserAdapter.updateUserApprovalStatus(id, accountStatus);
+    }
     return await mongoUserAdapter.updateUserApprovalStatus(id, accountStatus);
 }
 
@@ -86,5 +97,6 @@ module.exports = {
     findUserByEmail,
     findUserById,
     createUser,
+    updateUser,
     updateUserApprovalStatus
 };

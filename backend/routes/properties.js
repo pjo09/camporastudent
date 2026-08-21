@@ -4,6 +4,7 @@ const router = express.Router();
 const Property = require("../models/Property");
 const auth = require("../middleware/auth");
 const upload = require("../middleware/upload");
+const propertyRepository = require("../repositories/propertyRepository");
 
 
 // ==========================================
@@ -12,95 +13,20 @@ const upload = require("../middleware/upload");
 
 router.get("/", async (req, res) => {
     try {
-        const {
-            search,
-            city,
-            state,
-            college,
-            university,
-            propertyType,
-            gender,
-            sharing,
-            minRent,
-            maxRent,
-            minRating,
-            amenities,
-            sort,
-            page = 1,
-            limit = 20
-        } = req.query;
-
-        const filter = {
-            status: "approved",
-            published: true,
-            available: true,
-            blacklisted: { $ne: true }
-        };
-
-        if (city) filter.city = new RegExp(city.trim(), "i");
-        if (state) filter.state = new RegExp(state.trim(), "i");
-
-        const targetUni = college || university;
-        if (targetUni) filter.college = new RegExp(targetUni.trim(), "i");
-
-        if (propertyType) filter.propertyType = propertyType;
-        if (gender) filter.gender = gender;
-        if (sharing) filter.sharing = sharing;
-
-        if (minRent || maxRent) {
-            filter.rent = {};
-            if (minRent) filter.rent.$gte = Number(minRent);
-            if (maxRent) filter.rent.$lte = Number(maxRent);
-        }
-
-        if (minRating) filter.averageRating = { $gte: Number(minRating) };
-
-        if (amenities) {
-            const list = Array.isArray(amenities) ? amenities : amenities.split(",").map(s => s.trim());
-            filter.amenities = { $all: list };
-        }
-
-        if (search && search.trim()) {
-            const regex = new RegExp(search.trim(), "i");
-            filter.$or = [
-                { propertyName: regex },
-                { city: regex },
-                { college: regex },
-                { address: regex },
-                { description: regex }
-            ];
-        }
-
-        let sortOption = { createdAt: -1 };
-        if (sort === "rent_asc") sortOption = { rent: 1 };
-        if (sort === "rent_desc") sortOption = { rent: -1 };
-        if (sort === "rating") sortOption = { averageRating: -1 };
-        if (sort === "popular") sortOption = { views: -1 };
-
-        const skip = (Math.max(1, Number(page)) - 1) * Number(limit);
-        const limitNum = Math.min(100, Math.max(1, Number(limit)));
-
-        const [properties, totalCount] = await Promise.all([
-            Property.find(filter)
-                .populate("owner", "name email phone businessName rating")
-                .sort(sortOption)
-                .skip(skip)
-                .limit(limitNum),
-            Property.countDocuments(filter)
-        ]);
+        const result = await propertyRepository.searchProperties(req.query);
 
         res.json({
             success: true,
             message: "Properties retrieved successfully.",
             data: {
-                properties,
-                total: totalCount,
-                page: Number(page),
-                totalPages: Math.ceil(totalCount / limitNum)
+                properties: result.properties,
+                total: result.total,
+                page: result.page,
+                totalPages: result.totalPages
             },
             // Flat keys for backward compatibility
-            total: totalCount,
-            properties
+            total: result.total,
+            properties: result.properties
         });
 
     } catch (err) {
@@ -240,116 +166,23 @@ router.post(
 // ==========================================
 
 router.get("/search", async (req, res) => {
-
     try {
-
-        const {
-            state,
-            city,
-            college,
-            propertyType,
-            gender,
-            sharing,
-            minRent,
-            maxRent,
-            amenities,
-            sort = "latest",
-            page = 1,
-            limit = 12
-        } = req.query;
-
-        const filter = {};
-
-        if (state) filter.state = state;
-
-        if (city) filter.city = city;
-
-        if (college)
-            filter.college = new RegExp(college, "i");
-
-        if (propertyType)
-            filter.propertyType = propertyType;
-
-        if (gender)
-            filter.gender = gender;
-
-        if (sharing)
-            filter.sharing = sharing;
-
-        if (minRent || maxRent) {
-
-            filter.rent = {};
-
-            if (minRent)
-                filter.rent.$gte = Number(minRent);
-
-            if (maxRent)
-                filter.rent.$lte = Number(maxRent);
-
-        }
-
-        if (amenities) {
-
-            filter.amenities = {
-                $all: amenities.split(",")
-            };
-
-        }
-
-        // Only approved + published properties are visible to students
-        filter.status = "approved";
-        filter.published = true;
-        filter.blacklisted = { $ne: true };
-
-        let sortOption = { createdAt: -1 };
-
-        if (sort === "priceLow")
-            sortOption = { rent: 1 };
-
-        if (sort === "priceHigh")
-            sortOption = { rent: -1 };
-
-        if (sort === "rating")
-            sortOption = { averageRating: -1 };
-
-        const total = await Property.countDocuments(filter);
-
-        const properties = await Property.find(filter)
-            .populate("owner", "name email phone")
-            .sort(sortOption)
-            .skip((page - 1) * Number(limit))
-            .limit(Number(limit));
+        const result = await propertyRepository.searchProperties(req.query);
 
         res.json({
-
             success: true,
-
-            total,
-
-            currentPage: Number(page),
-
-            totalPages: Math.ceil(total / Number(limit)),
-
-            properties
-
+            total: result.total,
+            currentPage: result.page,
+            totalPages: result.totalPages,
+            properties: result.properties
         });
-
-    }
-
-    catch (err) {
-
-        console.log(err);
-
+    } catch (err) {
+        console.error("Search properties error:", err);
         res.status(500).json({
-
             success: false,
-
-            message: err.message
-
+            message: err.message || "Failed to search properties."
         });
-
     }
-
 });
 
 
