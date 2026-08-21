@@ -10,7 +10,8 @@ const getEnv = (key) => {
     return undefined;
 };
 
-export const SUPABASE_URL = getEnv("VITE_SUPABASE_URL") || "https://aws-0-ap-south-1.pooler.supabase.com";
+// Project PostgREST API Gateway URL (NOT pooler URL)
+export const SUPABASE_URL = getEnv("VITE_SUPABASE_URL") || "https://campora.supabase.co";
 export const SUPABASE_ANON_KEY = getEnv("VITE_SUPABASE_ANON_KEY") || "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNhbXBvcmEiLCJyb2xlIjoiYW5vbiIsImlhdCI6MTcwMDAwMDAwMCwiZXhwIjoyMDAwMDAwMDAwfQ.placeholder_public_anon_key";
 export const API = SUPABASE_URL + "/rest/v1";
 export const USE_SUPABASE_NATIVE = true;

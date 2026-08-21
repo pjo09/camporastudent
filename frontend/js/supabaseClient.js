@@ -1,6 +1,6 @@
 // =====================================================
 // CAMPORA SUPABASE NATIVE CLIENT
-// 100% Native PostgREST & Auth Client (No Render Dependency)
+// 100% Native PostgREST & Auth Client (No Render / No Pooler URL)
 // =====================================================
 
 import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
@@ -22,7 +22,8 @@ const getEnvKey = () => {
     return CONFIG.SUPABASE_ANON_KEY;
 };
 
-const supabaseUrl = getEnvUrl();
+// Always resolve to https://campora.supabase.co (never pooler URL)
+const supabaseUrl = getEnvUrl().includes("pooler.supabase.com") ? "https://campora.supabase.co" : getEnvUrl();
 const supabaseAnonKey = getEnvKey();
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
