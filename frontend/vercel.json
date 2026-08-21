@@ -1,5 +1,5 @@
 {
-  "buildCommand": "node scripts/generate-env.js",
+  "buildCommand": "node ../scripts/generate-env.js",
   "headers": [
     {
       "source": "/(.*)",

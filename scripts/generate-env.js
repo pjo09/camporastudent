@@ -1,7 +1,7 @@
 // =====================================================
 // CAMPORA VERCEL DEPLOYMENT RUNTIME CONFIG GENERATOR
-// Generates frontend/js/env.js at build time from Vercel environment variables.
-// Exposes ONLY public environment variables (NO service_role secrets).
+// Single authoritative build script executed during Vercel deployment.
+// Exposes ONLY public client environment variables (NO service_role secrets).
 // =====================================================
 
 const fs = require('fs');
@@ -17,9 +17,9 @@ const sanitizedUrl = (url.includes('pooler.supabase.com') || url.includes('campo
     ? 'https://wsldciqtznqjnmltgxpm.supabase.co'
     : url;
 
-// Validate that VITE_SUPABASE_ANON_KEY is provided in build environment when running on Vercel
+// Fail Vercel build if VITE_SUPABASE_ANON_KEY is missing during deployment
 if (process.env.VERCEL && !anonKey) {
-    console.error('❌ Fatal Build Error: VITE_SUPABASE_ANON_KEY is missing in Vercel build environment.');
+    console.error('❌ Fatal Vercel Build Error: VITE_SUPABASE_ANON_KEY is missing in Vercel Production Environment Variables.');
     process.exit(1);
 }
 
@@ -35,16 +35,12 @@ const content = `// Generated at deployment build time by scripts/generate-env.j
 })();
 `;
 
-// Target path works whether called from root or frontend directory
-let targetFile = path.join(__dirname, '../frontend/js/env.js');
-if (!fs.existsSync(path.dirname(targetFile))) {
-    targetFile = path.join(__dirname, '../js/env.js');
-}
+const targetFile = path.join(__dirname, '../frontend/js/env.js');
 
 try {
     fs.writeFileSync(targetFile, content, 'utf8');
-    console.log(`✅ Build Script: Generated frontend/js/env.js (URL: ${sanitizedUrl}, AnonKeyPresent: ${!!anonKey}, Length: ${anonKey.length})`);
+    console.log(`✅ Build Generator: Successfully generated frontend/js/env.js (URL: ${sanitizedUrl}, KeyPresent: ${!!anonKey}, KeyLength: ${anonKey.length})`);
 } catch (err) {
-    console.error('❌ Build Script Error generating frontend/js/env.js:', err.message);
+    console.error('❌ Build Generator Error writing frontend/js/env.js:', err.message);
     process.exit(1);
 }
