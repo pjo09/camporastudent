@@ -7,19 +7,35 @@
 const fs = require('fs');
 const path = require('path');
 
-const url = (process.env.VITE_SUPABASE_URL || process.env.SUPABASE_URL || 'https://wsldciqtznqjnmltgxpm.supabase.co').trim();
-const anonKey = (process.env.VITE_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY || '').trim();
+const rawUrl = (
+    process.env.VITE_SUPABASE_URL ||
+    process.env.SUPABASE_URL ||
+    'https://wsldciqtznqjnmltgxpm.supabase.co'
+).trim();
+
+const anonKey = (
+    process.env.VITE_SUPABASE_ANON_KEY ||
+    process.env.SUPABASE_ANON_KEY ||
+    process.env.VITE_SUPABASE_KEY ||
+    process.env.SUPABASE_KEY ||
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
+    ''
+).trim();
+
 const nativeMode = (process.env.VITE_USE_SUPABASE_NATIVE || 'true').trim();
 const appUrl = (process.env.VITE_APP_URL || 'https://camporastudent.vercel.app').trim();
 
 // Ensure pooler URL is sanitized to official PostgREST API URL
-const sanitizedUrl = (url.includes('pooler.supabase.com') || url.includes('campora.supabase.co'))
+const sanitizedUrl = (rawUrl.includes('pooler.supabase.com') || rawUrl.includes('campora.supabase.co'))
     ? 'https://wsldciqtznqjnmltgxpm.supabase.co'
-    : url;
+    : rawUrl;
 
-// Fail Vercel build if VITE_SUPABASE_ANON_KEY is missing during deployment
-if (process.env.VERCEL && !anonKey) {
+const isVercelBuild = Boolean(process.env.VERCEL || process.env.CI || process.env.NOW_BUILDER);
+
+// Fail build immediately if anon key is missing during Vercel deployment
+if (isVercelBuild && !anonKey) {
     console.error('❌ Fatal Vercel Build Error: VITE_SUPABASE_ANON_KEY is missing in Vercel Production Environment Variables.');
+    console.error('👉 Ensure VITE_SUPABASE_ANON_KEY is checked for the Production environment scope in Vercel Dashboard Settings.');
     process.exit(1);
 }
 
