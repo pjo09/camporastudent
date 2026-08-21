@@ -54,8 +54,8 @@ async function createUser(userData) {
     const cleanEmail = (userData.email || '').toLowerCase().trim();
     const res = await db.query(`
         INSERT INTO profiles (
-            name, email, password_hash, role, phone, account_status, status, verified, google_id, avatar_url, profile_image
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+            name, email, password_hash, role, phone, account_status, status, verified, google_id, profile_image
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
         RETURNING *
     `, [
         userData.name || 'Unknown',
@@ -67,7 +67,6 @@ async function createUser(userData) {
         userData.status || 'active',
         !!userData.verified,
         userData.googleId || null,
-        userData.avatar || userData.profileImage || '',
         userData.profileImage || userData.avatar || ''
     ]);
     return formatUserRow(res.rows[0]);
@@ -89,8 +88,6 @@ async function updateUser(id, updates) {
     if (updates.profileImage !== undefined || updates.avatar !== undefined) {
         const img = updates.profileImage || updates.avatar;
         fields.push(`profile_image = $${idx++}`);
-        values.push(img);
-        fields.push(`avatar_url = $${idx++}`);
         values.push(img);
     }
     if (updates.accountStatus !== undefined) {

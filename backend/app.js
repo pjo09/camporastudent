@@ -122,8 +122,6 @@ const corsOptions = {
     optionsSuccessStatus: 204
 };
 
-app.use(cors(corsOptions));
-
 app.use(helmet({
     crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
     contentSecurityPolicy: {
@@ -144,6 +142,8 @@ app.use(helmet({
         }
     }
 }));
+
+app.use(cors(corsOptions));
 
 const limiter = rateLimit({
     windowMs: 15 * 60 * 1000,
