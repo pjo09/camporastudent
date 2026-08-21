@@ -3,6 +3,9 @@
 .env.*
 !.env.example
 
+# Generated deployment build runtime config
+frontend/js/env.js
+
 # Dependencies
 node_modules/
 frontend/node_modules/
