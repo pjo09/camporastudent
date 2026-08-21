@@ -1,14 +1,13 @@
 // =====================================================
-// CAMPORA SHARED IMAGE URL HELPER
-// Centralizes fragile image URL construction so all
-// pages handle Cloudinary URLs, local /uploads paths,
-// and bare filenames consistently.
+// CAMPORA SHARED IMAGE URL & STORAGE HELPER — NATIVE SUPABASE
+// Centralizes image URL construction, Supabase Storage bucket URLs,
+// Cloudinary legacy fallbacks, and validation.
 // =====================================================
 
-import { API } from "./config.js";
+import { API, SUPABASE_URL } from "./config.js";
+import { supabase } from "./supabaseClient.js";
 
-// Base for locally-served uploads: http://localhost:5000
-const IMAGE_BASE = API.replace(/\/api\/?$/, "") + "/";
+const IMAGE_BASE = (SUPABASE_URL || API || "").replace(/\/+$/, "") + "/storage/v1/object/public/properties/";
 
 /**
  * Build a safe absolute URL for a stored image path.
@@ -19,24 +18,75 @@ const IMAGE_BASE = API.replace(/\/api\/?$/, "") + "/";
 export function getImageUrl(path, fallback = "/assets/images/property-placeholder.jpg") {
   if (!path) return fallback;
 
-  // Already absolute URL (Cloudinary / http(s) / data: / blob:)
+  // Already absolute URL (Cloudinary / Supabase Storage / http(s) / data: / blob:)
   if (/^(https?:|data:|blob:)/i.test(path)) return path;
 
-  // Already absolute path from server root (/uploads/...)
-  if (path.startsWith("/")) return IMAGE_BASE.replace(/\/$/, "") + path;
+  // Already absolute path from web root (/assets/...)
+  if (path.startsWith("/")) return path;
 
-  // Legacy: stored as "uploads/xxx.jpg" (relative to server root)
-  if (path.startsWith("uploads/")) return IMAGE_BASE + path;
-
-  // Relative images path (e.g. "images/foo.jpg")
-  if (path.startsWith("images/")) return IMAGE_BASE + path;
-
-  // Bare filename — assume it lives under /uploads/
-  return IMAGE_BASE + "uploads/" + path;
+  // Stored in Supabase Storage or relative path
+  return IMAGE_BASE + path;
 }
 
 /**
- * Default export object for callers that use `import images from ...`
+ * Upload an image file directly to Supabase Storage bucket 'properties'.
+ * @param {File} file - Browser File object
+ * @param {string} folder - Optional subfolder name
+ * @returns {Promise<string>} Public URL of uploaded image
  */
-export default { getImageUrl };
+export async function uploadImageToSupabase(file, folder = "properties") {
+  if (!file) throw new Error("No file provided for upload");
+  
+  validateImageFile(file);
 
+  const fileExt = file.name.split('.').pop();
+  const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+
+  const { data, error } = await supabase.storage
+    .from("properties")
+    .upload(fileName, file, {
+      cacheControl: "3600",
+      upsert: true
+    });
+
+  if (error) throw error;
+
+  const { data: publicUrlData } = supabase.storage
+    .from("properties")
+    .getPublicUrl(fileName);
+
+  return publicUrlData.publicUrl;
+}
+
+/**
+ * Delete an image file from Supabase Storage bucket.
+ * @param {string} filePath - File path inside bucket
+ */
+export async function deleteImageFromSupabase(filePath) {
+  if (!filePath) return;
+  const { error } = await supabase.storage.from("properties").remove([filePath]);
+  if (error) console.warn("Supabase Storage image deletion error:", error.message);
+}
+
+/**
+ * Validate image file size and MIME type.
+ * @param {File} file
+ */
+export function validateImageFile(file, maxMB = 5) {
+  if (!file) throw new Error("No file selected");
+  const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg", "image/gif"];
+  if (!validTypes.includes(file.type.toLowerCase())) {
+    throw new Error("Invalid image format. Please upload JPEG, PNG, WEBP, or GIF.");
+  }
+  if (file.size > maxMB * 1024 * 1024) {
+    throw new Error(`Image file size must be under ${maxMB}MB.`);
+  }
+  return true;
+}
+
+export default {
+  getImageUrl,
+  uploadImageToSupabase,
+  deleteImageFromSupabase,
+  validateImageFile
+};
