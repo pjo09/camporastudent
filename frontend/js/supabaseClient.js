@@ -31,6 +31,8 @@ const supabaseAnonKey = getEnvKey();
 
 if (!supabaseAnonKey) {
     console.error("❌ Fatal Supabase Configuration Error: VITE_SUPABASE_ANON_KEY is missing. Configure VITE_SUPABASE_ANON_KEY in Vercel Production Environment Variables.");
+} else {
+    console.log("⚡ Supabase Public Key Present: true (Role: anon, Ref: wsldciqtznqjnmltgxpm)");
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey || "missing_key", {

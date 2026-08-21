@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npx serve frontend",
     "dev": "npx serve frontend",
-    "build": "echo \"Vercel static build completed successfully.\"",
+    "build": "node scripts/generate-env.js",
     "test": "node backend/test/supabase_native_concurrency_and_contract.test.js"
   },
   "keywords": [
