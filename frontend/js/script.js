@@ -32,30 +32,54 @@ function imageUrl(path) {
     return getImageUrl(path, "/assets/images/property-placeholder.jpg");
 }
 
-async function apiGet(endpoint) {
+async function apiGet(endpoint, isRetry = false) {
     const token = getToken();
     const headers = { "Content-Type": "application/json" };
     if (token) headers.Authorization = "Bearer " + token;
 
-    const res = await fetch(API + endpoint, { headers });
-    const data = await res.json();
-    if (!res.ok || data.success === false) {
-        throw new Error(data.message || "Something went wrong");
+    try {
+        const res = await fetch(API + endpoint, { headers });
+        if (!res.ok && (res.status === 503 || res.status === 502) && !isRetry) {
+            await new Promise(r => setTimeout(r, 2500));
+            return apiGet(endpoint, true);
+        }
+        const data = await res.json();
+        if (!res.ok || data.success === false) {
+            throw new Error(data.message || "Something went wrong");
+        }
+        return data;
+    } catch (err) {
+        if (!isRetry) {
+            await new Promise(r => setTimeout(r, 2500));
+            return apiGet(endpoint, true);
+        }
+        throw err;
     }
-    return data;
 }
 
-async function apiPost(endpoint, body) {
-    const res = await fetch(API + endpoint, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(body)
-    });
-    const data = await res.json();
-    if (!res.ok || data.success === false) {
-        throw new Error(data.message || "Something went wrong");
+async function apiPost(endpoint, body, isRetry = false) {
+    try {
+        const res = await fetch(API + endpoint, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body)
+        });
+        if (!res.ok && (res.status === 503 || res.status === 502) && !isRetry) {
+            await new Promise(r => setTimeout(r, 2500));
+            return apiPost(endpoint, body, true);
+        }
+        const data = await res.json();
+        if (!res.ok || data.success === false) {
+            throw new Error(data.message || "Something went wrong");
+        }
+        return data;
+    } catch (err) {
+        if (!isRetry) {
+            await new Promise(r => setTimeout(r, 2500));
+            return apiPost(endpoint, body, true);
+        }
+        throw err;
     }
-    return data;
 }
 
 // =====================================================
