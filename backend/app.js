@@ -85,7 +85,7 @@ function getResolvedAllowedOrigins() {
     return Array.from(set);
 }
 
-app.use(cors({
+const corsOptions = {
     origin(origin, callback) {
         // Verification helper comments for CORS check:
         // includes("vercel.app") includes("onrender.com") startsWith("http://localhost")
@@ -120,17 +120,9 @@ app.use(cors({
     allowedHeaders: ["Content-Type", "Authorization", "Accept", "Origin", "X-Requested-With"],
     preflightContinue: false,
     optionsSuccessStatus: 204
-}));
+};
 
-// Guarantee EVERY OPTIONS request returns a successful empty response,
-// even if it does not carry standard preflight headers. This sits directly
-// after CORS and before any auth/RBAC/rate-limit middleware.
-app.use((req, res, next) => {
-    if (req.method === "OPTIONS") {
-        return res.sendStatus(204);
-    }
-    return next();
-});
+app.use(cors(corsOptions));
 
 app.use(helmet({
     crossOriginOpenerPolicy: { policy: "same-origin-allow-popups" },
@@ -159,7 +151,7 @@ const limiter = rateLimit({
     message: { success: false, message: "Too many requests. Please try again later." },
     standardHeaders: true,
     legacyHeaders: false,
-    skip: (req) => (req.originalUrl && req.originalUrl.startsWith("/api/admin/")) || process.env.NODE_ENV !== "production"
+    skip: (req) => req.method === "OPTIONS" || (req.originalUrl && req.originalUrl.startsWith("/api/admin/")) || process.env.NODE_ENV !== "production"
 });
 app.use("/api/", limiter);
 
@@ -167,7 +159,7 @@ const authLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 20,
     message: { success: false, message: "Too many login attempts. Please try again later." },
-    skip: (req) => process.env.NODE_ENV !== "production"
+    skip: (req) => req.method === "OPTIONS" || process.env.NODE_ENV !== "production"
 });
 app.use("/api/auth/login", authLimiter);
 app.use("/api/auth/register", authLimiter);
@@ -178,7 +170,7 @@ const otpSendLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 30,
     message: { success: false, message: "Too many OTP requests. Please try again later." },
-    skip: (req) => process.env.NODE_ENV !== "production"
+    skip: (req) => req.method === "OPTIONS" || process.env.NODE_ENV !== "production"
 });
 app.use("/api/otp/send", otpSendLimiter);
 
@@ -187,7 +179,7 @@ const sensitiveLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 10,
     message: { success: false, message: "Too many attempts. Please try again later." },
-    skip: (req) => process.env.NODE_ENV !== "production"
+    skip: (req) => req.method === "OPTIONS" || process.env.NODE_ENV !== "production"
 });
 app.use("/api/auth/admin/login", sensitiveLimiter);
 app.use("/api/auth/forgot-password", sensitiveLimiter);
@@ -201,7 +193,7 @@ const otpVerifyLimiter = rateLimit({
     windowMs: 15 * 60 * 1000,
     max: 30,
     message: { success: false, message: "Too many OTP verification attempts. Please try again later." },
-    skip: (req) => process.env.NODE_ENV !== "production"
+    skip: (req) => req.method === "OPTIONS" || process.env.NODE_ENV !== "production"
 });
 app.use("/api/otp/verify", otpVerifyLimiter);
 
