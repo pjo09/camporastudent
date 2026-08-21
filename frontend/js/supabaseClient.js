@@ -16,7 +16,7 @@ export const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
     }
 });
 
-// Feature flag for gradual parallel cutover
-export const USE_SUPABASE_NATIVE = (window.localStorage.getItem("USE_SUPABASE_NATIVE") === "true");
+// Feature flag for gradual parallel cutover (Defaults to native Supabase, set USE_SUPABASE_NATIVE=false in localStorage for instant Render rollback)
+export const USE_SUPABASE_NATIVE = (window.localStorage.getItem("USE_SUPABASE_NATIVE") !== "false");
 
 console.log("[SupabaseClient] Initialized native client. Feature flag USE_SUPABASE_NATIVE =", USE_SUPABASE_NATIVE);
