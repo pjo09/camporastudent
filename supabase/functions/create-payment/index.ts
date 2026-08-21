@@ -46,7 +46,7 @@ Deno.serve(async (req: Request) => {
 
         // Initialize Supabase admin client with service-role key (server-side only!)
         const supabase = createClient(
-            Deno.env.get('SUPABASE_URL') || 'https://campora.supabase.co',
+            Deno.env.get('SUPABASE_URL') || 'https://wsldciqtznqjnmltgxpm.supabase.co',
             Deno.env.get('SUPABASE_SERVICE_ROLE_KEY') || 'placeholder_service_role'
         );
 

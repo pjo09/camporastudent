@@ -22,8 +22,11 @@ const getEnvKey = () => {
     return CONFIG.SUPABASE_ANON_KEY;
 };
 
-// Always resolve to https://campora.supabase.co (never pooler URL)
-const supabaseUrl = getEnvUrl().includes("pooler.supabase.com") ? "https://campora.supabase.co" : getEnvUrl();
+// Always resolve to official project URL: https://wsldciqtznqjnmltgxpm.supabase.co
+const rawUrl = getEnvUrl();
+const supabaseUrl = (rawUrl.includes("pooler.supabase.com") || rawUrl.includes("campora.supabase.co"))
+    ? "https://wsldciqtznqjnmltgxpm.supabase.co"
+    : rawUrl;
 const supabaseAnonKey = getEnvKey();
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
