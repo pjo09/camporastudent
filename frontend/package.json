@@ -1,0 +1,8 @@
+{
+  "name": "camporastudent-frontend",
+  "version": "2.0.0",
+  "description": "Campora Student Accommodation Frontend — 100% Supabase Native",
+  "scripts": {
+    "build": "node scripts/generate-env.js"
+  }
+}

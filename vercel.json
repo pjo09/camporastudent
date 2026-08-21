@@ -3,6 +3,7 @@
   "public": true,
   "cleanUrls": true,
   "trailingSlash": false,
+  "buildCommand": "node scripts/generate-env.js",
   "headers": [
     {
       "source": "/(.*)",

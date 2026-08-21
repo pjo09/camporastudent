@@ -36,9 +36,9 @@ const content = `// Generated at deployment build time by scripts/generate-env.j
 `;
 
 // Target path works whether called from root or frontend directory
-let targetFile = path.join(__dirname, '../frontend/js/env.js');
+let targetFile = path.join(__dirname, '../js/env.js');
 if (!fs.existsSync(path.dirname(targetFile))) {
-    targetFile = path.join(__dirname, '../js/env.js');
+    targetFile = path.join(__dirname, '../../frontend/js/env.js');
 }
 
 try {

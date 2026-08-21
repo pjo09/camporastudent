@@ -40,6 +40,15 @@ const supabaseUrl = (rawUrl && (rawUrl.includes("pooler.supabase.com") || rawUrl
 
 const supabaseAnonKey = getEnvKey();
 
+const anonKeyPresent = Boolean(supabaseAnonKey && supabaseAnonKey !== "missing_key");
+const anonKeyLength = supabaseAnonKey ? supabaseAnonKey.length : 0;
+
+console.log("⚡ Supabase Client Config:", {
+    url: supabaseUrl,
+    anonKeyPresent: anonKeyPresent,
+    anonKeyLength: anonKeyLength
+});
+
 if (!supabaseUrl || !supabaseAnonKey) {
     console.error("❌ Supabase configuration is missing. Check Vercel Production Environment Variables (VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY).");
 } else {
