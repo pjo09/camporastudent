@@ -6,6 +6,10 @@ const getEnv = (key) => {
     if (typeof window !== "undefined") {
         if (window.__ENV && window.__ENV[key]) return window.__ENV[key];
         if (window[key]) return window[key];
+        try {
+            const localVal = window.localStorage ? window.localStorage.getItem(key) : null;
+            if (localVal) return localVal;
+        } catch (e) {}
     }
     return undefined;
 };
