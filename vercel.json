@@ -4,6 +4,7 @@
   "cleanUrls": true,
   "trailingSlash": false,
   "buildCommand": "node scripts/generate-env.js",
+  "outputDirectory": "frontend",
   "headers": [
     {
       "source": "/(.*)",
@@ -19,17 +20,105 @@
         {
           "key": "Access-Control-Allow-Headers",
           "value": "X-Requested-With, Content-Type, Authorization, Accept"
+        },
+        {
+          "key": "Cross-Origin-Opener-Policy",
+          "value": "same-origin-allow-popups"
         }
       ]
     }
   ],
-  "routes": [
+  "redirects": [
     {
-      "handle": "filesystem"
+      "source": "/pages/student/login.html",
+      "destination": "/login.html",
+      "permanent": true
     },
     {
-      "src": "/(.*)",
-      "dest": "/index.html"
+      "source": "/pages/owner/login.html",
+      "destination": "/login.html",
+      "permanent": true
+    },
+    {
+      "source": "/dashboard.html",
+      "destination": "/pages/student/dashboard.html",
+      "permanent": true
+    },
+    {
+      "source": "/bookings.html",
+      "destination": "/pages/student/bookings.html",
+      "permanent": true
+    },
+    {
+      "source": "/payments.html",
+      "destination": "/pages/student/payments.html",
+      "permanent": true
+    },
+    {
+      "source": "/messages.html",
+      "destination": "/pages/student/messages.html",
+      "permanent": true
+    },
+    {
+      "source": "/notifications.html",
+      "destination": "/pages/student/notifications.html",
+      "permanent": true
+    },
+    {
+      "source": "/maintenance.html",
+      "destination": "/pages/student/maintenance.html",
+      "permanent": true
+    },
+    {
+      "source": "/reviews.html",
+      "destination": "/pages/student/reviews.html",
+      "permanent": true
+    },
+    {
+      "source": "/documents.html",
+      "destination": "/pages/student/documents.html",
+      "permanent": true
+    },
+    {
+      "source": "/analytics.html",
+      "destination": "/pages/student/analytics.html",
+      "permanent": true
+    },
+    {
+      "source": "/support.html",
+      "destination": "/pages/student/support.html",
+      "permanent": true
+    },
+    {
+      "source": "/profile.html",
+      "destination": "/pages/student/profile.html",
+      "permanent": true
+    },
+    {
+      "source": "/settings.html",
+      "destination": "/pages/student/settings.html",
+      "permanent": true
+    },
+    {
+      "source": "/success.html",
+      "destination": "/pages/student/success.html",
+      "permanent": true
+    },
+    {
+      "source": "/saved-properties.html",
+      "destination": "/pages/student/saved-properties.html",
+      "permanent": true
+    },
+    {
+      "source": "/nearby.html",
+      "destination": "/pages/student/nearby.html",
+      "permanent": true
+    }
+  ],
+  "rewrites": [
+    {
+      "source": "/join-pg/:token",
+      "destination": "/join-pg.html"
     }
   ]
 }
