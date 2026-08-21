@@ -7,6 +7,11 @@ import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js
 import CONFIG from "./config.js";
 
 const getEnvUrl = () => {
+    try {
+        if (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_SUPABASE_URL) {
+            return import.meta.env.VITE_SUPABASE_URL;
+        }
+    } catch (e) {}
     if (typeof window !== "undefined") {
         if (window.__ENV && window.__ENV.VITE_SUPABASE_URL) return window.__ENV.VITE_SUPABASE_URL;
         if (window.VITE_SUPABASE_URL) return window.VITE_SUPABASE_URL;
@@ -15,6 +20,11 @@ const getEnvUrl = () => {
 };
 
 const getEnvKey = () => {
+    try {
+        if (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_SUPABASE_ANON_KEY) {
+            return import.meta.env.VITE_SUPABASE_ANON_KEY;
+        }
+    } catch (e) {}
     if (typeof window !== "undefined") {
         if (window.__ENV && window.__ENV.VITE_SUPABASE_ANON_KEY) return window.__ENV.VITE_SUPABASE_ANON_KEY;
         if (window.VITE_SUPABASE_ANON_KEY) return window.VITE_SUPABASE_ANON_KEY;
@@ -24,15 +34,16 @@ const getEnvKey = () => {
 
 // Always resolve to official project URL: https://wsldciqtznqjnmltgxpm.supabase.co
 const rawUrl = getEnvUrl();
-const supabaseUrl = (rawUrl.includes("pooler.supabase.com") || rawUrl.includes("campora.supabase.co"))
+const supabaseUrl = (rawUrl && (rawUrl.includes("pooler.supabase.com") || rawUrl.includes("campora.supabase.co")))
     ? "https://wsldciqtznqjnmltgxpm.supabase.co"
-    : rawUrl;
+    : (rawUrl || "https://wsldciqtznqjnmltgxpm.supabase.co");
+
 const supabaseAnonKey = getEnvKey();
 
-if (!supabaseAnonKey) {
-    console.error("❌ Fatal Supabase Configuration Error: VITE_SUPABASE_ANON_KEY is missing. Configure VITE_SUPABASE_ANON_KEY in Vercel Production Environment Variables.");
+if (!supabaseUrl || !supabaseAnonKey) {
+    console.error("❌ Supabase configuration is missing. Check Vercel Production Environment Variables (VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY).");
 } else {
-    console.log("⚡ Supabase Public Key Present: true (Role: anon, Ref: wsldciqtznqjnmltgxpm)");
+    console.log("⚡ Supabase Native Client initialized. URL:", supabaseUrl);
 }
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey || "missing_key", {
@@ -48,5 +59,3 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey || "missing_ke
         }
     }
 });
-
-console.log("⚡ Supabase Native Client initialized. URL:", supabaseUrl);

@@ -3,6 +3,11 @@
 // =====================================================
 
 const getEnv = (key) => {
+    try {
+        if (typeof import.meta !== "undefined" && import.meta.env && import.meta.env[key]) {
+            return import.meta.env[key];
+        }
+    } catch (e) {}
     if (typeof window !== "undefined") {
         if (window.__ENV && window.__ENV[key]) return window.__ENV[key];
         if (window[key]) return window[key];
