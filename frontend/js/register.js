@@ -141,44 +141,42 @@ form.addEventListener("submit", async (e) => {
     if (spinner) spinner.style.display = "block";
 
     try {
-        const response = await fetch(`${API}/auth/register`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                name,
-                email,
-                password,
-                role: selectedRole
-            })
+        const authData = await supabaseAPI.signUp(email, password, {
+            name,
+            role: selectedRole
         });
 
-        const data = await response.json();
+        const isOwnerPending = selectedRole === "owner";
 
-        if (!response.ok || !data.success) {
-            throw new Error(data.message || "Registration failed.");
+        if (!isOwnerPending && authData.session && authData.user) {
+            const userObj = {
+                id: authData.user.id,
+                email: authData.user.email,
+                name: name,
+                role: selectedRole,
+                accountStatus: "ACTIVE"
+            };
+            login(authData.session.access_token, userObj, false);
         }
 
-        // Save session using shared module (auto-login)
-        // owners with PENDING status have no token
-        if (data.token && data.user) {
-            login(data.token, data.user, false);
+        if (isOwnerPending) {
+            showSuccess("Registration successful! Your owner account is pending approval by an admin.");
+        } else {
+            showSuccess("Account created successfully!");
         }
-
-        showSuccess(data.message || "Account created successfully!");
 
         // Redirect based on role
         const urlParams = new URLSearchParams(window.location.search);
         const redirectTo = urlParams.get("redirectTo");
         setTimeout(() => {
-            if (data.role === "owner" && !data.token) {
-                // Pending owner - send to login
-                window.location.href = getLoginUrl();
+            if (isOwnerPending) {
+                window.location.href = getLoginUrl() + "?pending=true";
             } else if (redirectTo && isValidRedirect(redirectTo)) {
                 window.location.href = redirectTo;
             } else {
-                redirectBasedOnRole(data.user ? data.user.role : data.role);
+                redirectBasedOnRole(selectedRole);
             }
-        }, 1000);
+        }, 1200);
 
     } catch (err) {
         console.error("Register Error:", err);

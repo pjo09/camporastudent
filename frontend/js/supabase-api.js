@@ -873,8 +873,18 @@ export const supabaseAPI = {
 
     // Owner Profile & Unread Notifications
     async getOwnerProfile() {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError || !user) {
+        let user = null;
+        try {
+            const { data: userData } = await supabase.auth.getUser();
+            user = userData?.user || null;
+        } catch (e) {}
+
+        if (!user) {
+            const { data: sessionData } = await supabase.auth.getSession();
+            user = sessionData?.session?.user || null;
+        }
+
+        if (!user) {
             throw new Error("Not authenticated");
         }
 
@@ -885,6 +895,10 @@ export const supabaseAPI = {
             .maybeSingle();
 
         if (error) throw error;
+
+        if (data && data.role && data.role !== "owner" && data.role !== "admin") {
+            throw new Error("Access denied: Account role is not an owner.");
+        }
 
         return {
             success: true,
@@ -902,8 +916,18 @@ export const supabaseAPI = {
     },
 
     async updateOwnerProfile(payload = {}) {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError || !user) {
+        let user = null;
+        try {
+            const { data: userData } = await supabase.auth.getUser();
+            user = userData?.user || null;
+        } catch (e) {}
+
+        if (!user) {
+            const { data: sessionData } = await supabase.auth.getSession();
+            user = sessionData?.session?.user || null;
+        }
+
+        if (!user) {
             throw new Error("Not authenticated");
         }
 
@@ -971,8 +995,18 @@ export const supabaseAPI = {
     },
 
     async getUnreadNotificationCount() {
-        const { data: { user }, error: authError } = await supabase.auth.getUser();
-        if (authError || !user) return { success: true, count: 0 };
+        let user = null;
+        try {
+            const { data: userData } = await supabase.auth.getUser();
+            user = userData?.user || null;
+        } catch (e) {}
+
+        if (!user) {
+            const { data: sessionData } = await supabase.auth.getSession();
+            user = sessionData?.session?.user || null;
+        }
+
+        if (!user) return { success: true, count: 0 };
 
         const { count, error } = await supabase
             .from("notifications")

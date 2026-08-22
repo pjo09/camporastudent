@@ -5,6 +5,7 @@
 import { login, logout as sessionLogout, redirectBasedOnRole, isValidRedirect } from "./session.js";
 import CONFIG, { API } from "./config.js";
 import { supabaseAPI } from "./supabase-api.js";
+import { supabase } from "./supabaseClient.js";
 
 const API_BASE = API;
 
@@ -153,22 +154,50 @@ async function loginUser(e) {
     setButtonLoading(btn, true, "Signing In...");
 
     try {
-        const response = await fetch(`${API}/auth/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok || !data.success) {
-            throw new Error(data.message || "Login failed.");
+        const authData = await supabaseAPI.signIn(email, password);
+        if (!authData || !authData.user) {
+            throw new Error("Authentication failed: No user session returned.");
         }
 
-        // Save session with remember me preference
-        login(data.token, data.user, remember);
+        // Fetch profile from Supabase profiles table
+        let profile = null;
+        try {
+            const { data } = await supabase
+                .from("profiles")
+                .select("*")
+                .eq("id", authData.user.id)
+                .maybeSingle();
+            profile = data;
+        } catch (e) {}
 
-        showSuccess("Welcome back, " + data.user.name + "!");
+        const role = profile?.role || authData.user.user_metadata?.role || "student";
+        const accountStatus = profile?.account_status || "ACTIVE";
+
+        if (accountStatus === "BANNED" || accountStatus === "DELETED") {
+            await supabase.auth.signOut();
+            throw new Error("Your account has been suspended or deleted. Please contact support.");
+        }
+
+        if (role === "owner" && accountStatus === "PENDING") {
+            await supabase.auth.signOut();
+            throw new Error("Your owner account is pending approval by an administrator.");
+        }
+
+        const userObj = {
+            id: authData.user.id,
+            email: authData.user.email,
+            name: profile?.name || authData.user.user_metadata?.name || authData.user.email.split("@")[0],
+            role: role,
+            accountStatus: accountStatus,
+            phone: profile?.phone || "",
+            businessName: profile?.business_name || "",
+            city: profile?.city || ""
+        };
+
+        // Save session with remember me preference
+        login(authData.session?.access_token || "supabase_session", userObj, remember);
+
+        showSuccess("Welcome back, " + userObj.name + "!");
 
         const urlParams = new URLSearchParams(window.location.search);
         const redirectTo = urlParams.get("redirectTo");
@@ -176,13 +205,13 @@ async function loginUser(e) {
             if (redirectTo && isValidRedirect(redirectTo)) {
                 window.location.href = redirectTo;
             } else {
-                redirectBasedOnRole(data.user.role);
+                redirectBasedOnRole(userObj.role);
             }
         }, 500);
 
     } catch (err) {
         console.error("Login Error:", err);
-        showError(err.message);
+        showError(err.message || "Invalid email or password.");
     } finally {
         setButtonLoading(btn, false, "Login");
     }

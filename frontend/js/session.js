@@ -1,6 +1,4 @@
-// ===========================================
-// CAMPORA SESSION MANAGEMENT
-// ===========================================
+import { supabase } from "./supabaseClient.js";
 
 const TOKEN_KEY = "camporaToken";
 const USER_KEY = "camporaUser";
@@ -119,6 +117,10 @@ export function login(token, user, remember = false) {
 // ===========================================
 
 export function logout() {
+    try {
+        supabase.auth.signOut();
+    } catch (e) {}
+
     localStorage.removeItem(TOKEN_KEY);
     localStorage.removeItem(USER_KEY);
     localStorage.removeItem(ROLE_KEY);
@@ -127,9 +129,7 @@ export function logout() {
     sessionStorage.removeItem(USER_KEY);
     sessionStorage.removeItem(ROLE_KEY);
 
-// Always land on the Campora main landing page.
-    // Use replace() so the back button cannot return to a protected page
-    // with an old authenticated state.
+    // Always land on the Campora main landing page.
     window.location.replace(LANDING_URL);
 }
 
