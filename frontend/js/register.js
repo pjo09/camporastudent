@@ -238,12 +238,31 @@ window.handleGoogleRegister = async function (response) {
 
 (function initGoogleRegister() {
     function setup() {
+        const googleBtn = document.getElementById("googleButton");
+        const customBtn = document.getElementById("customGoogleBtn");
+
+        if (customBtn && !customBtn.dataset.bound) {
+            customBtn.dataset.bound = "true";
+            customBtn.addEventListener("click", () => {
+                if (typeof google !== "undefined" && google.accounts && google.accounts.id) {
+                    try {
+                        google.accounts.id.initialize({
+                            client_id: CONFIG.GOOGLE_CLIENT_ID || "45569590642-4mehsdjfru09l14mmslif775edv7jego.apps.googleusercontent.com",
+                            callback: window.handleGoogleRegister
+                        });
+                    } catch (e) {}
+                    google.accounts.id.prompt();
+                } else {
+                    alert("Google Sign-In is initializing. Please try again in a moment.");
+                }
+            });
+        }
+
         if (typeof google === "undefined" || typeof google.accounts === "undefined") {
             setTimeout(setup, 500);
             return;
         }
 
-        const googleBtn = document.getElementById("googleButton");
         if (!googleBtn) return;
 
         try {
@@ -255,13 +274,17 @@ window.handleGoogleRegister = async function (response) {
             // Already initialized - that's fine
         }
 
-        google.accounts.id.renderButton(googleBtn, {
-            theme: "outline",
-            size: "large",
-            text: "continue_with",
-            shape: "pill",
-            width: Math.max(240, Math.min(400, window.innerWidth - 80))
-        });
+        try {
+            google.accounts.id.renderButton(googleBtn, {
+                theme: "outline",
+                size: "large",
+                text: "continue_with",
+                shape: "pill",
+                width: Math.max(240, Math.min(400, window.innerWidth - 80))
+            });
+        } catch (e) {
+            // Fallback button remains visible
+        }
     }
 
     if (document.readyState === "complete") {
