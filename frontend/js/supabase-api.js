@@ -65,7 +65,13 @@ export const supabaseAPI = {
         return data;
     },
 
-    async signInWithGoogle() {
+    async signInWithGoogle(selectedRole = "student") {
+        try {
+            if (typeof localStorage !== "undefined") {
+                localStorage.setItem("campora_pending_role", selectedRole);
+            }
+        } catch (e) {}
+
         const { data, error } = await supabase.auth.signInWithOAuth({
             provider: "google",
             options: {

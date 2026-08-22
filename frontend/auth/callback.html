@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google Sign In - Campora</title>
+    <title>Google Sign In • Campora</title>
     <script src="../js/env.js"></script>
     <style>
         body {
-            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-            background-color: #f8fafc;
-            color: #0f172a;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background-color: #070d1a;
+            color: #ffffff;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -18,42 +18,127 @@
         }
         .card {
             text-align: center;
-            background: #ffffff;
+            background: #0b1426;
             padding: 40px;
-            border-radius: 12px;
-            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+            border: 1px solid rgba(255,255,255,0.1);
+            max-width: 380px;
+            width: 90%;
         }
         .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #3b82f6;
+            border: 4px solid rgba(255,255,255,0.1);
+            border-top: 4px solid #60a5fa;
             border-radius: 50%;
-            width: 40px;
-            height: 40px;
+            width: 44px;
+            height: 44px;
             animation: spin 1s linear infinite;
-            margin: 20px auto;
+            margin: 24px auto;
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .status-msg { font-size: 15px; color: #94a3b8; margin-top: 12px; }
+        .error-msg { font-size: 14px; color: #f87171; margin-top: 12px; display: none; }
     </style>
 </head>
 <body>
     <div class="card">
-        <h2>Completing Google Sign In...</h2>
-        <div class="spinner"></div>
-        <p>Redirecting to dashboard...</p>
+        <h2 style="margin:0;font-size:20px;font-weight:700;color:#f8fafc">Completing Google Sign In...</h2>
+        <div class="spinner" id="spinner"></div>
+        <p class="status-msg" id="statusMsg">Authenticating your account...</p>
+        <p class="error-msg" id="errorMsg"></p>
     </div>
 
     <script type="module">
         import { supabase } from "../js/supabaseClient.js";
+        import { login, redirectBasedOnRole, getLoginUrl } from "../js/session.js";
+
+        let callbackProcessed = false;
+
+        async function handleCallback(session) {
+            if (callbackProcessed || !session || !session.user) return;
+            callbackProcessed = true;
+
+            const statusMsg = document.getElementById("statusMsg");
+            if (statusMsg) statusMsg.textContent = "Setting up your session...";
+
+            try {
+                const user = session.user;
+                const requestedRole = localStorage.getItem("campora_pending_role") || "student";
+                localStorage.removeItem("campora_pending_role");
+
+                // Check existing profile in database
+                let profile = null;
+                try {
+                    const { data, error } = await supabase
+                        .from("profiles")
+                        .select("*")
+                        .eq("id", user.id)
+                        .maybeSingle();
+                    if (!error && data) {
+                        profile = data;
+                    }
+                } catch (e) {}
+
+                // Create profile if missing
+                if (!profile) {
+                    const accountStatus = requestedRole === "owner" ? "PENDING" : "ACTIVE";
+                    const newProfileData = {
+                        id: user.id,
+                        email: user.email,
+                        name: user.user_metadata?.full_name || user.user_metadata?.name || user.email.split("@")[0],
+                        avatar: user.user_metadata?.avatar_url || user.user_metadata?.picture || "",
+                        role: requestedRole,
+                        account_status: accountStatus
+                    };
+                    try {
+                        const { data } = await supabase
+                            .from("profiles")
+                            .upsert(newProfileData)
+                            .select()
+                            .single();
+                        if (data) profile = data;
+                    } catch (e) {}
+                }
+
+                const finalRole = profile?.role || requestedRole || "student";
+                const userObj = {
+                    id: user.id,
+                    email: user.email,
+                    name: profile?.name || user.user_metadata?.name || user.email.split("@")[0],
+                    role: finalRole,
+                    avatar: profile?.avatar || user.user_metadata?.avatar_url || ""
+                };
+
+                // Sync session into CAMPORA session manager
+                login(session.access_token, userObj, true);
+
+                // Handle Pending Owner
+                if (finalRole === "owner" && profile?.account_status === "PENDING") {
+                    window.location.href = getLoginUrl() + "?pending=true";
+                    return;
+                }
+
+                // Redirect to role dashboard
+                redirectBasedOnRole(finalRole);
+            } catch (err) {
+                console.error("Callback error:", err);
+                const errorMsg = document.getElementById("errorMsg");
+                if (errorMsg) {
+                    errorMsg.style.display = "block";
+                    errorMsg.textContent = "Authentication error: " + (err.message || "Failed to complete sign in.");
+                }
+            }
+        }
 
         supabase.auth.onAuthStateChange((event, session) => {
-            if (event === "SIGNED_IN" && session) {
-                window.location.href = "../dashboard.html";
+            if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session) {
+                handleCallback(session);
             }
         });
 
         supabase.auth.getSession().then(({ data }) => {
             if (data && data.session) {
-                window.location.href = "../dashboard.html";
+                handleCallback(data.session);
             }
         });
     </script>

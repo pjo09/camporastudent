@@ -4,6 +4,7 @@
 
 import { login, redirectBasedOnRole, getLoginUrl, isValidRedirect } from "./session.js";
 import CONFIG, { API } from "./config.js";
+import { supabaseAPI } from "./supabase-api.js";
 
 const API_BASE = API;
 
@@ -238,34 +239,18 @@ window.handleGoogleRegister = async function (response) {
 
 (function initGoogleRegister() {
     function setup() {
-        const customBtn = document.getElementById("customGoogleBtn");
+        const customBtn = document.getElementById("customGoogleBtn") || document.getElementById("googleButton");
 
         if (customBtn && !customBtn.dataset.bound) {
             customBtn.dataset.bound = "true";
-            customBtn.addEventListener("click", () => {
-                if (typeof google !== "undefined" && google.accounts && google.accounts.id) {
-                    try {
-                        google.accounts.id.initialize({
-                            client_id: CONFIG.GOOGLE_CLIENT_ID || "45569590642-4mehsdjfru09l14mmslif775edv7jego.apps.googleusercontent.com",
-                            callback: window.handleGoogleRegister
-                        });
-                    } catch (e) {}
-                    google.accounts.id.prompt();
-                } else {
-                    alert("Google Sign-In is initializing. Please try again in a moment.");
+            customBtn.addEventListener("click", async () => {
+                try {
+                    const selectedRole = role ? role.value : "student";
+                    await supabaseAPI.signInWithGoogle(selectedRole);
+                } catch (err) {
+                    showError(err.message || "Google registration failed.");
                 }
             });
-        }
-
-        if (typeof google !== "undefined" && google.accounts && google.accounts.id) {
-            try {
-                google.accounts.id.initialize({
-                    client_id: CONFIG.GOOGLE_CLIENT_ID || "45569590642-4mehsdjfru09l14mmslif775edv7jego.apps.googleusercontent.com",
-                    callback: window.handleGoogleRegister
-                });
-            } catch (e) {}
-        } else {
-            setTimeout(setup, 500);
         }
     }
 

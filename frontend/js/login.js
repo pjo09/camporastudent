@@ -4,6 +4,7 @@
 
 import { login, logout as sessionLogout, redirectBasedOnRole, isValidRedirect } from "./session.js";
 import CONFIG, { API } from "./config.js";
+import { supabaseAPI } from "./supabase-api.js";
 
 const API_BASE = API;
 
@@ -232,24 +233,15 @@ window.handleGoogleLogin = async function (response) {
 
 (function initGoogle() {
     function setup() {
-        if (typeof google === "undefined" || typeof google.accounts === "undefined") {
-            // Retry after GSI script loads
-            setTimeout(setup, 500);
-            return;
-        }
-
-        google.accounts.id.initialize({
-            client_id: CONFIG.GOOGLE_CLIENT_ID || "45569590642-4mehsdjfru09l14mmslif775edv7jego.apps.googleusercontent.com",
-            callback: window.handleGoogleLogin
-        });
-
-        const googleBtn = document.getElementById("googleButton");
-        if (googleBtn) {
-            google.accounts.id.renderButton(googleBtn, {
-                theme: "outline",
-                size: "large",
-                shape: "pill",
-                width: Math.max(200, Math.min(320, window.innerWidth - 80))
+        const btn = document.getElementById("loginGoogleBtn") || document.getElementById("googleButton");
+        if (btn && !btn.dataset.bound) {
+            btn.dataset.bound = "true";
+            btn.addEventListener("click", async () => {
+                try {
+                    await supabaseAPI.signInWithGoogle("student");
+                } catch (err) {
+                    showError(err.message || "Google Sign-In failed.");
+                }
             });
         }
     }
