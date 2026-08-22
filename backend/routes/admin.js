@@ -27,6 +27,7 @@ const userRepository = require("../repositories/userRepository");
 const propertyRepository = require("../repositories/propertyRepository");
 const bookingRepository = require("../repositories/bookingRepository");
 const { getSupabaseClient } = require("../config/supabase");
+const dbConfig = require("../config/database");
 const bcrypt = require("bcryptjs");
 
 router.use(auth);
@@ -384,115 +385,92 @@ router.get("/profile", async (req, res) => {
 // ======================================================
 
 router.get("/dashboard", async (req, res) => {
-
     try {
+        if (dbConfig.isSupabase()) {
+            const db = await getSupabaseClient();
+            const [
+                totalUsersRes,
+                studentsRes,
+                ownersRes,
+                adminsRes,
+                propsRes,
+                approvedPropsRes,
+                pendingPropsRes,
+                rejectedPropsRes,
+                bookingsRes,
+                reviewsRes
+            ] = await Promise.all([
+                db.query(`SELECT COUNT(*) as cnt FROM profiles`),
+                db.query(`SELECT COUNT(*) as cnt FROM profiles WHERE role = 'student'`),
+                db.query(`SELECT COUNT(*) as cnt FROM profiles WHERE role = 'owner'`),
+                db.query(`SELECT COUNT(*) as cnt FROM profiles WHERE role = 'admin'`),
+                db.query(`SELECT COUNT(*) as cnt FROM properties`),
+                db.query(`SELECT COUNT(*) as cnt FROM properties WHERE status = 'approved'`),
+                db.query(`SELECT COUNT(*) as cnt FROM properties WHERE status = 'pending'`),
+                db.query(`SELECT COUNT(*) as cnt FROM properties WHERE status = 'rejected'`),
+                db.query(`SELECT COUNT(*) as cnt FROM bookings`),
+                db.query(`SELECT COUNT(*) as cnt FROM reviews`)
+            ]);
+
+            const parseCnt = (r) => parseInt(r.rows[0]?.cnt || r.rows[0]?.count || 0, 10);
+
+            return success(res, {
+                statistics: {
+                    totalUsers: parseCnt(totalUsersRes),
+                    totalStudents: parseCnt(studentsRes),
+                    totalOwners: parseCnt(ownersRes),
+                    totalAdmins: parseCnt(adminsRes),
+                    totalProperties: parseCnt(propsRes),
+                    approvedProperties: parseCnt(approvedPropsRes),
+                    pendingProperties: parseCnt(pendingPropsRes),
+                    rejectedProperties: parseCnt(rejectedPropsRes),
+                    totalBookings: parseCnt(bookingsRes),
+                    totalReviews: parseCnt(reviewsRes)
+                }
+            });
+        }
 
         const [
-
             totalUsers,
-
             totalStudents,
-
             totalOwners,
-
             totalAdmins,
-
             totalProperties,
-
             approvedProperties,
-
             pendingProperties,
-
             rejectedProperties,
-
             totalBookings,
-
             totalReviews
-
         ] = await Promise.all([
-
             User.countDocuments(),
-
-            User.countDocuments({
-
-                role: "student"
-
-            }),
-
-            User.countDocuments({
-
-                role: "owner"
-
-            }),
-
-            User.countDocuments({
-
-                role: "admin"
-
-            }),
-
+            User.countDocuments({ role: "student" }),
+            User.countDocuments({ role: "owner" }),
+            User.countDocuments({ role: "admin" }),
             Property.countDocuments(),
-
-            Property.countDocuments({
-
-                status: "approved"
-
-            }),
-
-            Property.countDocuments({
-
-                status: "pending"
-
-            }),
-
-            Property.countDocuments({
-
-                status: "rejected"
-
-            }),
-
+            Property.countDocuments({ status: "approved" }),
+            Property.countDocuments({ status: "pending" }),
+            Property.countDocuments({ status: "rejected" }),
             Booking.countDocuments(),
-
             Review.countDocuments()
-
         ]);
 
-        success(res, {
-
+        return success(res, {
             statistics: {
-
                 totalUsers,
-
                 totalStudents,
-
                 totalOwners,
-
                 totalAdmins,
-
                 totalProperties,
-
                 approvedProperties,
-
                 pendingProperties,
-
                 rejectedProperties,
-
                 totalBookings,
-
                 totalReviews
-
             }
-
         });
-
+    } catch (err) {
+        return failure(res, err.message);
     }
-
-    catch (err) {
-
-        failure(res, err.message);
-
-    }
-
 });
 
 // ======================================================
