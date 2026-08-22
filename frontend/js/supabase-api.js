@@ -691,5 +691,183 @@ export const supabaseAPI = {
             .single();
         if (error) throw error;
         return { success: true, user: data };
+    },
+
+    // Owner System
+    async getOwnerDashboardStats() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, statistics: {} };
+        const [propsRes, bookingsRes, residentsRes] = await Promise.all([
+            supabase.from("properties").select("id, status, total_beds, available_beds", { count: "exact" }).eq("owner_id", user.id),
+            supabase.from("bookings").select("id, booking_status", { count: "exact" }).eq("owner_id", user.id),
+            supabase.from("tenancies").select("id", { count: "exact" }).eq("owner_id", user.id)
+        ]);
+        const props = propsRes.data || [];
+        let approvedCount = 0;
+        let pendingCount = 0;
+        let totalBeds = 0;
+        let availableBeds = 0;
+        props.forEach(p => {
+            if (p.status === "approved") approvedCount++;
+            if (p.status === "pending") pendingCount++;
+            totalBeds += (p.total_beds || 0);
+            availableBeds += (p.available_beds || 0);
+        });
+        return {
+            success: true,
+            dashboard: {
+                totalProperties: props.length,
+                approvedProperties: approvedCount,
+                pendingProperties: pendingCount,
+                totalBookings: bookingsRes.count || 0,
+                activeResidents: residentsRes.count || 0,
+                totalBeds,
+                availableBeds
+            }
+        };
+    },
+
+    async getOwnerProperties() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, properties: [] };
+        const { data, error } = await supabase
+            .from("properties")
+            .select("*")
+            .eq("owner_id", user.id)
+            .order("created_at", { ascending: false });
+        if (error) throw error;
+        return {
+            success: true,
+            properties: (data || []).map(p => ({
+                _id: p.id,
+                id: p.id,
+                propertyName: p.property_name,
+                propertyType: p.property_type,
+                city: p.city,
+                state: p.state,
+                rent: parseFloat(p.rent || 0),
+                deposit: parseFloat(p.deposit || 0),
+                availableBeds: p.available_beds,
+                totalBeds: p.total_beds,
+                status: p.status,
+                published: p.published !== false,
+                featured: !!p.featured,
+                images: p.images || [],
+                createdAt: p.created_at
+            }))
+        };
+    },
+
+    async getOwnerBookings() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, bookings: [] };
+        const { data, error } = await supabase
+            .from("bookings")
+            .select("*, properties(property_name, city), user:profiles!user_id(name, email, phone)")
+            .eq("owner_id", user.id)
+            .order("created_at", { ascending: false });
+        if (error) throw error;
+        return {
+            success: true,
+            bookings: (data || []).map(b => ({
+                _id: b.id,
+                id: b.id,
+                bookingStatus: b.booking_status,
+                paymentStatus: b.payment_status,
+                price: parseFloat(b.price || 0),
+                checkIn: b.check_in,
+                propertyName: b.properties ? b.properties.property_name : "",
+                studentName: b.user ? b.user.name : "",
+                studentEmail: b.user ? b.user.email : "",
+                studentPhone: b.user ? b.user.phone : "",
+                createdAt: b.created_at
+            }))
+        };
+    },
+
+    async getOwnerResidents() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, residents: [] };
+        const { data, error } = await supabase
+            .from("tenancies")
+            .select("*, properties(property_name), student:profiles!student_id(name, email, phone)")
+            .eq("owner_id", user.id);
+        if (error) throw error;
+        return {
+            success: true,
+            residents: (data || []).map(r => ({
+                _id: r.id,
+                id: r.id,
+                status: r.status,
+                propertyName: r.properties ? r.properties.property_name : "",
+                name: r.student ? r.student.name : "",
+                email: r.student ? r.student.email : "",
+                phone: r.student ? r.student.phone : "",
+                createdAt: r.created_at
+            }))
+        };
+    },
+
+    async getOwnerNotifications() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, notifications: [] };
+        const { data, error } = await supabase
+            .from("notifications")
+            .select("*")
+            .eq("receiver_id", user.id)
+            .order("created_at", { ascending: false });
+        if (error) throw error;
+        return {
+            success: true,
+            notifications: (data || []).map(n => ({
+                _id: n.id,
+                id: n.id,
+                title: n.title,
+                message: n.message,
+                type: n.type || "general",
+                isRead: !!n.is_read,
+                createdAt: n.created_at
+            }))
+        };
+    },
+
+    async getOwnerAnnouncements() {
+        const { data, error } = await supabase
+            .from("announcements")
+            .select("*")
+            .order("created_at", { ascending: false });
+        if (error) throw error;
+        return { success: true, announcements: data || [] };
+    },
+
+    async getOwnerMaintenances() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, maintenances: [] };
+        const { data, error } = await supabase
+            .from("maintenances")
+            .select("*, properties(property_name), student:profiles!student_id(name)")
+            .eq("owner_id", user.id)
+            .order("created_at", { ascending: false });
+        if (error) throw error;
+        return { success: true, maintenances: data || [] };
+    },
+
+    async toggleOwnerPropertyPublish(id) {
+        const { data: prop } = await supabase.from("properties").select("published").eq("id", id).single();
+        const nextPublished = !prop || !prop.published;
+        const { data, error } = await supabase
+            .from("properties")
+            .update({ published: nextPublished, updated_at: new Date().toISOString() })
+            .eq("id", id)
+            .select()
+            .single();
+        if (error) throw error;
+        return { success: true, property: data };
+    },
+
+    async deleteOwnerProperty(id) {
+        const { error } = await supabase.from("properties").delete().eq("id", id);
+        if (error) throw error;
+        return { success: true };
     }
 };

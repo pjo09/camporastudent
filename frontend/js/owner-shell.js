@@ -69,7 +69,37 @@ export function showToast(message, type = "info", duration = 3500) {
 // API FETCH HELPER
 // =====================================================
 
+import { supabaseAPI } from "./supabase-api.js";
+
 export async function apiFetch(endpoint, opts = {}) {
+  const method = (opts.method || "GET").toUpperCase();
+
+  // Supabase Native Interceptor for Owner Routes
+  if ((endpoint === "/owner/dashboard" || endpoint === "/owner/dashboard-v3") && method === "GET") {
+    return await supabaseAPI.getOwnerDashboardStats();
+  }
+  if (endpoint.startsWith("/owner/properties") && method === "GET") {
+    return await supabaseAPI.getOwnerProperties();
+  }
+  if (endpoint === "/owner/bookings" && method === "GET") {
+    return await supabaseAPI.getOwnerBookings();
+  }
+  if ((endpoint === "/owner/residents" || endpoint === "/owner/students") && method === "GET") {
+    return await supabaseAPI.getOwnerResidents();
+  }
+  if (endpoint === "/owner/notifications" && method === "GET") {
+    return await supabaseAPI.getOwnerNotifications();
+  }
+  if (endpoint === "/owner/announcements" && method === "GET") {
+    return await supabaseAPI.getOwnerAnnouncements();
+  }
+  if (endpoint === "/owner/maintenance" && method === "GET") {
+    return await supabaseAPI.getOwnerMaintenances();
+  }
+  if ((endpoint === "/owner/analytics" || endpoint === "/owner/top-properties" || endpoint === "/owner/earnings" || endpoint === "/owner/finance/summary") && method === "GET") {
+    return { success: true, analytics: {}, summary: {}, earnings: { total: 0 } };
+  }
+
   const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
   if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(`${API_BASE}${endpoint}`, { ...opts, headers });
