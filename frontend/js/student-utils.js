@@ -72,9 +72,26 @@ export async function apiFetch(endpoint, opts = {}) {
   const currentToken = getToken();
   if (currentToken) headers.Authorization = `Bearer ${currentToken}`;
   const res = await fetch(`${API_BASE}${endpoint}`, { ...opts, headers });
-  const data = await res.json();
-  if (!res.ok || !data.success) {
-    const error = new Error(data.message || `Request failed (${res.status})`);
+
+  const contentType = res.headers.get("content-type") || "";
+  let data;
+  if (contentType.includes("application/json")) {
+    try {
+      data = await res.json();
+    } catch (e) {
+      const error = new Error(`API request failed: ${method} ${endpoint} returned invalid JSON (HTTP ${res.status})`);
+      error.status = res.status;
+      throw error;
+    }
+  } else {
+    await res.text();
+    const error = new Error(`API request failed: ${method} ${endpoint} returned HTTP ${res.status}`);
+    error.status = res.status;
+    throw error;
+  }
+
+  if (!res.ok || (data && data.success === false)) {
+    const error = new Error((data && data.message) || `API request failed: ${method} ${endpoint} returned HTTP ${res.status}`);
     error.status = res.status;
     throw error;
   }

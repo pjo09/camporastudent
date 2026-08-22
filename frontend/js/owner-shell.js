@@ -75,6 +75,20 @@ export async function apiFetch(endpoint, opts = {}) {
   const method = (opts.method || "GET").toUpperCase();
 
   // Supabase Native Interceptor for Owner Routes
+  if (endpoint === "/owner/profile" && method === "GET") {
+    return await supabaseAPI.getOwnerProfile();
+  }
+  if (endpoint === "/owner/profile" && method === "PUT") {
+    const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
+    return await supabaseAPI.updateOwnerProfile(payload);
+  }
+  if (endpoint === "/owner/change-password" && method === "PUT") {
+    const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
+    return await supabaseAPI.changePassword(payload.newPassword);
+  }
+  if ((endpoint === "/notifications/unread" || endpoint === "/owner/notifications/unread") && method === "GET") {
+    return await supabaseAPI.getUnreadNotificationCount();
+  }
   if ((endpoint === "/owner/dashboard" || endpoint === "/owner/dashboard-v3") && method === "GET") {
     return await supabaseAPI.getOwnerDashboardStats();
   }
@@ -103,8 +117,23 @@ export async function apiFetch(endpoint, opts = {}) {
   const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
   if (token) headers.Authorization = `Bearer ${token}`;
   const res = await fetch(`${API_BASE}${endpoint}`, { ...opts, headers });
-  const data = await res.json();
-  if (!res.ok || !data.success) throw new Error(data.message || `Request failed (${res.status})`);
+
+  const contentType = res.headers.get("content-type") || "";
+  let data;
+  if (contentType.includes("application/json")) {
+    try {
+      data = await res.json();
+    } catch (e) {
+      throw new Error(`API request failed: ${method} ${endpoint} returned invalid JSON (HTTP ${res.status})`);
+    }
+  } else {
+    await res.text();
+    throw new Error(`API request failed: ${method} ${endpoint} returned HTTP ${res.status}`);
+  }
+
+  if (!res.ok || (data && data.success === false)) {
+    throw new Error((data && data.message) || `API request failed: ${method} ${endpoint} returned HTTP ${res.status}`);
+  }
   return data;
 }
 

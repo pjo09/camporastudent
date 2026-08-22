@@ -869,5 +869,118 @@ export const supabaseAPI = {
         const { error } = await supabase.from("properties").delete().eq("id", id);
         if (error) throw error;
         return { success: true };
+    },
+
+    // Owner Profile & Unread Notifications
+    async getOwnerProfile() {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+            throw new Error("Not authenticated");
+        }
+
+        const { data, error } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", user.id)
+            .maybeSingle();
+
+        if (error) throw error;
+
+        return {
+            success: true,
+            owner: {
+                id: user.id,
+                email: user.email,
+                name: data ? (data.name || "") : (user.user_metadata?.name || user.email.split("@")[0]),
+                phone: data ? (data.phone || "") : "",
+                businessName: data ? (data.business_name || "") : "",
+                city: data ? (data.city || "") : "",
+                bio: data ? (data.bio || "") : "",
+                profileImage: data ? (data.profile_image || data.avatar || "") : ""
+            }
+        };
+    },
+
+    async updateOwnerProfile(payload = {}) {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) {
+            throw new Error("Not authenticated");
+        }
+
+        const updateData = {
+            id: user.id,
+            email: user.email,
+            role: "owner",
+            updated_at: new Date().toISOString()
+        };
+
+        if (payload.name !== undefined) updateData.name = payload.name;
+        if (payload.phone !== undefined) updateData.phone = payload.phone;
+        if (payload.businessName !== undefined) updateData.business_name = payload.businessName;
+        if (payload.city !== undefined) updateData.city = payload.city;
+        if (payload.bio !== undefined) updateData.bio = payload.bio;
+
+        const { data, error } = await supabase
+            .from("profiles")
+            .upsert(updateData)
+            .select()
+            .single();
+
+        if (error) throw error;
+
+        try {
+            if (typeof localStorage !== "undefined" || typeof sessionStorage !== "undefined") {
+                const rawUser = localStorage.getItem("camporaUser") || sessionStorage.getItem("camporaUser");
+                if (rawUser) {
+                    const parsed = JSON.parse(rawUser);
+                    if (data.name) parsed.name = data.name;
+                    if (data.phone) parsed.phone = data.phone;
+                    if (data.business_name) parsed.businessName = data.business_name;
+                    if (data.city) parsed.city = data.city;
+                    if (data.bio) parsed.bio = data.bio;
+                    if (localStorage.getItem("camporaUser")) localStorage.setItem("camporaUser", JSON.stringify(parsed));
+                    if (sessionStorage.getItem("camporaUser")) sessionStorage.setItem("camporaUser", JSON.stringify(parsed));
+                }
+            }
+        } catch (e) {
+            // non-blocking
+        }
+
+        return {
+            success: true,
+            owner: {
+                id: data.id,
+                email: data.email,
+                name: data.name || "",
+                phone: data.phone || "",
+                businessName: data.business_name || "",
+                city: data.city || "",
+                bio: data.bio || "",
+                profileImage: data.profile_image || data.avatar || ""
+            }
+        };
+    },
+
+    async changePassword(newPassword) {
+        if (!newPassword || newPassword.length < 6) {
+            throw new Error("Password must be at least 6 characters long.");
+        }
+        const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+        if (error) throw error;
+        return { success: true, message: "Password updated successfully" };
+    },
+
+    async getUnreadNotificationCount() {
+        const { data: { user }, error: authError } = await supabase.auth.getUser();
+        if (authError || !user) return { success: true, count: 0 };
+
+        const { count, error } = await supabase
+            .from("notifications")
+            .select("id", { count: "exact", head: true })
+            .eq("receiver_id", user.id)
+            .eq("is_read", false);
+
+        if (error) throw error;
+        return { success: true, count: count || 0 };
     }
 };
