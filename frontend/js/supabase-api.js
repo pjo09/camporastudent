@@ -874,15 +874,32 @@ export const supabaseAPI = {
     // Owner Profile & Unread Notifications
     async getOwnerProfile() {
         let user = null;
+        let authErr = null;
         try {
-            const { data: userData } = await supabase.auth.getUser();
+            const { data: userData, error } = await supabase.auth.getUser();
             user = userData?.user || null;
-        } catch (e) {}
+            authErr = error ? error.message : null;
+        } catch (e) {
+            authErr = e.message;
+        }
 
         if (!user) {
-            const { data: sessionData } = await supabase.auth.getSession();
-            user = sessionData?.session?.user || null;
+            try {
+                const { data: sessionData, error: sErr } = await supabase.auth.getSession();
+                user = sessionData?.session?.user || null;
+                if (!authErr && sErr) authErr = sErr.message;
+            } catch (e) {
+                if (!authErr) authErr = e.message;
+            }
         }
+
+        console.log("⚡ CAMPORA AUTH DEBUG:", {
+            clientExists: Boolean(supabase && supabase.auth),
+            sessionExists: Boolean(user),
+            userExists: Boolean(user),
+            userId: user ? user.id : null,
+            authError: authErr
+        });
 
         if (!user) {
             throw new Error("Not authenticated");

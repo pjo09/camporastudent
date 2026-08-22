@@ -70,3 +70,7 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey || "missing_ke
         }
     }
 });
+
+if (typeof window !== "undefined") {
+    window.supabase = supabase;
+}
