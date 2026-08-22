@@ -373,23 +373,25 @@ const AuthModal = (() => {
     function initGoogle() {
         const loginGoogle = $("loginGoogleButton");
         const registerGoogle = $("registerGoogleButton");
+        const loginBtn = $("loginModalGoogleBtn");
+        const registerBtn = $("registerModalGoogleBtn");
 
-        if (loginGoogle) {
-            loginGoogle.addEventListener("click", handleGoogleTrigger);
-        }
-        if (registerGoogle) {
-            registerGoogle.addEventListener("click", handleGoogleTrigger);
-        }
-    }
+        const triggerAuth = async (e) => {
+            if (e) e.preventDefault();
+            try {
+                const activeRoleBtn = document.querySelector(".auth-role.active");
+                const selectedRole = activeRoleBtn ? activeRoleBtn.dataset.authRole : "student";
+                await apiClient.signInWithGoogle(selectedRole);
+            } catch (err) {
+                const errorBox = $("loginError") || $("registerError");
+                showMessage(errorBox, err.message || "Google login failed.", "error");
+            }
+        };
 
-    async function handleGoogleTrigger(e) {
-        if (e) e.preventDefault();
-        try {
-            await apiClient.signInWithGoogle();
-        } catch (err) {
-            const errorBox = $("loginError");
-            showMessage(errorBox, err.message || "Google login failed.", "error");
-        }
+        if (loginBtn) loginBtn.addEventListener("click", triggerAuth);
+        if (registerBtn) registerBtn.addEventListener("click", triggerAuth);
+        if (loginGoogle && !loginBtn) loginGoogle.addEventListener("click", triggerAuth);
+        if (registerGoogle && !registerBtn) registerGoogle.addEventListener("click", triggerAuth);
     }
 
     // ---------- UI HELPERS ----------
