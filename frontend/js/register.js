@@ -238,7 +238,6 @@ window.handleGoogleRegister = async function (response) {
 
 (function initGoogleRegister() {
     function setup() {
-        const googleBtn = document.getElementById("googleButton");
         const customBtn = document.getElementById("customGoogleBtn");
 
         if (customBtn && !customBtn.dataset.bound) {
@@ -258,32 +257,15 @@ window.handleGoogleRegister = async function (response) {
             });
         }
 
-        if (typeof google === "undefined" || typeof google.accounts === "undefined") {
+        if (typeof google !== "undefined" && google.accounts && google.accounts.id) {
+            try {
+                google.accounts.id.initialize({
+                    client_id: CONFIG.GOOGLE_CLIENT_ID || "45569590642-4mehsdjfru09l14mmslif775edv7jego.apps.googleusercontent.com",
+                    callback: window.handleGoogleRegister
+                });
+            } catch (e) {}
+        } else {
             setTimeout(setup, 500);
-            return;
-        }
-
-        if (!googleBtn) return;
-
-        try {
-            google.accounts.id.initialize({
-                client_id: CONFIG.GOOGLE_CLIENT_ID || "45569590642-4mehsdjfru09l14mmslif775edv7jego.apps.googleusercontent.com",
-                callback: window.handleGoogleRegister
-            });
-        } catch (e) {
-            // Already initialized - that's fine
-        }
-
-        try {
-            google.accounts.id.renderButton(googleBtn, {
-                theme: "outline",
-                size: "large",
-                text: "continue_with",
-                shape: "pill",
-                width: Math.max(240, Math.min(400, window.innerWidth - 80))
-            });
-        } catch (e) {
-            // Fallback button remains visible
         }
     }
 
