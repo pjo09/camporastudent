@@ -85,10 +85,10 @@ CREATE POLICY "Participants send message" ON messages
 ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Users read own notifications" ON notifications
-    FOR SELECT USING (auth.uid() = user_id);
+    FOR SELECT USING (auth.uid() = receiver_id);
 
 CREATE POLICY "Users update own notifications" ON notifications
-    FOR UPDATE USING (auth.uid() = user_id);
+    FOR UPDATE USING (auth.uid() = receiver_id);
 
 -- 8. TENANCIES & RESIDENTS
 ALTER TABLE tenancies ENABLE ROW LEVEL SECURITY;
