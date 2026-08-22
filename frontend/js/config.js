@@ -18,6 +18,7 @@ const getEnv = (key) => {
 // Official Supabase Project API Gateway URL (wsldciqtznqjnmltgxpm)
 export const SUPABASE_URL = getEnv("VITE_SUPABASE_URL") || "https://wsldciqtznqjnmltgxpm.supabase.co";
 export const SUPABASE_ANON_KEY = getEnv("VITE_SUPABASE_ANON_KEY") || "";
+export const GOOGLE_CLIENT_ID = getEnv("VITE_GOOGLE_CLIENT_ID") || getEnv("GOOGLE_CLIENT_ID") || "45569590642-4mehsdjfru09l14mmslif775edv7jego.apps.googleusercontent.com";
 export const API = SUPABASE_URL + "/rest/v1";
 export const USE_SUPABASE_NATIVE = true;
 export const APP_URL = getEnv("VITE_APP_URL") || (typeof window !== "undefined" ? window.location.origin : "https://camporastudent.vercel.app");
@@ -26,6 +27,7 @@ export const APP_NAME = "Campora";
 const CONFIG = {
     SUPABASE_URL,
     SUPABASE_ANON_KEY,
+    GOOGLE_CLIENT_ID,
     API,
     USE_SUPABASE_NATIVE,
     APP_URL,

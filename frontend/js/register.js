@@ -256,10 +256,11 @@ window.handleGoogleRegister = async function (response) {
         }
 
         google.accounts.id.renderButton(googleBtn, {
-            theme: "filled_blue",
+            theme: "outline",
             size: "large",
+            text: "continue_with",
             shape: "pill",
-            width: Math.max(200, Math.min(420, window.innerWidth - 80))
+            width: Math.max(240, Math.min(400, window.innerWidth - 80))
         });
     }
 
