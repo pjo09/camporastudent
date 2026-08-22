@@ -30,7 +30,9 @@ async function getSupabaseClient() {
                 '010_maintenance_and_announcements.sql',
                 '011_invoices_and_otps.sql',
                 '012_system_and_audit.sql',
-                '013_admin_scopes.sql'
+                '013_admin_scopes.sql',
+                '014_supabase_native_rls_and_rpc.sql',
+                '015_admin_native_rls.sql'
             ];
 
             for (const file of migrationFiles) {

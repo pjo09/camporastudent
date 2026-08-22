@@ -75,13 +75,13 @@ function testNoOldDomain() {
 }
 
 // -------------------------------
-// TEST 15: frontend API base
+// TEST 15: frontend Supabase Native API config
 // -------------------------------
 function testApiBase() {
   const cfg = fs.readFileSync(path.join(ROOT, "frontend/js/config.js"), "utf8");
-  const prod = cfg.includes('"https://camporastudent.onrender.com/api"');
-  const file = cfg.includes('"http://localhost:5000/api"');
-  record("15-APIConfig", prod && file, `prod=https://camporastudent.onrender.com/api, dev=http://localhost:5000/api`);
+  const nativeEnabled = cfg.includes("USE_SUPABASE_NATIVE = true");
+  const noRender = !cfg.includes("camporastudent.onrender.com");
+  record("15-APIConfig", nativeEnabled && noRender, `USE_SUPABASE_NATIVE=true, Render URLs removed`);
 }
 
 // -------------------------------

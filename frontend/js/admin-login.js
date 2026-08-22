@@ -3,7 +3,7 @@
 // ===============================================
 
 import { login, redirectBasedOnRole } from "./session.js";
-import { API } from "./config.js";
+import { supabaseAPI } from "./supabase-api.js";
 
 // -------------------------
 // Helpers
@@ -138,26 +138,17 @@ async function adminLogin(e) {
     setButtonLoading(btn, true, "Authenticating...");
 
     try {
-        const response = await fetch(`${API}/auth/admin/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email, password })
-        });
+        const { session, profile } = await supabaseAPI.adminSignIn(email, password);
 
-        let data = {};
-        const contentType = response.headers.get("content-type");
-        if (contentType && contentType.includes("application/json")) {
-            data = await response.json();
-        } else {
-            throw new Error(`Admin login failed: HTTP ${response.status}`);
-        }
-
-        if (!response.ok || !data.success) {
-            throw new Error(data.message || "Admin login failed.");
-        }
-
-        // Save admin session (persist across browser restarts)
-        login(data.token, data.user, true);
+        // Save admin session
+        const userObj = {
+            id: profile.id,
+            email: profile.email,
+            name: profile.name,
+            role: profile.role,
+            accountStatus: profile.account_status || "ACTIVE"
+        };
+        login(session.access_token, userObj, true);
 
         showSuccess("Admin authentication successful!");
 
@@ -165,7 +156,7 @@ async function adminLogin(e) {
 
     } catch (err) {
         console.error("Admin Login Error:", err);
-        showError(err.message);
+        showError(err.message || "Admin authentication failed.");
     } finally {
         setButtonLoading(btn, false, "Sign In");
     }

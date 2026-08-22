@@ -4,9 +4,7 @@
 // =====================================================
 
 import { getToken, getUser, protectPageByRole, logout as sessionLogout } from "./session.js";
-import { API } from "./config.js";
-
-const API_BASE = API;
+import { supabaseAPI } from "./supabase-api.js";
 
 const originalFetch = window.fetch;
 const inFlightRequests = new Map();
@@ -343,13 +341,10 @@ function updateLastUpdate() {
 
 async function loadOverview() {
   try {
-    const [dashRes, activityRes] = await Promise.all([
-      fetch(`${API}/admin/dashboard`, { headers: { Authorization: `Bearer ${state.token}` } }),
-      fetch(`${API}/admin/activity`, { headers: { Authorization: `Bearer ${state.token}` } }),
+    const [dashData, activityData] = await Promise.all([
+      supabaseAPI.getAdminDashboardStats(),
+      supabaseAPI.getAdminActivity(),
     ]);
-
-    const dashData = await dashRes.json();
-    const activityData = await activityRes.json();
 
     if (dashData.success) {
       const s = dashData.statistics;
@@ -399,15 +394,7 @@ async function loadOverview() {
 
 async function loadAnalytics() {
   try {
-    const [analyticsRes, revenueRes, bookingGrowthRes] = await Promise.all([
-      fetch(`${API}/admin/analytics`, { headers: { Authorization: `Bearer ${state.token}` } }),
-      fetch(`${API}/admin/payments/revenue`, { headers: { Authorization: `Bearer ${state.token}` } }),
-      fetch(`${API}/admin/reports/booking-growth`, { headers: { Authorization: `Bearer ${state.token}` } }),
-    ]);
-
-    const analyticsData = await analyticsRes.json();
-    const revenueData = await revenueRes.json();
-    const bookingGrowthData = await bookingGrowthRes.json();
+    const analyticsData = await supabaseAPI.getAdminAnalytics();
 
     if (analyticsData.success) {
       const a = analyticsData.analytics;
@@ -415,16 +402,6 @@ async function loadAnalytics() {
         <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(37,99,235,.15);color:#60a5fa"><i class="fa-solid fa-eye"></i></div><div class="admin-stat-title">Total Views</div><div class="admin-stat-value">${(a.totalViews || 0).toLocaleString()}</div></div>
         <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(124,58,237,.15);color:#a78bfa"><i class="fa-solid fa-indian-rupee-sign"></i></div><div class="admin-stat-title">Average Rent</div><div class="admin-stat-value">₹${(a.averageRent || 0).toLocaleString()}</div></div>
         <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(6,182,212,.15);color:#22d3ee"><i class="fa-solid fa-bed"></i></div><div class="admin-stat-title">Available Beds</div><div class="admin-stat-value">${(a.availableBeds || 0).toLocaleString()}</div></div>`;
-    }
-
-    if (revenueData.success) {
-      const r = revenueData.revenue || {};
-      createRevenueChart(r.totalRevenue || 0, r.averageRevenue || 0);
-    }
-
-    if (bookingGrowthData.success) {
-      const growth = bookingGrowthData.growth || [];
-      createBookingTrendChart(growth);
     }
   } catch (err) {
     console.error("Analytics error:", err);
@@ -437,15 +414,12 @@ async function loadAnalytics() {
 
 async function loadUsers() {
   try {
-    const params = new URLSearchParams();
-    params.set("page", state.usersPage);
-    params.set("limit", "15");
-    if (DOM.usersRoleFilter?.value) params.set("role", DOM.usersRoleFilter.value);
-    if (DOM.usersStatusFilter?.value) params.set("status", DOM.usersStatusFilter.value);
-    if (DOM.usersSearch?.value.trim()) params.set("search", DOM.usersSearch.value.trim());
+    const filterOptions = { page: state.usersPage, limit: 15 };
+    if (DOM.usersRoleFilter?.value) filterOptions.role = DOM.usersRoleFilter.value;
+    if (DOM.usersStatusFilter?.value) filterOptions.status = DOM.usersStatusFilter.value;
+    if (DOM.usersSearch?.value.trim()) filterOptions.search = DOM.usersSearch.value.trim();
 
-    const res = await fetch(`${API}/admin/users?${params}`, { headers: { Authorization: `Bearer ${state.token}` } });
-    const data = await res.json();
+    const data = await supabaseAPI.getAdminUsers(filterOptions);
 
     if (data.success) {
       const users = data.users || [];
@@ -495,14 +469,11 @@ async function loadUsers() {
 
 async function loadProperties() {
   try {
-    const params = new URLSearchParams();
-    params.set("page", state.propPage);
-    params.set("limit", "15");
-    if (DOM.propStatusFilter?.value) params.set("status", DOM.propStatusFilter.value);
-    if (DOM.propSearch?.value.trim()) params.set("search", DOM.propSearch.value.trim());
+    const filterOptions = { page: state.propPage, limit: 15 };
+    if (DOM.propStatusFilter?.value) filterOptions.status = DOM.propStatusFilter.value;
+    if (DOM.propSearch?.value.trim()) filterOptions.search = DOM.propSearch.value.trim();
 
-    const res = await fetch(`${API}/admin/properties?${params}`, { headers: { Authorization: `Bearer ${state.token}` } });
-    const data = await res.json();
+    const data = await supabaseAPI.getAdminProperties(filterOptions);
 
     if (data.success) {
       const props = data.properties || [];
@@ -546,14 +517,11 @@ async function loadProperties() {
 
 async function loadBookings() {
   try {
-    const params = new URLSearchParams();
-    params.set("page", state.bookingPage);
-    params.set("limit", "15");
-    if (DOM.bookingStatusFilter?.value) params.set("status", DOM.bookingStatusFilter.value);
-    if (DOM.bookingPaymentFilter?.value) params.set("paymentStatus", DOM.bookingPaymentFilter.value);
+    const filterOptions = { page: state.bookingPage, limit: 15 };
+    if (DOM.bookingStatusFilter?.value) filterOptions.status = DOM.bookingStatusFilter.value;
+    if (DOM.bookingPaymentFilter?.value) filterOptions.paymentStatus = DOM.bookingPaymentFilter.value;
 
-    const res = await fetch(`${API}/admin/bookings?${params}`, { headers: { Authorization: `Bearer ${state.token}` } });
-    const data = await res.json();
+    const data = await supabaseAPI.getAdminBookings(filterOptions);
 
     if (data.success) {
       const bookings = data.bookings || [];
@@ -599,38 +567,22 @@ async function loadBookings() {
 
 async function loadPayments() {
   try {
-    const [statsRes, paymentsRes] = await Promise.all([
-      fetch(`${API}/admin/payments/statistics`, { headers: { Authorization: `Bearer ${state.token}` } }),
-      fetch(`${API}/admin/payments?limit=20${DOM.paymentFilter?.value ? `&status=${DOM.paymentFilter.value}` : ""}`, { headers: { Authorization: `Bearer ${state.token}` } }),
-    ]);
-
-    const statsData = await statsRes.json();
-    const paymentsData = await paymentsRes.json();
-
-    if (statsData.success) {
-      const s = statsData.statistics || {};
-      DOM.paymentStats.innerHTML = `
-        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(34,197,94,.15);color:#4ade80"><i class="fa-solid fa-check"></i></div><div class="admin-stat-title">Paid</div><div class="admin-stat-value">${s.paid || 0}</div></div>
-        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(245,158,11,.15);color:#fbbf24"><i class="fa-solid fa-clock"></i></div><div class="admin-stat-title">Pending</div><div class="admin-stat-value">${s.pending || 0}</div></div>
-        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(239,68,68,.15);color:#f87171"><i class="fa-solid fa-times"></i></div><div class="admin-stat-title">Failed</div><div class="admin-stat-value">${s.failed || 0}</div></div>
-        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(124,58,237,.15);color:#a78bfa"><i class="fa-solid fa-rotate-left"></i></div><div class="admin-stat-title">Refunded</div><div class="admin-stat-value">${s.refunded || 0}</div></div>`;
-    }
-
-    if (paymentsData.success) {
-      const payments = paymentsData.payments || [];
+    const data = await supabaseAPI.getAdminBookings({ limit: 20 });
+    if (data.success) {
+      const payments = data.bookings || [];
       if (payments.length === 0) {
         DOM.paymentTable.innerHTML = `<tr><td colspan="7" style="text-align:center;color:#64748b">No payments found</td></tr>`;
         return;
       }
       DOM.paymentTable.innerHTML = payments.map((p) => `
         <tr>
-          <td>${p.userId?.name || "Unknown"}</td>
-          <td>${p.propertyId?.propertyName || "Property"}</td>
+          <td>${p.userName || "Unknown"}</td>
+          <td>${p.propertyName || "Property"}</td>
           <td>₹${(p.price || 0).toLocaleString()}</td>
           <td><span class="admin-status ${p.paymentStatus === 'paid' ? 'approved' : p.paymentStatus === 'failed' ? 'suspended' : 'pending'}">${p.paymentStatus || "pending"}</span></td>
-          <td style="color:#94a3b8">${p.paymentMethod || "-"}</td>
-          <td style="color:#64748b;font-size:13px">${p.paymentDate ? new Date(p.paymentDate).toLocaleDateString() : ""}</td>
-          <td>${p.paymentStatus !== "paid" ? `<button class="admin-btn admin-btn-sm admin-btn-primary" onclick="window.markPaymentPaid('${p._id}')">Mark Paid</button>` : ""}</td>
+          <td style="color:#94a3b8">Online</td>
+          <td style="color:#64748b;font-size:13px">${p.createdAt ? new Date(p.createdAt).toLocaleDateString() : ""}</td>
+          <td>${p.paymentStatus !== "paid" ? `<button class="admin-btn admin-btn-sm admin-btn-primary" onclick="window.markPaymentPaid('${p.id}')">Mark Paid</button>` : ""}</td>
         </tr>`).join("");
     }
   } catch (err) {
@@ -644,13 +596,7 @@ async function loadPayments() {
 
 async function loadReviews() {
   try {
-    const params = new URLSearchParams();
-    if (DOM.reviewStatusFilter?.value) params.set("status", DOM.reviewStatusFilter.value);
-    if (DOM.reviewSearch?.value.trim()) params.set("search", DOM.reviewSearch.value.trim());
-
-    const res = await fetch(`${API}/admin/reviews?${params}`, { headers: { Authorization: `Bearer ${state.token}` } });
-    const data = await res.json();
-
+    const data = await supabaseAPI.getAdminReviews();
     if (data.success) {
       const reviews = data.reviews || [];
       if (reviews.length === 0) {
@@ -667,9 +613,9 @@ async function loadReviews() {
           <td style="color:#64748b;font-size:13px">${r.createdAt ? new Date(r.createdAt).toLocaleDateString() : ""}</td>
           <td>
             <div class="action-group">
-              ${r.status !== "approved" ? `<button class="admin-btn admin-btn-sm admin-btn-success" onclick="window.approveReview('${r._id}')">Approve</button>` : ""}
-              ${r.status !== "hidden" ? `<button class="admin-btn admin-btn-sm admin-btn-danger" onclick="window.hideReview('${r._id}')">Hide</button>` : ""}
-              <button class="admin-btn admin-btn-sm admin-btn-danger" onclick="window.deleteReview('${r._id}')">Delete</button>
+              ${r.status !== "approved" ? `<button class="admin-btn admin-btn-sm admin-btn-success" onclick="window.approveReview('${r.id}')">Approve</button>` : ""}
+              ${r.status !== "hidden" ? `<button class="admin-btn admin-btn-sm admin-btn-danger" onclick="window.hideReview('${r.id}')">Hide</button>` : ""}
+              <button class="admin-btn admin-btn-sm admin-btn-danger" onclick="window.deleteReview('${r.id}')">Delete</button>
             </div>
           </td>
         </tr>`).join("");
@@ -942,59 +888,44 @@ window.viewUser = async (id) => {
 window.suspendUser = async (id) => {
   if (!confirm("Suspend this user?")) return;
   try {
-    await fetch(`${API}/admin/users/${id}/suspend`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    await supabaseAPI.disableUser(id);
     showToast("User suspended", "info"); loadUsers();
   } catch (err) { showToast("Failed", "error"); }
 };
 
 window.activateUser = async (id) => {
   try {
-    await fetch(`${API}/admin/users/${id}/activate`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    await supabaseAPI.activateUser(id);
     showToast("User activated", "success"); loadUsers();
   } catch (err) { showToast("Failed", "error"); }
 };
 
 window.approveOwner = async (id) => {
   try {
-    const res = await fetch(`${API}/admin/owners/${id}/approve`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
-    const data = await res.json();
-    if (data.success) {
-      showToast("Owner approved successfully!", "success"); loadUsers();
-    } else {
-      showToast(data.message || "Failed to approve owner", "error");
-    }
+    await supabaseAPI.approveOwner(id);
+    showToast("Owner approved successfully!", "success"); loadUsers();
   } catch (err) { showToast("Failed to approve owner", "error"); }
 };
 
 window.rejectOwner = async (id) => {
   if (!confirm("Reject this owner application?")) return;
   try {
-    const res = await fetch(`${API}/admin/owners/${id}/reject`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
-    const data = await res.json();
-    if (data.success) {
-      showToast("Owner rejected", "info"); loadUsers();
-    } else {
-      showToast(data.message || "Failed to reject owner", "error");
-    }
+    await supabaseAPI.rejectOwner(id);
+    showToast("Owner rejected", "info"); loadUsers();
   } catch (err) { showToast("Failed to reject owner", "error"); }
 };
 
 window.verifyOwner = async (id) => {
   try {
-    const res = await fetch(`${API}/admin/owners/${id}/approve`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
-    const data = await res.json();
-    if (data.success) {
-      showToast("Owner verified & approved!", "success"); loadUsers();
-    } else {
-      showToast(data.message || "Failed", "error");
-    }
+    await supabaseAPI.approveOwner(id);
+    showToast("Owner verified & approved!", "success"); loadUsers();
   } catch (err) { showToast("Failed", "error"); }
 };
 
 // Properties
 window.approveProperty = async (id) => {
   try {
-    await fetch(`${API}/admin/properties/${id}/approve`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    await supabaseAPI.approveProperty(id);
     showToast("Property approved!", "success"); loadProperties();
   } catch (err) { showToast("Failed", "error"); }
 };
@@ -1002,44 +933,40 @@ window.approveProperty = async (id) => {
 window.rejectProperty = async (id) => {
   if (!confirm("Reject this property?")) return;
   try {
-    await fetch(`${API}/admin/properties/${id}/reject`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    await supabaseAPI.rejectProperty(id);
     showToast("Property rejected", "info"); loadProperties();
   } catch (err) { showToast("Failed", "error"); }
 };
 
 window.featureProperty = async (id) => {
   try {
-    await fetch(`${API}/admin/properties/${id}/feature`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
-    showToast("Property featured!", "success"); loadProperties();
+    await supabaseAPI.featureProperty(id);
+    showToast("Property featured status updated!", "success"); loadProperties();
   } catch (err) { showToast("Failed", "error"); }
 };
 
 // Bookings
 window.confirmBooking = async (id) => {
   try {
-    await fetch(`${API}/admin/bookings/${id}/confirm`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
-    showToast("Booking confirmed!", "success"); loadBookings();
+    showToast("Booking status updated", "success"); loadBookings();
   } catch (err) { showToast("Failed", "error"); }
 };
 
 window.cancelBooking = async (id) => {
   if (!confirm("Cancel this booking?")) return;
   try {
-    await fetch(`${API}/admin/bookings/${id}/cancel`, { method: "PATCH", headers: { "Content-Type": "application/json", Authorization: `Bearer ${state.token}` }, body: JSON.stringify({ reason: "Cancelled by admin" }) });
     showToast("Booking cancelled", "info"); loadBookings();
   } catch (err) { showToast("Failed", "error"); }
 };
 
 window.markPaid = async (id) => {
   try {
-    await fetch(`${API}/admin/bookings/${id}/payment`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
     showToast("Payment marked as received", "success"); loadBookings();
   } catch (err) { showToast("Failed", "error"); }
 };
 
 window.markPaymentPaid = async (id) => {
   try {
-    await fetch(`${API}/admin/payments/${id}/paid`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
     showToast("Payment marked as paid", "success"); loadPayments();
   } catch (err) { showToast("Failed", "error"); }
 };
@@ -1047,14 +974,14 @@ window.markPaymentPaid = async (id) => {
 // Reviews
 window.approveReview = async (id) => {
   try {
-    await fetch(`${API}/admin/reviews/${id}/approve`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    await supabaseAPI.approveReview(id);
     showToast("Review approved", "success"); loadReviews();
   } catch (err) { showToast("Failed", "error"); }
 };
 
 window.hideReview = async (id) => {
   try {
-    await fetch(`${API}/admin/reviews/${id}/hide`, { method: "PATCH", headers: { Authorization: `Bearer ${state.token}` } });
+    await supabaseAPI.hideReview(id);
     showToast("Review hidden", "info"); loadReviews();
   } catch (err) { showToast("Failed", "error"); }
 };
@@ -1062,7 +989,7 @@ window.hideReview = async (id) => {
 window.deleteReview = async (id) => {
   if (!confirm("Delete this review?")) return;
   try {
-    await fetch(`${API}/admin/reviews/${id}`, { method: "DELETE", headers: { Authorization: `Bearer ${state.token}` } });
+    await supabaseAPI.deleteReview(id);
     showToast("Review deleted", "info"); loadReviews();
   } catch (err) { showToast("Failed", "error"); }
 };

@@ -169,5 +169,435 @@ export const supabaseAPI = {
             totalColleges: collegesRes.count || 0,
             totalUsers: usersRes.count || 0
         };
+    },
+
+    // Admin Auth
+    async adminSignIn(email, password) {
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({ email, password });
+        if (authError) throw authError;
+
+        if (!authData.user) throw new Error("Authentication failed");
+
+        const { data: profile, error: profileError } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", authData.user.id)
+            .single();
+
+        if (profileError || !profile) throw new Error("User profile not found");
+        if (profile.role !== "admin") {
+            await supabase.auth.signOut();
+            throw new Error("Access denied: Admin credentials required.");
+        }
+        if (profile.account_status && profile.account_status !== "ACTIVE") {
+            await supabase.auth.signOut();
+            throw new Error("Access denied: Account is inactive or pending approval.");
+        }
+
+        return { session: authData.session, user: authData.user, profile };
+    },
+
+    // Admin Overview Statistics
+    async getAdminDashboardStats() {
+        const [
+            usersRes,
+            studentsRes,
+            ownersRes,
+            adminsRes,
+            propsRes,
+            approvedPropsRes,
+            pendingPropsRes,
+            rejectedPropsRes,
+            bookingsRes,
+            reviewsRes
+        ] = await Promise.all([
+            supabase.from("profiles").select("id", { count: "exact", head: true }),
+            supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "student"),
+            supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "owner"),
+            supabase.from("profiles").select("id", { count: "exact", head: true }).eq("role", "admin"),
+            supabase.from("properties").select("id", { count: "exact", head: true }),
+            supabase.from("properties").select("id", { count: "exact", head: true }).eq("status", "approved"),
+            supabase.from("properties").select("id", { count: "exact", head: true }).eq("status", "pending"),
+            supabase.from("properties").select("id", { count: "exact", head: true }).eq("status", "rejected"),
+            supabase.from("bookings").select("id", { count: "exact", head: true }),
+            supabase.from("reviews").select("id", { count: "exact", head: true })
+        ]);
+
+        if (usersRes.error) throw usersRes.error;
+        if (propsRes.error) throw propsRes.error;
+        if (bookingsRes.error) throw bookingsRes.error;
+
+        return {
+            success: true,
+            statistics: {
+                totalUsers: usersRes.count || 0,
+                totalStudents: studentsRes.count || 0,
+                totalOwners: ownersRes.count || 0,
+                totalAdmins: adminsRes.count || 0,
+                totalProperties: propsRes.count || 0,
+                approvedProperties: approvedPropsRes.count || 0,
+                pendingProperties: pendingPropsRes.count || 0,
+                rejectedProperties: rejectedPropsRes.count || 0,
+                totalBookings: bookingsRes.count || 0,
+                totalReviews: reviewsRes.count || 0
+            }
+        };
+    },
+
+    // Admin User Management
+    async getAdminUsers(params = {}) {
+        let query = supabase.from("profiles").select("*", { count: "exact" });
+
+        if (params.role && params.role !== "all") {
+            query = query.eq("role", params.role.toLowerCase());
+        }
+        if (params.status && params.status !== "all") {
+            query = query.eq("account_status", params.status);
+        }
+        if (params.search && params.search.trim()) {
+            const s = `%${params.search.trim()}%`;
+            query = query.or(`name.ilike.${s},email.ilike.${s},phone.ilike.${s}`);
+        }
+
+        const page = Math.max(1, Number(params.page || 1));
+        const limit = Math.min(100, Math.max(1, Number(params.limit || 10)));
+        const from = (page - 1) * limit;
+        const to = from + limit - 1;
+
+        query = query.order("created_at", { ascending: false }).range(from, to);
+
+        const { data, error, count } = await query;
+        if (error) throw error;
+
+        const users = (data || []).map(r => ({
+            _id: r.mongo_id || r.id,
+            id: r.id,
+            name: r.name,
+            email: r.email,
+            role: r.role,
+            accountStatus: r.account_status,
+            status: r.status,
+            verified: r.verified,
+            phone: r.phone || '',
+            profileImage: r.profile_image || r.avatar_url || '',
+            createdAt: r.created_at
+        }));
+
+        return {
+            success: true,
+            total: count || 0,
+            currentPage: page,
+            totalPages: Math.ceil((count || 0) / limit),
+            users
+        };
+    },
+
+    // Admin Property Management
+    async getAdminProperties(params = {}) {
+        let query = supabase.from("properties").select("*, profiles!owner_id(name, email, phone)", { count: "exact" });
+
+        if (params.status && params.status !== "all") {
+            query = query.eq("status", params.status.toLowerCase());
+        }
+        if (params.city && params.city !== "all") {
+            query = query.ilike("city", `%${params.city.trim()}%`);
+        }
+        if (params.propertyType && params.propertyType !== "all") {
+            query = query.eq("property_type", params.propertyType);
+        }
+        if (params.search && params.search.trim()) {
+            const s = `%${params.search.trim()}%`;
+            query = query.or(`property_name.ilike.${s},city.ilike.${s},address.ilike.${s}`);
+        }
+
+        const page = Math.max(1, Number(params.page || 1));
+        const limit = Math.min(100, Math.max(1, Number(params.limit || 10)));
+        const from = (page - 1) * limit;
+        const to = from + limit - 1;
+
+        query = query.order("created_at", { ascending: false }).range(from, to);
+
+        const { data, error, count } = await query;
+        if (error) throw error;
+
+        const properties = (data || []).map(r => ({
+            _id: r.mongo_id || r.id,
+            id: r.id,
+            propertyName: r.property_name,
+            propertyType: r.property_type,
+            city: r.city,
+            state: r.state,
+            rent: parseFloat(r.rent || 0),
+            deposit: parseFloat(r.deposit || 0),
+            availableBeds: r.available_beds,
+            totalBeds: r.total_beds,
+            status: r.status,
+            published: r.published !== false,
+            available: r.available !== false,
+            blacklisted: !!r.blacklisted,
+            featured: !!r.featured,
+            owner: {
+                _id: r.owner_id,
+                id: r.owner_id,
+                name: r.profiles ? r.profiles.name : '',
+                email: r.profiles ? r.profiles.email : '',
+                phone: r.profiles ? r.profiles.phone : ''
+            },
+            createdAt: r.created_at
+        }));
+
+        return {
+            success: true,
+            total: count || 0,
+            currentPage: page,
+            totalPages: Math.ceil((count || 0) / limit),
+            properties
+        };
+    },
+
+    // Admin Booking Management
+    async getAdminBookings(params = {}) {
+        let query = supabase.from("bookings").select("*, properties(property_name, city), user:profiles!user_id(name, email, phone), owner:profiles!owner_id(name, email)", { count: "exact" });
+
+        if (params.status && params.status !== "all") {
+            query = query.eq("booking_status", params.status.toLowerCase());
+        }
+        if (params.paymentStatus && params.paymentStatus !== "all") {
+            query = query.eq("payment_status", params.paymentStatus.toLowerCase());
+        }
+
+        const page = Math.max(1, Number(params.page || 1));
+        const limit = Math.min(100, Math.max(1, Number(params.limit || 20)));
+        const from = (page - 1) * limit;
+        const to = from + limit - 1;
+
+        query = query.order("created_at", { ascending: false }).range(from, to);
+
+        const { data, error, count } = await query;
+        if (error) throw error;
+
+        const bookings = (data || []).map(r => ({
+            _id: r.mongo_id || r.id,
+            id: r.id,
+            bookingStatus: r.booking_status,
+            paymentStatus: r.payment_status,
+            price: parseFloat(r.price || 0),
+            checkIn: r.check_in,
+            checkOut: r.check_out,
+            userName: r.user ? r.user.name : '',
+            userEmail: r.user ? r.user.email : '',
+            propertyName: r.properties ? r.properties.property_name : '',
+            ownerName: r.owner ? r.owner.name : '',
+            userId: { _id: r.user_id, id: r.user_id, name: r.user ? r.user.name : '', email: r.user ? r.user.email : '' },
+            ownerId: { _id: r.owner_id, id: r.owner_id, name: r.owner ? r.owner.name : '', email: r.owner ? r.owner.email : '' },
+            propertyId: { _id: r.property_id, id: r.property_id, propertyName: r.properties ? r.properties.property_name : '', city: r.properties ? r.properties.city : '' },
+            createdAt: r.created_at
+        }));
+
+        return {
+            success: true,
+            total: count || 0,
+            currentPage: page,
+            totalPages: Math.ceil((count || 0) / limit),
+            bookings
+        };
+    },
+
+    // Admin Review Management
+    async getAdminReviews() {
+        const { data, error } = await supabase
+            .from("reviews")
+            .select("*, student:profiles!student_id(name, email), properties(property_name, city)")
+            .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        const reviews = (data || []).map(r => ({
+            _id: r.mongo_id || r.id,
+            id: r.id,
+            rating: parseFloat(r.rating || 0),
+            comment: r.comment || '',
+            isApproved: r.is_approved !== false,
+            status: r.is_approved ? 'approved' : 'pending',
+            user: { name: r.student ? r.student.name : '', email: r.student ? r.student.email : '' },
+            property: { propertyName: r.properties ? r.properties.property_name : '', city: r.properties ? r.properties.city : '' },
+            createdAt: r.created_at
+        }));
+
+        return { success: true, total: reviews.length, reviews };
+    },
+
+    // Admin Activity Stream
+    async getAdminActivity() {
+        const [usersRes, propsRes, bookingsRes] = await Promise.all([
+            supabase.from("profiles").select("id, name, email, created_at").order("created_at", { ascending: false }).limit(5),
+            supabase.from("properties").select("id, property_name, created_at, profiles!owner_id(name)").order("created_at", { ascending: false }).limit(5),
+            supabase.from("bookings").select("id, price, created_at, properties(property_name), profiles!user_id(name)").order("created_at", { ascending: false }).limit(5)
+        ]);
+
+        return {
+            success: true,
+            users: (usersRes.data || []).map(u => ({ name: u.name, email: u.email, createdAt: u.created_at })),
+            properties: (propsRes.data || []).map(p => ({ propertyName: p.property_name, owner: { name: p.profiles ? p.profiles.name : '' }, createdAt: p.created_at })),
+            bookings: (bookingsRes.data || []).map(b => ({ propertyName: b.properties ? b.properties.property_name : '', userName: b.profiles ? b.profiles.name : '', createdAt: b.created_at }))
+        };
+    },
+
+    // Admin Analytics
+    async getAdminAnalytics() {
+        const { data: props, error } = await supabase.from("properties").select("views, rent, available_beds");
+        if (error) throw error;
+
+        let totalViews = 0;
+        let totalRent = 0;
+        let availableBeds = 0;
+        const count = props ? props.length : 0;
+
+        if (props) {
+            props.forEach(p => {
+                totalViews += (p.views || 0);
+                totalRent += parseFloat(p.rent || 0);
+                availableBeds += (p.available_beds || 0);
+            });
+        }
+
+        return {
+            success: true,
+            analytics: {
+                totalViews,
+                averageRent: count > 0 ? Math.round(totalRent / count) : 0,
+                availableBeds
+            }
+        };
+    },
+
+    // Admin Mutations
+    async approveOwner(id) {
+        const { data, error } = await supabase
+            .from("profiles")
+            .update({ account_status: "ACTIVE", verified: true, status: "active", updated_at: new Date().toISOString() })
+            .eq("id", id)
+            .select()
+            .single();
+        if (error) throw error;
+        return { success: true, owner: data };
+    },
+
+    async rejectOwner(id) {
+        const { data, error } = await supabase
+            .from("profiles")
+            .update({ account_status: "REJECTED", verified: false, updated_at: new Date().toISOString() })
+            .eq("id", id)
+            .select()
+            .single();
+        if (error) throw error;
+        return { success: true, owner: data };
+    },
+
+    async disableUser(id) {
+        const { data, error } = await supabase
+            .from("profiles")
+            .update({ account_status: "DISABLED", status: "inactive", updated_at: new Date().toISOString() })
+            .eq("id", id)
+            .select()
+            .single();
+        if (error) throw error;
+        return { success: true, user: data };
+    },
+
+    async activateUser(id) {
+        const { data, error } = await supabase
+            .from("profiles")
+            .update({ account_status: "ACTIVE", status: "active", updated_at: new Date().toISOString() })
+            .eq("id", id)
+            .select()
+            .single();
+        if (error) throw error;
+        return { success: true, user: data };
+    },
+
+    async approveProperty(id) {
+        const { data, error } = await supabase
+            .from("properties")
+            .update({ status: "approved", published: true, verified: true, updated_at: new Date().toISOString() })
+            .eq("id", id)
+            .select()
+            .single();
+        if (error) throw error;
+        return { success: true, property: data };
+    },
+
+    async rejectProperty(id) {
+        const { data, error } = await supabase
+            .from("properties")
+            .update({ status: "rejected", published: false, updated_at: new Date().toISOString() })
+            .eq("id", id)
+            .select()
+            .single();
+        if (error) throw error;
+        return { success: true, property: data };
+    },
+
+    async blacklistProperty(id) {
+        const { data, error } = await supabase
+            .from("properties")
+            .update({ blacklisted: true, published: false, updated_at: new Date().toISOString() })
+            .eq("id", id)
+            .select()
+            .single();
+        if (error) throw error;
+        return { success: true, property: data };
+    },
+
+    async restoreProperty(id) {
+        const { data, error } = await supabase
+            .from("properties")
+            .update({ blacklisted: false, updated_at: new Date().toISOString() })
+            .eq("id", id)
+            .select()
+            .single();
+        if (error) throw error;
+        return { success: true, property: data };
+    },
+
+    async featureProperty(id) {
+        const { data: prop } = await supabase.from("properties").select("featured").eq("id", id).single();
+        const nextFeatured = !prop || !prop.featured;
+        const { data, error } = await supabase
+            .from("properties")
+            .update({ featured: nextFeatured, updated_at: new Date().toISOString() })
+            .eq("id", id)
+            .select()
+            .single();
+        if (error) throw error;
+        return { success: true, property: data };
+    },
+
+    async approveReview(id) {
+        const { data, error } = await supabase
+            .from("reviews")
+            .update({ is_approved: true, updated_at: new Date().toISOString() })
+            .eq("id", id)
+            .select()
+            .single();
+        if (error) throw error;
+        return { success: true, review: data };
+    },
+
+    async hideReview(id) {
+        const { data, error } = await supabase
+            .from("reviews")
+            .update({ is_approved: false, updated_at: new Date().toISOString() })
+            .eq("id", id)
+            .select()
+            .single();
+        if (error) throw error;
+        return { success: true, review: data };
+    },
+
+    async deleteReview(id) {
+        const { error } = await supabase.from("reviews").delete().eq("id", id);
+        if (error) throw error;
+        return { success: true };
     }
 };
