@@ -6,6 +6,7 @@
 import { getToken, getUser, protectPageByRole, logout as sessionLogout, getLoginUrl } from "./session.js";
 import { API } from "./config.js";
 import { getImageUrl } from "./image-utils.js";
+import { supabaseAPI } from "./supabase-api.js";
 
 const API_BASE = API;
 
@@ -39,6 +40,34 @@ export function $(id) {
 // =====================================================
 
 export async function apiFetch(endpoint, opts = {}) {
+  const method = (opts.method || "GET").toUpperCase();
+
+  // Supabase Native Interceptor for Student Routes
+  if (endpoint === "/student/notifications" && method === "GET") {
+    return await supabaseAPI.getStudentNotifications();
+  }
+  if (endpoint.startsWith("/student/notifications/") && endpoint.endsWith("/read") && method === "PUT") {
+    const id = endpoint.split("/")[3];
+    return await supabaseAPI.markNotificationRead(id);
+  }
+  if (endpoint === "/student/notifications/read-all" && method === "PUT") {
+    return await supabaseAPI.markAllNotificationsRead();
+  }
+  if (endpoint === "/student/profile" && method === "GET") {
+    return await supabaseAPI.getStudentProfile();
+  }
+  if (endpoint === "/student/profile" && method === "PUT") {
+    const payload = opts.body ? JSON.parse(opts.body) : {};
+    return await supabaseAPI.updateStudentProfile(payload);
+  }
+  if (endpoint === "/student/bookings" && method === "GET") {
+    const bookings = await supabaseAPI.getMyBookings();
+    return { success: true, bookings };
+  }
+  if (endpoint === "/student/saved" && method === "GET") {
+    return { success: true, saved: [] };
+  }
+
   const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
   const currentToken = getToken();
   if (currentToken) headers.Authorization = `Bearer ${currentToken}`;

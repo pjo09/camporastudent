@@ -59,6 +59,56 @@
       "permanent": true
     },
     {
+      "source": "/student/notifications",
+      "destination": "/pages/student/notifications.html",
+      "permanent": true
+    },
+    {
+      "source": "/student/profile",
+      "destination": "/pages/student/profile.html",
+      "permanent": true
+    },
+    {
+      "source": "/student/dashboard",
+      "destination": "/pages/student/dashboard.html",
+      "permanent": true
+    },
+    {
+      "source": "/student/bookings",
+      "destination": "/pages/student/bookings.html",
+      "permanent": true
+    },
+    {
+      "source": "/student/messages",
+      "destination": "/pages/student/messages.html",
+      "permanent": true
+    },
+    {
+      "source": "/student/payments",
+      "destination": "/pages/student/payments.html",
+      "permanent": true
+    },
+    {
+      "source": "/student/reviews",
+      "destination": "/pages/student/reviews.html",
+      "permanent": true
+    },
+    {
+      "source": "/student/settings",
+      "destination": "/pages/student/settings.html",
+      "permanent": true
+    },
+    {
+      "source": "/student/support",
+      "destination": "/pages/student/support.html",
+      "permanent": true
+    },
+    {
+      "source": "/student/saved",
+      "destination": "/pages/student/saved-properties.html",
+      "permanent": true
+    },
+    {
       "source": "/notifications.html",
       "destination": "/pages/student/notifications.html",
       "permanent": true

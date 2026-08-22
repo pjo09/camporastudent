@@ -599,5 +599,97 @@ export const supabaseAPI = {
         const { error } = await supabase.from("reviews").delete().eq("id", id);
         if (error) throw error;
         return { success: true };
+    },
+
+    // Student Notifications
+    async getStudentNotifications() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, notifications: [] };
+        const { data, error } = await supabase
+            .from("notifications")
+            .select("*")
+            .eq("receiver_id", user.id)
+            .order("created_at", { ascending: false });
+        if (error) throw error;
+        return {
+            success: true,
+            notifications: (data || []).map(n => ({
+                _id: n.id,
+                id: n.id,
+                title: n.title,
+                message: n.message,
+                type: n.type || "general",
+                isRead: !!n.is_read,
+                createdAt: n.created_at
+            }))
+        };
+    },
+
+    async markNotificationRead(id) {
+        const { error } = await supabase
+            .from("notifications")
+            .update({ is_read: true, updated_at: new Date().toISOString() })
+            .eq("id", id);
+        if (error) throw error;
+        return { success: true };
+    },
+
+    async markAllNotificationsRead() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true };
+        const { error } = await supabase
+            .from("notifications")
+            .update({ is_read: true, updated_at: new Date().toISOString() })
+            .eq("receiver_id", user.id);
+        if (error) throw error;
+        return { success: true };
+    },
+
+    // Student Profile
+    async getStudentProfile() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const { data, error } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", user.id)
+            .maybeSingle();
+        if (error) throw error;
+        return {
+            success: true,
+            user: {
+                id: user.id,
+                email: user.email,
+                name: data ? data.name : user.email.split("@")[0],
+                phone: data ? data.phone || "" : "",
+                bio: data ? data.bio || "" : "",
+                college: data ? data.college || "" : "",
+                course: data ? data.course || "" : "",
+                year: data ? data.year || "" : "",
+                emergencyContact: data ? data.emergency_contact || "" : ""
+            }
+        };
+    },
+
+    async updateStudentProfile(payload = {}) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+        const { data, error } = await supabase
+            .from("profiles")
+            .update({
+                name: payload.name,
+                phone: payload.phone,
+                bio: payload.bio,
+                college: payload.college,
+                course: payload.course,
+                year: payload.year,
+                emergency_contact: payload.emergencyContact,
+                updated_at: new Date().toISOString()
+            })
+            .eq("id", user.id)
+            .select()
+            .single();
+        if (error) throw error;
+        return { success: true, user: data };
     }
 };

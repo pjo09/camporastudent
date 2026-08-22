@@ -38,9 +38,9 @@ const supabaseUrl = (rawUrl && (rawUrl.includes("pooler.supabase.com") || rawUrl
     ? "https://wsldciqtznqjnmltgxpm.supabase.co"
     : (rawUrl || "https://wsldciqtznqjnmltgxpm.supabase.co");
 
-const supabaseAnonKey = getEnvKey();
+const supabaseAnonKey = getEnvKey() || CONFIG.SUPABASE_ANON_KEY;
 
-const anonKeyPresent = Boolean(supabaseAnonKey && supabaseAnonKey !== "missing_key");
+const anonKeyPresent = Boolean(supabaseAnonKey && supabaseAnonKey !== "missing_key" && supabaseAnonKey !== "");
 const anonKeyLength = supabaseAnonKey ? supabaseAnonKey.length : 0;
 
 console.log("⚡ Supabase Client Config:", {
@@ -49,8 +49,10 @@ console.log("⚡ Supabase Client Config:", {
     anonKeyLength: anonKeyLength
 });
 
-if (!supabaseUrl || !supabaseAnonKey) {
-    console.error("❌ Supabase configuration is missing. Check Vercel Production Environment Variables (VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY).");
+if (!supabaseUrl) {
+    console.error("❌ Supabase URL configuration is missing.");
+} else if (!anonKeyPresent) {
+    console.warn("⚠️ Supabase Client initialized in public/anonymous mode. Set VITE_SUPABASE_ANON_KEY in Vercel settings for direct authenticated Supabase APIs.");
 } else {
     console.log("⚡ Supabase Native Client initialized. URL:", supabaseUrl);
 }
