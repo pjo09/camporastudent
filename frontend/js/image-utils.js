@@ -59,6 +59,54 @@ export async function uploadImageToSupabase(file, folder = "properties") {
 }
 
 /**
+ * Upload a document file (JPEG, PNG, PDF) to Supabase Storage bucket 'documents'.
+ * @param {File} file - Browser File object
+ * @returns {Promise<string>} Uploaded file URL or path
+ */
+export async function uploadDocumentToSupabase(file) {
+  if (!file) throw new Error("No file provided for upload");
+
+  const validTypes = ["image/jpeg", "image/png", "image/webp", "image/jpg", "application/pdf"];
+  if (!validTypes.includes(file.type.toLowerCase())) {
+    throw new Error("Invalid document format. Please upload JPEG, PNG, WEBP, or PDF.");
+  }
+  if (file.size > 5 * 1024 * 1024) {
+    throw new Error("Document file size must be under 5MB.");
+  }
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) throw new Error("Not authenticated");
+
+  const fileExt = file.name.split('.').pop();
+  const fileName = `documents/${user.id}/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
+
+  const { data, error } = await supabase.storage
+    .from("documents")
+    .upload(fileName, file, {
+      cacheControl: "3600",
+      upsert: true
+    });
+
+  if (error) {
+    // Fallback to properties bucket under documents/ prefix if documents bucket not created
+    const { data: fallbackData, error: fallbackErr } = await supabase.storage
+      .from("properties")
+      .upload(fileName, file, { cacheControl: "3600", upsert: true });
+
+    if (fallbackErr) throw fallbackErr;
+
+    const { data: fallbackUrl } = supabase.storage.from("properties").getPublicUrl(fileName);
+    return fallbackUrl.publicUrl;
+  }
+
+  const { data: publicUrlData } = supabase.storage
+    .from("documents")
+    .getPublicUrl(fileName);
+
+  return publicUrlData.publicUrl;
+}
+
+/**
  * Delete an image file from Supabase Storage bucket.
  * @param {string} filePath - File path inside bucket
  */

@@ -234,8 +234,8 @@ async function handleFileUpload(e, bookingId, docIndex) {
     const file = formData.get("document");
     if (!file) throw new Error("No file selected for upload");
 
-    const { uploadImageToSupabase } = await import("./image-utils.js");
-    const publicUrl = await uploadImageToSupabase(file, "documents");
+    const { uploadDocumentToSupabase } = await import("./image-utils.js");
+    const publicUrl = await uploadDocumentToSupabase(file);
 
     const { supabase } = await import("./supabaseClient.js");
     const { data: docData, error: docErr } = await supabase
