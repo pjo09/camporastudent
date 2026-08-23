@@ -54,14 +54,86 @@
 
         let callbackProcessed = false;
 
-        async function handleCallback(session) {
-            if (callbackProcessed || !session || !session.user) return;
-            callbackProcessed = true;
+        async function processOAuthCallback() {
+            if (callbackProcessed) return;
 
             const statusMsg = document.getElementById("statusMsg");
-            if (statusMsg) statusMsg.textContent = "Setting up your session...";
+            const errorMsg = document.getElementById("errorMsg");
+            if (statusMsg) statusMsg.textContent = "Authenticating your account...";
 
             try {
+                let session = null;
+                const searchParams = new URLSearchParams(window.location.search);
+                const code = searchParams.get("code");
+
+                // A. PKCE Authorization Code Exchange
+                if (code) {
+                    console.log("⚡ OAuth callback: authorization code detected");
+                    console.log("⚡ OAuth callback: exchanging code");
+                    if (statusMsg) statusMsg.textContent = "Exchanging security credentials...";
+
+                    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+                    if (error) {
+                        console.error("❌ OAuth callback: exchange error:", error.message);
+                        throw error;
+                    }
+                    if (data && data.session) {
+                        session = data.session;
+                        console.log("⚡ OAuth callback: Supabase session established");
+                    }
+                }
+
+                // B. Implicit Hash Fragment Handling (#access_token=...&refresh_token=...)
+                if (!session && window.location.hash) {
+                    const hashParams = new URLSearchParams(window.location.hash.substring(1));
+                    const accessToken = hashParams.get("access_token");
+                    const refreshToken = hashParams.get("refresh_token");
+
+                    if (accessToken && refreshToken) {
+                        console.log("⚡ OAuth callback: implicit hash tokens detected");
+                        const { data, error } = await supabase.auth.setSession({
+                            access_token: accessToken,
+                            refresh_token: refreshToken
+                        });
+                        if (error) {
+                            console.error("❌ OAuth callback: setSession error:", error.message);
+                            throw error;
+                        }
+                        if (data && data.session) {
+                            session = data.session;
+                            console.log("⚡ OAuth callback: Supabase session established via setSession");
+                        }
+                    }
+                }
+
+                // C. Fallback: Existing Active Session Check
+                if (!session) {
+                    const { data } = await supabase.auth.getSession();
+                    session = data?.session || null;
+                }
+
+                if (!session || !session.user) {
+                    console.warn("⚠️ OAuth callback: No valid session found.");
+                    if (errorMsg) {
+                        errorMsg.style.display = "block";
+                        errorMsg.textContent = "Authentication error: No session returned from provider.";
+                    }
+                    if (statusMsg) statusMsg.style.display = "none";
+                    const spinner = document.getElementById("spinner");
+                    if (spinner) spinner.style.display = "none";
+                    return;
+                }
+
+                callbackProcessed = true;
+                console.log("⚡ OAuth callback: user authenticated");
+
+                if (statusMsg) statusMsg.textContent = "Setting up your profile...";
+
+                // Clean OAuth URL params from browser history without refreshing
+                try {
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                } catch (e) {}
+
                 const user = session.user;
                 const requestedRole = localStorage.getItem("campora_pending_role") || "student";
                 localStorage.removeItem("campora_pending_role");
@@ -121,24 +193,28 @@
                 // Redirect to role dashboard
                 redirectBasedOnRole(finalRole);
             } catch (err) {
-                console.error("Callback error:", err);
-                const errorMsg = document.getElementById("errorMsg");
+                console.error("❌ OAuth callback fatal error:", err);
                 if (errorMsg) {
                     errorMsg.style.display = "block";
                     errorMsg.textContent = "Authentication error: " + (err.message || "Failed to complete sign in.");
                 }
+                if (statusMsg) statusMsg.style.display = "none";
+                const spinner = document.getElementById("spinner");
+                if (spinner) spinner.style.display = "none";
             }
         }
 
-        supabase.auth.onAuthStateChange((event, session) => {
-            if ((event === "SIGNED_IN" || event === "INITIAL_SESSION") && session) {
-                handleCallback(session);
-            }
-        });
+        // Execute processOAuthCallback on DOMReady
+        if (document.readyState === "loading") {
+            document.addEventListener("DOMContentLoaded", () => processOAuthCallback());
+        } else {
+            processOAuthCallback();
+        }
 
-        supabase.auth.getSession().then(({ data }) => {
-            if (data && data.session) {
-                handleCallback(data.session);
+        // Fallback listener for auth state changes if SIGNED_IN triggers asynchronously
+        supabase.auth.onAuthStateChange((event, session) => {
+            if (event === "SIGNED_IN" && session && !callbackProcessed) {
+                processOAuthCallback();
             }
         });
     </script>
