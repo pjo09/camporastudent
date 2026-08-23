@@ -116,7 +116,11 @@ function renderProperties() {
   DOM.propertyGrid.innerHTML = "";
 
   filtered.forEach((p) => {
-    const images = (p.images && p.images.length ? p.images : [""]);
+    const images = (Array.isArray(p.images) && p.images.length) ? p.images :
+                   (p.image ? [p.image] :
+                   (p.image_url ? [p.image_url] :
+                   (p.cover_image ? [p.cover_image] :
+                   (p.thumbnail ? [p.thumbnail] : [""]))));
     const name = p.propertyName || "Untitled Property";
     const city = p.city || "";
     const stateName = p.state || "";

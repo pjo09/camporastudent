@@ -1,62 +1,89 @@
-export function initTheme(){
+// =====================================================
+// CAMPORA SHARED THEME UTILITY
+// Handles Dark/Light theme switching & persistence
+// Key: "camporaTheme" (default: "dark")
+// =====================================================
 
-    function getEl(id){
-        return document.getElementById(id);
-    }
-
-    function applyTheme(){
-
-        const theme = localStorage.getItem("theme") || "dark";
-
-        document.body.classList.toggle("light", theme==="light");
-        document.body.classList.toggle("dark", theme==="dark");
-
-        const btn=getEl("themeToggle");
-
-        if(btn){
-
-            btn.textContent=theme==="dark" ? "🌙" : "☀️";
-
-        }
-
-    }
-
-    function bindThemeToggle(){
-
-        const btn=getEl("themeToggle");
-
-        if(!btn) return;
-
-        btn.addEventListener("click",()=>{
-
-            const current=localStorage.getItem("theme")||"dark";
-
-            const next=current==="dark"?"light":"dark";
-
-            localStorage.setItem("theme",next);
-
-            applyTheme();
-
-        });
-
-    }
-
-    function ensureFooterYear(){
-
-        const year=getEl("year");
-
-        if(year){
-
-            year.textContent=new Date().getFullYear();
-
-        }
-
-    }
-
-    applyTheme();
-
-    bindThemeToggle();
-
-    ensureFooterYear();
-
+export function getTheme() {
+  return localStorage.getItem("camporaTheme") || localStorage.getItem("theme") || "dark";
 }
+
+export function applyTheme(themeName) {
+  const theme = themeName || getTheme();
+
+  if (document.documentElement) {
+    document.documentElement.setAttribute("data-theme", theme);
+  }
+  if (document.body) {
+    document.body.setAttribute("data-theme", theme);
+    document.body.classList.toggle("light", theme === "light");
+    document.body.classList.toggle("dark", theme === "dark");
+  }
+
+  // Update UI toggles across the DOM
+  const toggles = document.querySelectorAll(".v3-theme-toggle-btn, #themeToggle, #themeToggleBtn");
+  toggles.forEach((btn) => {
+    btn.setAttribute("aria-label", "Toggle light and dark mode");
+    btn.setAttribute("data-active-theme", theme);
+    const darkOpt = btn.querySelector(".opt-dark");
+    const lightOpt = btn.querySelector(".opt-light");
+    if (darkOpt && lightOpt) {
+      darkOpt.classList.toggle("active", theme === "dark");
+      lightOpt.classList.toggle("active", theme === "light");
+    }
+  });
+}
+
+export function setTheme(newTheme) {
+  const theme = newTheme === "light" ? "light" : "dark";
+  localStorage.setItem("camporaTheme", theme);
+  localStorage.setItem("theme", theme);
+  applyTheme(theme);
+  return theme;
+}
+
+export function toggleTheme() {
+  const current = getTheme();
+  const next = current === "dark" ? "light" : "dark";
+  setTheme(next);
+  return next;
+}
+
+export function initTheme() {
+  applyTheme();
+
+  const toggles = document.querySelectorAll(".v3-theme-toggle-btn, #themeToggle, #themeToggleBtn");
+  toggles.forEach((btn) => {
+    if (!btn.dataset.themeBound) {
+      btn.dataset.themeBound = "true";
+      btn.addEventListener("click", (e) => {
+        e.preventDefault();
+        toggleTheme();
+      });
+      btn.addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") {
+          e.preventDefault();
+          toggleTheme();
+        }
+      });
+    }
+  });
+}
+
+// Immediate execution if in browser
+if (typeof window !== "undefined") {
+  applyTheme();
+  if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", initTheme);
+  } else {
+    initTheme();
+  }
+}
+
+export default {
+  getTheme,
+  setTheme,
+  toggleTheme,
+  applyTheme,
+  initTheme,
+};

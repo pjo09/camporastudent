@@ -6,8 +6,8 @@
 import { getToken, getUser, protectPageByRole, logout as sessionLogout, getLoginUrl } from "./session.js";
 import { API } from "./config.js";
 import { getImageUrl } from "./image-utils.js";
-
 import { supabase } from "./supabaseClient.js";
+import { getTheme, setTheme, toggleTheme, applyTheme, initTheme } from "./theme.js";
 
 // =====================================================
 // AUTH GUARD & LIVE DB VERIFICATION
@@ -288,14 +288,21 @@ function sidebarHTML(currentPage) {
 
   return `
 <aside class="v3-sidebar" id="sidebar">
-  <div>
+  <div class="v3-sidebar-top">
     <a href="/pages/owner/dashboard.html" class="v3-sidebar-logo">
       <img src="/assets/logos/logo.png" class="v3-logo-img" alt="Campora">
       <div class="v3-logo-text"><h2>Campora</h2><p>Owner Dashboard</p></div>
     </a>
     <nav class="v3-nav" aria-label="Owner navigation">${items}</nav>
   </div>
-  <div>
+  <div class="v3-sidebar-bottom">
+    <div class="v3-theme-switcher-box">
+      <span class="v3-theme-label"><i class="fa-solid fa-circle-half-stroke"></i> Appearance</span>
+      <button id="themeToggleBtn" type="button" class="v3-theme-toggle-btn" aria-label="Toggle light and dark mode" tabindex="0">
+        <span class="v3-theme-opt opt-light"><i class="fa-solid fa-sun"></i> Light</span>
+        <span class="v3-theme-opt opt-dark"><i class="fa-solid fa-moon"></i> Dark</span>
+      </button>
+    </div>
     <button id="logoutBtn" class="v3-logout" type="button"><i class="fa-solid fa-right-from-bracket"></i> Logout</button>
   </div>
 </aside>`;
@@ -374,6 +381,9 @@ export function initShell(pageTitle = "Dashboard") {
 
   const currentPage = window.location.pathname.split("/").pop() || "/pages/owner/dashboard.html";
 
+  // Apply theme early
+  initTheme();
+
   // Inject sidebar
   const sidebarEl = document.createElement("div");
   sidebarEl.innerHTML = sidebarHTML(currentPage);
@@ -403,6 +413,9 @@ export function initShell(pageTitle = "Dashboard") {
   const pdEl = document.createElement("div");
   pdEl.innerHTML = profileDropdownHTML();
   document.body.appendChild(pdEl.firstElementChild);
+
+  // Re-init theme bindings after DOM elements injected
+  initTheme();
 
   // Render owner info
   renderOwnerInfo();
@@ -443,7 +456,7 @@ function setupShellListeners() {
   const logoutBtn = $("logoutBtn");
   const profileLogoutBtn = $("profileLogoutBtn");
 
-const handleLogout = () => {
+  const handleLogout = () => {
     sessionLogout();
   };
 
@@ -504,7 +517,6 @@ const handleLogout = () => {
 // EXPOSE for page-level use
 // =====================================================
 
-export { user, token, API_BASE, APP_BASE_URL, $ };
+export { user, token, API_BASE, APP_BASE_URL, $, getTheme, setTheme, toggleTheme, applyTheme, initTheme };
 
 console.log("✅ Campora Owner Shell initialised");
-
