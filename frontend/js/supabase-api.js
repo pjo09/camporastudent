@@ -473,9 +473,27 @@ export const supabaseAPI = {
 
     // Admin Mutations
     async approveOwner(id) {
+        try {
+            const { getToken } = await import("./session.js");
+            const token = getToken();
+            const headers = { "Content-Type": "application/json" };
+            if (token) headers.Authorization = `Bearer ${token}`;
+
+            const res = await fetch(`${API}/admin/owners/${id}/approve`, {
+                method: "PATCH",
+                headers
+            });
+            if (res.ok) {
+                const data = await res.json();
+                if (data.success !== false) return data;
+            }
+        } catch (e) {
+            console.warn("[supabaseAPI.approveOwner] Backend route call fallback:", e.message);
+        }
+
         const { data, error } = await supabase
             .from("profiles")
-            .update({ account_status: "ACTIVE", verified: true, status: "active", updated_at: new Date().toISOString() })
+            .update({ account_status: "ACTIVE", verified: true, status: "active", email_verified: true, updated_at: new Date().toISOString() })
             .eq("id", id)
             .select()
             .single();

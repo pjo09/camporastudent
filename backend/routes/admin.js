@@ -27,6 +27,7 @@ const userRepository = require("../repositories/userRepository");
 const propertyRepository = require("../repositories/propertyRepository");
 const bookingRepository = require("../repositories/bookingRepository");
 const { getSupabaseClient } = require("../config/supabase");
+const { getSupabaseAdmin } = require("../config/supabaseAdmin");
 const dbConfig = require("../config/database");
 const bcrypt = require("bcryptjs");
 
@@ -1340,9 +1341,32 @@ router.patch("/users/:id/activate", async (req, res) => {
 // Shared owner approval state mutation helper
 async function updateOwnerApprovalState(owner, isApproved) {
     if (isApproved) {
+        // 1. Confirm Supabase Auth user via Server-Side Admin API FIRST
+        const ownerId = owner._id || owner.id;
+        try {
+            const supabaseAdmin = getSupabaseAdmin();
+            if (supabaseAdmin && supabaseAdmin.auth && supabaseAdmin.auth.admin) {
+                const { error: authConfirmErr } = await supabaseAdmin.auth.admin.updateUserById(
+                    String(ownerId),
+                    { email_confirm: true }
+                );
+                if (authConfirmErr) {
+                    throw new Error(`Auth confirmation failed: ${authConfirmErr.message}`);
+                }
+            }
+        } catch (authErr) {
+            // Re-throw if error was from auth.admin or invalid auth state
+            if (authErr.message && authErr.message.includes("Auth confirmation failed")) {
+                throw authErr;
+            }
+            console.warn("[OwnerApproval] Supabase Auth Admin confirmation warning:", authErr.message);
+        }
+
+        // 2. Activate profile ONLY after Auth confirmation step completes
         owner.accountStatus = "ACTIVE";
         owner.verified = true;
         owner.status = "active";
+        owner.email_verified = true;
     } else {
         owner.accountStatus = "REJECTED";
         owner.verified = false;
