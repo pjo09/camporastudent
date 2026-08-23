@@ -139,49 +139,51 @@ import { supabaseAPI } from "./supabase-api.js";
 export async function apiFetch(endpoint, opts = {}) {
   const method = (opts.method || "GET").toUpperCase();
 
+  const cleanPath = endpoint.split("?")[0].replace(/\/+$/, "") || "/";
+
   // Supabase Native Interceptor for Owner Routes
-  if (endpoint === "/owner/profile" && method === "GET") {
+  if (cleanPath === "/owner/profile" && method === "GET") {
     return await supabaseAPI.getOwnerProfile();
   }
-  if (endpoint === "/owner/profile" && method === "PUT") {
+  if (cleanPath === "/owner/profile" && method === "PUT") {
     const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
     return await supabaseAPI.updateOwnerProfile(payload);
   }
-  if (endpoint === "/owner/profile" && method === "DELETE") {
+  if (cleanPath === "/owner/profile" && method === "DELETE") {
     return await supabaseAPI.deleteAccount();
   }
-  if (endpoint === "/owner/change-password" && method === "PUT") {
+  if (cleanPath === "/owner/change-password" && method === "PUT") {
     const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
     return await supabaseAPI.changePassword(payload.newPassword);
   }
-  if ((endpoint === "/notifications/unread" || endpoint === "/owner/notifications/unread") && method === "GET") {
+  if ((cleanPath === "/notifications/unread" || cleanPath === "/owner/notifications/unread") && method === "GET") {
     return await supabaseAPI.getUnreadNotificationCount();
   }
-  if ((endpoint === "/owner/dashboard" || endpoint === "/owner/dashboard-v3") && method === "GET") {
+  if ((cleanPath === "/owner/dashboard" || cleanPath === "/owner/dashboard-v3") && method === "GET") {
     return await supabaseAPI.getOwnerDashboardStats();
   }
-  if ((endpoint === "/owner/properties" || endpoint === "/owner/properties/") && method === "GET") {
+  if (cleanPath === "/owner/properties" && method === "GET") {
     return await supabaseAPI.getOwnerProperties();
   }
-  if (endpoint.startsWith("/owner/properties/") && method === "GET") {
-    const propId = endpoint.split("/").pop();
+  if (cleanPath.startsWith("/owner/properties/") && method === "GET") {
+    const propId = cleanPath.split("/").pop();
     if (propId) {
       return await supabaseAPI.getPropertyById(propId);
     }
   }
-  if (endpoint === "/owner/bookings" && method === "GET") {
+  if (cleanPath === "/owner/bookings" && method === "GET") {
     return await supabaseAPI.getOwnerBookings();
   }
-  if ((endpoint === "/owner/residents" || endpoint === "/owner/students") && method === "GET") {
+  if ((cleanPath === "/owner/residents" || cleanPath === "/owner/students") && method === "GET") {
     return await supabaseAPI.getOwnerResidents();
   }
-  if (endpoint === "/owner/notifications" && method === "GET") {
+  if (cleanPath === "/owner/notifications" && method === "GET") {
     return await supabaseAPI.getOwnerNotifications();
   }
-  if (endpoint === "/owner/announcements" && method === "GET") {
+  if (cleanPath === "/owner/announcements" && method === "GET") {
     return await supabaseAPI.getOwnerAnnouncements();
   }
-  if (endpoint === "/owner/maintenance" && method === "GET") {
+  if (cleanPath === "/owner/maintenance" && method === "GET") {
     return await supabaseAPI.getOwnerMaintenances();
   }
   if ((endpoint === "/owner/analytics" || endpoint === "/owner/top-properties" || endpoint === "/owner/earnings" || endpoint === "/owner/finance/summary") && method === "GET") {
