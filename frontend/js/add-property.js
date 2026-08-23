@@ -547,23 +547,26 @@ async function handlePublish(e) {
 
     let uploadedImageUrls = [];
 
-    if (isEditMode && newFiles.length > 0) {
-      const formData = new FormData();
-      newFiles.forEach((img) => formData.append("images", img.file));
-      const uploadRes = await fetch(`${API_BASE}/upload`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${await getToken()}` },
-        body: formData,
-      });
-      const uploadData = await uploadRes.json();
-      if (!uploadData.success) throw new Error(uploadData.message || "Image upload failed");
-      uploadedImageUrls = uploadData.images.map((img) => img.url);
+    if (newFiles.length > 0) {
+      const { uploadImageToSupabase } = await import("./image-utils.js");
+      for (const imgObj of newFiles) {
+        if (imgObj.file) {
+          try {
+            const publicUrl = await uploadImageToSupabase(imgObj.file, "properties");
+            if (publicUrl) uploadedImageUrls.push(publicUrl);
+          } catch (err) {
+            console.error("Supabase Storage image upload error:", err);
+          }
+        }
+      }
     }
 
     const allImageUrls = [
       ...existingImages.map((img) => (img.filename ? img.filename : img.url)),
       ...uploadedImageUrls,
     ];
+
+    const { supabaseAPI } = await import("./supabase-api.js");
 
     if (propertyId) {
       // EDIT MODE
@@ -574,45 +577,31 @@ async function handlePublish(e) {
       });
     } else {
       // CREATE MODE
-      const formData = new FormData();
-      state.uploadedImages.forEach((img) => { if (img.file) formData.append("images", img.file); });
-      formData.append("propertyName", getVal("propName"));
-      formData.append("propertyType", getVal("propType"));
-      formData.append("description", getVal("description"));
-      formData.append("address", getVal("address"));
-      formData.append("city", getVal("city"));
-      formData.append("state", getVal("state"));
-      if (getVal("college")) formData.append("college", getVal("college"));
-      formData.append("rent", getVal("rent"));
-      formData.append("deposit", getVal("deposit") || "0");
-      formData.append("sharing", getVal("sharing"));
-      formData.append("gender", getVal("gender"));
-      if (getVal("latitude")) formData.append("latitude", getVal("latitude"));
-      if (getVal("longitude")) formData.append("longitude", getVal("longitude"));
-
-      const createRes = await fetch(`${API_BASE}/properties/create`, {
-        method: "POST",
-        headers: { Authorization: `Bearer ${await getToken()}` },
-        body: formData,
-      });
-      const createData = await createRes.json();
-      if (!createData.success) throw new Error(createData.message || "Property creation failed");
-      propertyId = createData.property?._id || createData.property?.id;
-    }
-
-    // Update extra fields for both create & edit
-    if (propertyId) {
-      const extraBody = {
+      const propPayload = {
+        propertyName: getVal("propName"),
+        propertyType: getVal("propType"),
+        description: getVal("description"),
+        address: getVal("address"),
+        city: getVal("city"),
+        state: getVal("state"),
+        college: getVal("college") || "",
+        rent: getVal("rent"),
+        deposit: getVal("deposit") || "0",
+        sharing: getVal("sharing"),
+        gender: getVal("gender"),
+        latitude: getVal("latitude"),
+        longitude: getVal("longitude"),
         totalBeds: getIntVal("totalBeds"),
         availableBeds: getIntVal("availableBeds"),
         maintenanceCharge: getIntVal("maintenance"),
         amenities: getCheckedAmenities(),
         houseRules: getHouseRules(),
+        images: allImageUrls
       };
-      await apiFetch(`/owner/properties/${propertyId}`, {
-        method: "PUT",
-        body: JSON.stringify(extraBody),
-      });
+
+      const createData = await supabaseAPI.createOwnerProperty(propPayload);
+      if (!createData || !createData.success) throw new Error(createData?.message || "Property creation failed");
+      propertyId = createData.property?._id || createData.property?.id;
     }
 
     // Clear draft

@@ -1,24 +1,20 @@
 // =====================================================
 // CAMPORA STUDENT V3 - BOOKING
-// Secure: sends only propertyId + booking metadata.
-// Backend derives userId/name/email from JWT.
+// Native Supabase API Integration
 // =====================================================
 
-import { $, initShell, loadUnreadCount, imageUrl, inr, esc } from "./student-utils.js";
-import { API } from "./config.js";
-import { getToken, getPropertiesUrl } from "./session.js";
+import { $, apiFetch, initShell, loadUnreadCount, imageUrl, inr, esc, showToast } from "./student-utils.js";
+import { getPropertiesUrl } from "./session.js";
 
-const API_BASE = API;
 const params = new URLSearchParams(window.location.search);
 const propertyId = params.get("id");
-const token = getToken();
 
 document.addEventListener("DOMContentLoaded", () => {
   initShell();
   loadUnreadCount();
   if (!propertyId) {
     showToast("No property selected", "error");
-setTimeout(() => (window.location.href = getPropertiesUrl()), 1500);
+    setTimeout(() => (window.location.href = getPropertiesUrl()), 1500);
     return;
   }
   loadProperty();
@@ -27,9 +23,8 @@ setTimeout(() => (window.location.href = getPropertiesUrl()), 1500);
 
 async function loadProperty() {
   try {
-    const res = await fetch(`${API_BASE}/properties/${propertyId}`);
-    const data = await res.json();
-    if (!res.ok || !data.success) throw new Error(data.message || "Unable to load property");
+    const data = await apiFetch(`/properties/${propertyId}`);
+    if (!data || !data.success) throw new Error(data?.message || "Unable to load property");
     renderSummary(data.property);
     const loading = $("loadingProperty");
     if (loading) loading.style.display = "none";
@@ -41,7 +36,7 @@ async function loadProperty() {
   } catch (err) {
     const loading = $("loadingProperty");
     if (loading) {
-loading.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="font-size:36px;color:#f87171"></i><p style="margin-top:12px">${esc(err.message)}</p><a href="${getPropertiesUrl()}" class="sv3-btn sv3-btn-primary" style="margin-top:14px">Back to Explore</a>`;
+      loading.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="font-size:36px;color:#f87171"></i><p style="margin-top:12px">${esc(err.message)}</p><a href="${getPropertiesUrl()}" class="sv3-btn sv3-btn-primary" style="margin-top:14px">Back to Explore</a>`;
     }
   }
 }
@@ -53,10 +48,10 @@ function renderSummary(p) {
   const loc = p.city ? `${p.city}${p.state ? ", " + p.state : ""}` : "Location not specified";
   const rent = p.rent || p.price || 0;
   const deposit = p.deposit || 0;
-  const img = p.images && p.images.length ? imageUrl(p.images[0]) : "/assets/logos/logo.png";
+  const img = p.images && p.images.length ? imageUrl(p.images[0]) : "/images/logo.png";
   container.innerHTML = `
     <div style="position:relative;height:180px;border-radius:16px;overflow:hidden;margin-bottom:16px">
-      <img src="${img}" alt="${esc(name)}" style="width:100%;height:100%;object-fit:cover" onerror="this.src='/assets/logos/logo.png'">
+      <img src="${img}" alt="${esc(name)}" style="width:100%;height:100%;object-fit:cover" onerror="this.src='/images/logo.png'">
     </div>
     <h3 style="font-size:20px;font-weight:800;margin-bottom:6px">${esc(name)}</h3>
     <p style="color:var(--sv3-muted);font-size:14px;margin-bottom:12px"><i class="fa-solid fa-location-dot"></i> ${esc(loc)}</p>
@@ -107,12 +102,8 @@ async function submitBooking(e) {
   btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Creating Booking...';
 
   try {
-    const res = await fetch(`${API_BASE}/bookings`, {
+    const data = await apiFetch("/bookings", {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Authorization: `Bearer ${token}`,
-      },
       body: JSON.stringify({
         propertyId,
         moveInDate,
@@ -120,41 +111,16 @@ async function submitBooking(e) {
         specialRequest,
       }),
     });
-    const data = await res.json();
-    if (!res.ok || !data.success) throw new Error(data.message || "Booking failed");
 
-    showToast("Booking created! Proceeding to payment...", "success", 2200);
-    const bookingId = data.booking?._id || data.booking?.id;
+    if (!data || !data.success) throw new Error(data?.message || "Booking submission failed");
+
+    showToast("Booking created successfully!", "success");
     setTimeout(() => {
-      if (bookingId) {
-        window.location.href = `payment.html?id=${bookingId}`;
-      } else {
-window.location.href = "bookings.html";
-      }
-    }, 1800);
+      window.location.href = "/pages/student/bookings.html";
+    }, 1500);
   } catch (err) {
-    console.error("Booking error:", err);
-    showToast(err.message || "Unable to create booking", "error");
+    showToast(err.message || "Failed to create booking", "error");
     btn.disabled = false;
-    btn.innerHTML = '<i class="fa-solid fa-calendar-check"></i> Create Booking Request';
+    btn.innerHTML = '<i class="fa-solid fa-calendar-check"></i> Confirm Booking';
   }
-}
-
-function showToast(msg, type, dur) {
-  const tc = $("toastContainer");
-  if (!tc) return;
-  const icons = {
-    success: "fa-circle-check",
-    error: "fa-circle-exclamation",
-    info: "fa-circle-info",
-  };
-  const t = document.createElement("div");
-  t.className = `sv3-toast sv3-toast-${type}`;
-  t.setAttribute("role", "alert");
-  t.innerHTML = `<i class="fa-solid ${icons[type] || icons.info}"></i> ${msg}`;
-  tc.appendChild(t);
-  setTimeout(() => {
-    t.classList.add("sv3-toast-leaving");
-    setTimeout(() => t.remove(), 300);
-  }, dur || 3500);
 }

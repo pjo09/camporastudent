@@ -1,9 +1,9 @@
 // ===============================================
-// CAMPORA FORGOT / RESET PASSWORD
-// Two-step flow: email -> OTP -> new password
+// CAMPORA FORGOT / RESET PASSWORD — SUPABASE NATIVE
+// Standard Supabase recovery flow
 // ===============================================
 
-import { API } from "./config.js";
+import { supabase } from "./supabaseClient.js";
 import { getLoginUrl } from "./session.js";
 
 // -------------------------
@@ -98,7 +98,6 @@ function showStep(step) {
 // ===============================================
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-const PASSWORD_REGEX = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9\s]).{8,128}$/;
 
 function validatePassword(password) {
     if (!password) return "Please enter a new password.";
@@ -139,7 +138,7 @@ function startOtpTimer(seconds) {
 }
 
 // ===============================================
-// STEP 1: SEND RESET CODE
+// STEP 1: SEND RESET LINK / CODE VIA SUPABASE AUTH
 // ===============================================
 
 const forgotForm = $("forgotForm");
@@ -161,29 +160,24 @@ forgotForm.addEventListener("submit", async (e) => {
     setButtonLoading(sendResetBtn, true, "Sending...");
 
     try {
-        const response = await fetch(`${API}/auth/forgot-password`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email })
+        const { error } = await supabase.auth.resetPasswordForEmail(email, {
+            redirectTo: `${window.location.origin}/forgot-password.html`
         });
 
-        const data = await response.json();
-
-        if (!response.ok || !data.success) {
-            throw new Error(data.message || "Unable to send reset code.");
-        }
+        if (error) throw error;
 
         resetEmail = email;
-        $("sentTo").textContent = email;
+        const sentToEl = $("sentTo");
+        if (sentToEl) sentToEl.textContent = email;
         showStep(2);
-        showSuccess("If an account exists, a reset code has been sent to your email.");
+        showSuccess("A password reset link / OTP code has been sent to your email.");
         startOtpTimer(300);
         startResendCountdown(30);
 
     } catch (err) {
-        showError(err.message);
+        showError(err.message || "Failed to send reset email.");
     } finally {
-        setButtonLoading(sendResetBtn, false, "Send Reset Code");
+        setButtonLoading(sendResetBtn, false, "Send Reset Link");
     }
 });
 
@@ -194,6 +188,7 @@ forgotForm.addEventListener("submit", async (e) => {
 function startResendCountdown(seconds) {
     clearInterval(resendCountdown);
     const resendBtn = $("resendBtn");
+    if (!resendBtn) return;
     let remaining = seconds;
     resendBtn.disabled = true;
     resendBtn.textContent = `Resend code (${remaining}s)`;
@@ -210,126 +205,116 @@ function startResendCountdown(seconds) {
     }, 1000);
 }
 
-// Resend handler — prevent duplicate concurrent requests with a flag
 let isResending = false;
-$("resendBtn").addEventListener("click", async () => {
-    if (!resetEmail || isResending) return;
-    isResending = true;
-    const btn = $("resendBtn");
-    setButtonLoading(btn, true, "Sending...");
-    try {
-        const response = await fetch(`${API}/auth/forgot-password`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: resetEmail })
-        });
-        const data = await response.json();
-        if (!response.ok || !data.success) {
-            throw new Error(data.message || "Unable to resend code.");
+const resendBtn = $("resendBtn");
+if (resendBtn) {
+    resendBtn.addEventListener("click", async () => {
+        if (!resetEmail || isResending) return;
+        isResending = true;
+        setButtonLoading(resendBtn, true, "Sending...");
+        try {
+            const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+                redirectTo: `${window.location.origin}/forgot-password.html`
+            });
+            if (error) throw error;
+            showSuccess("A new reset code has been sent to your email.");
+            setButtonLoading(resendBtn, false, "Resend code");
+            startOtpTimer(300);
+            startResendCountdown(30);
+        } catch (err) {
+            showError(err.message || "Failed to resend email.");
+            setButtonLoading(resendBtn, false, "Resend code");
+            resendBtn.disabled = false;
+        } finally {
+            isResending = false;
         }
-        showSuccess("A new code has been sent to your email.");
-        // Reset button state: the countdown will disable it, so we leave
-        // it in loading state until startResendCountdown takes over.
-        setButtonLoading(btn, false, "Resend code");
-        startOtpTimer(300);
-        startResendCountdown(30);
-    } catch (err) {
-        showError(err.message);
-        // Re-enable on error so the user can retry
-        setButtonLoading(btn, false, "Resend code");
-        btn.disabled = false;
-    } finally {
-        isResending = false;
-    }
-});
+    });
+}
 
 // ===============================================
-// STEP 2: VERIFY CODE
+// STEP 2: VERIFY OTP / TOKEN (IF 6-DIGIT CODE ENTERED)
 // ===============================================
 
-$("verifyResetBtn").addEventListener("click", async () => {
-    const code = $("fpOtp").value.trim();
-    if (!code || code.length !== 6) {
-        showError("Please enter the 6-digit code.");
-        return;
-    }
-
-    const btn = $("verifyResetBtn");
-    setButtonLoading(btn, true, "Verifying...");
-
-    try {
-        // Verify the OTP against the backend before advancing to step 3.
-        const response = await fetch(`${API}/auth/verify-reset-otp`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: resetEmail, code })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok || !data.success) {
-            throw new Error(data.message || "Unable to verify code.");
+const verifyBtn = $("verifyResetBtn");
+if (verifyBtn) {
+    verifyBtn.addEventListener("click", async () => {
+        const code = $("fpOtp").value.trim();
+        if (!code) {
+            showError("Please enter the verification code.");
+            return;
         }
 
+        setButtonLoading(verifyBtn, true, "Verifying...");
+
+        try {
+            const { data, error } = await supabase.auth.verifyOtp({
+                email: resetEmail,
+                token: code,
+                type: "recovery"
+            });
+
+            if (error) throw error;
+
+            showStep(3);
+            showSuccess("Code verified successfully. Please set your new password.");
+        } catch (err) {
+            showError(err.message || "Failed to verify code.");
+        } finally {
+            setButtonLoading(verifyBtn, false, "Verify Code");
+        }
+    });
+}
+
+// Check if landing back from Supabase password recovery link in email
+supabase.auth.onAuthStateChange((event, session) => {
+    if (event === "PASSWORD_RECOVERY") {
         showStep(3);
-        showSuccess("Code verified. Please set your new password.");
-    } catch (err) {
-        showError(err.message);
-    } finally {
-        setButtonLoading(btn, false, "Verify Code");
+        showSuccess("Recovery authenticated. Please set your new password below.");
     }
 });
 
 // ===============================================
-// STEP 3: RESET PASSWORD
+// STEP 3: RESET PASSWORD VIA SUPABASE AUTH
 // ===============================================
 
 const resetForm = $("resetForm");
 const resetSubmitBtn = $("resetSubmitBtn");
 
-resetForm.addEventListener("submit", async (e) => {
-    e.preventDefault();
+if (resetForm) {
+    resetForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
 
-    const password = $("newPassword").value;
-    const confirmPassword = $("confirmNewPassword").value;
-    const code = $("fpOtp").value.trim();
+        const password = $("newPassword").value;
+        const confirmPassword = $("confirmNewPassword").value;
 
-    const pwdError = validatePassword(password);
-    if (pwdError) {
-        showError(pwdError);
-        return;
-    }
-    if (password !== confirmPassword) {
-        showError("Passwords do not match. Please try again.");
-        return;
-    }
-
-    setButtonLoading(resetSubmitBtn, true, "Resetting...");
-
-    try {
-        const response = await fetch(`${API}/auth/reset-password`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ email: resetEmail, code, password })
-        });
-
-        const data = await response.json();
-
-        if (!response.ok || !data.success) {
-            throw new Error(data.message || "Unable to reset password.");
+        const pwdError = validatePassword(password);
+        if (pwdError) {
+            showError(pwdError);
+            return;
+        }
+        if (password !== confirmPassword) {
+            showError("Passwords do not match. Please try again.");
+            return;
         }
 
-        clearInterval(otpInterval);
-        clearInterval(resendCountdown);
+        setButtonLoading(resetSubmitBtn, true, "Resetting...");
 
-        showSuccess("Password reset successful! Redirecting to login...");
-        setTimeout(() => {
-            window.location.href = getLoginUrl();
-        }, 1200);
+        try {
+            const { error } = await supabase.auth.updateUser({ password });
+            if (error) throw error;
 
-    } catch (err) {
-        showError(err.message);
-    } finally {
-        setButtonLoading(resetSubmitBtn, false, "Reset Password");
-    }
-});
+            clearInterval(otpInterval);
+            clearInterval(resendCountdown);
+
+            showSuccess("Password reset successful! Redirecting to login...");
+            setTimeout(() => {
+                window.location.href = getLoginUrl();
+            }, 1200);
+
+        } catch (err) {
+            showError(err.message || "Failed to update password.");
+        } finally {
+            setButtonLoading(resetSubmitBtn, false, "Reset Password");
+        }
+    });
+}

@@ -65,8 +65,8 @@ function setupEventListeners() {
 
 async function loadProperties() {
   try {
-    const res = await fetch(`${API}/properties/search?limit=50`);
-    const data = await res.json();
+    const { supabaseAPI } = await import("./supabase-api.js");
+    const data = await supabaseAPI.searchProperties({ limit: 50 });
     state.properties = data.properties || [];
     applyFilters();
   } catch (err) {

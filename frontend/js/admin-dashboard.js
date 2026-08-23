@@ -627,43 +627,32 @@ async function loadReviews() {
 
 // =====================================================
 // REPORTS
-// =====================================================
-
 async function loadReports() {
   try {
-    const [cityRes, collegeRes, occupancyRes, overviewRes] = await Promise.all([
-      fetch(`${API}/admin/reports/cities`, { headers: { Authorization: `Bearer ${state.token}` } }),
-      fetch(`${API}/admin/reports/colleges`, { headers: { Authorization: `Bearer ${state.token}` } }),
-      fetch(`${API}/admin/properties/occupancy`, { headers: { Authorization: `Bearer ${state.token}` } }),
-      fetch(`${API}/admin/reports/overview`, { headers: { Authorization: `Bearer ${state.token}` } }),
-    ]);
+    const { supabaseAPI } = await import("./supabase-api.js");
+    const res = await supabaseAPI.getAdminReports();
+    if (res.success) {
+      if (res.cities) createCityChart(res.cities);
+      if (res.colleges) createCollegeChart(res.colleges);
 
-    const cityData = await cityRes.json();
-    const collegeData = await collegeRes.json();
-    const occupancyData = await occupancyRes.json();
-    const overviewData = await overviewRes.json();
+      if (res.overview && DOM.reportStats) {
+        const o = res.overview;
+        DOM.reportStats.innerHTML = `
+          <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(37,99,235,.15);color:#60a5fa"><i class="fa-solid fa-users"></i></div><div class="admin-stat-title">Users</div><div class="admin-stat-value">${o.users || 0}</div></div>
+          <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(124,58,237,.15);color:#a78bfa"><i class="fa-solid fa-building"></i></div><div class="admin-stat-title">Properties</div><div class="admin-stat-value">${o.properties || 0}</div></div>
+          <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(6,182,212,.15);color:#22d3ee"><i class="fa-solid fa-calendar-check"></i></div><div class="admin-stat-title">Bookings</div><div class="admin-stat-value">${o.bookings || 0}</div></div>
+          <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(34,197,94,.15);color:#4ade80"><i class="fa-solid fa-star"></i></div><div class="admin-stat-title">Reviews</div><div class="admin-stat-value">${o.reviews || 0}</div></div>`;
+      }
 
-    if (cityData.success) createCityChart(cityData.cities || []);
-    if (collegeData.success) createCollegeChart(collegeData.colleges || []);
-
-    if (overviewData.success) {
-      const o = overviewData.overview || {};
-      DOM.reportStats.innerHTML = `
-        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(37,99,235,.15);color:#60a5fa"><i class="fa-solid fa-users"></i></div><div class="admin-stat-title">Users</div><div class="admin-stat-value">${o.users || 0}</div></div>
-        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(124,58,237,.15);color:#a78bfa"><i class="fa-solid fa-building"></i></div><div class="admin-stat-title">Properties</div><div class="admin-stat-value">${o.properties || 0}</div></div>
-        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(6,182,212,.15);color:#22d3ee"><i class="fa-solid fa-calendar-check"></i></div><div class="admin-stat-title">Bookings</div><div class="admin-stat-value">${o.bookings || 0}</div></div>
-        <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(34,197,94,.15);color:#4ade80"><i class="fa-solid fa-star"></i></div><div class="admin-stat-title">Reviews</div><div class="admin-stat-value">${o.reviews || 0}</div></div>`;
-    }
-
-    if (occupancyData.success) {
-      const report = occupancyData.report || [];
-      if (report.length === 0) {
-        DOM.occupancyTable.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#64748b">No properties with beds</td></tr>`;
-      } else {
-        DOM.occupancyTable.innerHTML = report.map((p) => {
-          const rate = p.totalBeds > 0 ? Math.round(((p.totalBeds - p.availableBeds) / p.totalBeds) * 100) : 0;
-          return `<tr><td><strong>${p.propertyName || "Property"}</strong></td><td>${p.city || ""}</td><td>${p.totalBeds || 0}</td><td>${p.availableBeds || 0}</td><td>${p.occupiedBeds || 0}</td><td><span class="admin-status ${rate > 80 ? 'approved' : rate > 40 ? 'pending' : 'suspended'}">${rate}%</span></td></tr>`;
-        }).join("");
+      if (res.report && DOM.occupancyTable) {
+        if (res.report.length === 0) {
+          DOM.occupancyTable.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#64748b">No properties with beds</td></tr>`;
+        } else {
+          DOM.occupancyTable.innerHTML = res.report.map((p) => {
+            const rate = p.totalBeds > 0 ? Math.round(((p.totalBeds - p.availableBeds) / p.totalBeds) * 100) : 0;
+            return `<tr><td><strong>${p.propertyName || "Property"}</strong></td><td>${p.city || ""}</td><td>${p.totalBeds || 0}</td><td>${p.availableBeds || 0}</td><td>${p.occupiedBeds || 0}</td><td><span class="admin-status ${rate > 80 ? 'approved' : rate > 40 ? 'pending' : 'suspended'}">${rate}%</span></td></tr>`;
+          }).join("");
+        }
       }
     }
   } catch (err) {
@@ -677,8 +666,8 @@ async function loadReports() {
 
 async function loadSettings() {
   try {
-    const res = await fetch(`${API}/admin/settings`, { headers: { Authorization: `Bearer ${state.token}` } });
-    const data = await res.json();
+    const { supabaseAPI } = await import("./supabase-api.js");
+    const data = await supabaseAPI.getAdminSettings();
     if (data.success) {
       const s = data.settings || {};
       if (DOM.setSiteName) DOM.setSiteName.value = s.siteName || "Campora";
@@ -706,12 +695,8 @@ async function saveSettings() {
       allowPropertyUpload: DOM.setPropertyUpload?.checked !== false,
     };
 
-    const res = await fetch(`${API}/admin/settings`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${state.token}` },
-      body: JSON.stringify(body),
-    });
-    const data = await res.json();
+    const { supabaseAPI } = await import("./supabase-api.js");
+    const data = await supabaseAPI.saveAdminSettings(body);
     if (data.success) {
       showToast("Settings saved successfully!", "success");
     }
@@ -726,18 +711,11 @@ async function saveSettings() {
 
 async function loadSystem() {
   try {
-    const [healthRes, dbRes, serverRes] = await Promise.all([
-      fetch(`${API}/admin/system/health`, { headers: { Authorization: `Bearer ${state.token}` } }),
-      fetch(`${API}/admin/system/database`, { headers: { Authorization: `Bearer ${state.token}` } }),
-      fetch(`${API}/admin/system/server`, { headers: { Authorization: `Bearer ${state.token}` } }),
-    ]);
+    const { supabaseAPI } = await import("./supabase-api.js");
+    const sysData = await supabaseAPI.getAdminSystemHealth();
 
-    const healthData = await healthRes.json();
-    const dbData = await dbRes.json();
-    const serverData = await serverRes.json();
-
-    if (healthData.success) {
-      const h = healthData;
+    if (sysData.success) {
+      const h = sysData.health;
       const mem = h.memory || {};
       DOM.systemStats.innerHTML = `
         <div class="admin-stat-card"><div class="admin-stat-icon" style="background:rgba(37,99,235,.15);color:#60a5fa"><i class="fa-solid fa-server"></i></div><div class="admin-stat-title">Server</div><div class="admin-stat-value" style="font-size:20px">${h.server || "Running"}</div><div class="admin-stat-sub">Node ${h.node || ""}</div></div>
@@ -865,8 +843,8 @@ function closeModal() {
 // Users
 window.viewUser = async (id) => {
   try {
-    const res = await fetch(`${API}/admin/users/${id}`, { headers: { Authorization: `Bearer ${state.token}` } });
-    const data = await res.json();
+    const { supabaseAPI } = await import("./supabase-api.js");
+    const data = await supabaseAPI.getUserById(id);
     if (data.success) {
       const u = data.user || {};
       openModal(`User: ${u.name || "Unknown"}`, `
@@ -1058,10 +1036,9 @@ window.showToast = showToast;
 
 async function checkSuperAdminPermissions() {
   try {
-    const res = await fetch(`${API}/admin/scopes`, { headers: { Authorization: `Bearer ${state.token}` } });
-    if (!res.ok) return;
-    const data = await res.json();
-    if (data.success && data.currentAdminScope && data.currentAdminScope.isGlobal) {
+    const { supabaseAPI } = await import("./supabase-api.js");
+    const data = await supabaseAPI.getAdminScopes();
+    if (data.success) {
       const navItem = document.getElementById("adminMgmtNavItem");
       if (navItem) navItem.style.display = "flex";
       state.isSuperAdmin = true;
@@ -1076,13 +1053,8 @@ async function loadAdminManagement(force = false) {
   if (!tbody) return;
   
   try {
-    const res = await fetch(`${API}/admin/administrators`, { headers: { Authorization: `Bearer ${state.token}` } });
-    if (res.status === 403) {
-      tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#ef4444">Access denied. Super Admin privileges required.</td></tr>`;
-      return;
-    }
-    
-    const data = await res.json();
+    const { supabaseAPI } = await import("./supabase-api.js");
+    const data = await supabaseAPI.getAdministrators();
     if (!data.success || !data.administrators) {
       tbody.innerHTML = `<tr><td colspan="6" style="text-align:center;color:#64748b">No administrators found.</td></tr>`;
       return;
@@ -1240,15 +1212,10 @@ function openCreateAdminModalDialog() {
     const scopeType = role === "SUPER_ADMIN" ? "GLOBAL" : scopeTypeSelect.value;
     const state = stateInp.value.trim();
     const city = cityInp.value.trim();
-    const status = document.getElementById("adminStatusSelect").value;
-
+    const status = document.getElementById("adminStatusSelect")?.value || "ACTIVE";
     try {
-      const res = await fetch(`${API}/admin/create-admin`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${state.token}` },
-        body: JSON.stringify({ name, email, password, role, scopeType, state, city, status })
-      });
-      const data = await res.json();
+      const { supabaseAPI } = await import("./supabase-api.js");
+      const data = await supabaseAPI.createAdministrator({ name, email, password, role, scopeType, state, city, status });
       if (data.success) {
         showToast("Administrator created successfully!", "success");
         closeModal();
@@ -1307,7 +1274,7 @@ window.openAddScopeModal = (adminId, adminName) => {
       stateGrp.style.display = "block";
       cityGrp.style.display = "block";
       stateInp.required = true;
-      cityInp.required = true;
+      stateInp.required = true;
     }
   });
 
@@ -1318,12 +1285,8 @@ window.openAddScopeModal = (adminId, adminName) => {
     const city = cityInp.value.trim();
 
     try {
-      const res = await fetch(`${API}/admin/scopes`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json", Authorization: `Bearer ${state.token}` },
-        body: JSON.stringify({ adminUserId: adminId, scopeType, state, city })
-      });
-      const data = await res.json();
+      const { supabaseAPI } = await import("./supabase-api.js");
+      const data = await supabaseAPI.assignAdminScope({ adminUserId: adminId, scopeType, state, city });
       if (data.success) {
         showToast("Scope assigned successfully!", "success");
         closeModal();
@@ -1340,11 +1303,8 @@ window.openAddScopeModal = (adminId, adminName) => {
 window.removeAdminScope = async (scopeId) => {
   if (!confirm("Are you sure you want to remove this area scope?")) return;
   try {
-    const res = await fetch(`${API}/admin/scopes/${scopeId}`, {
-      method: "DELETE",
-      headers: { Authorization: `Bearer ${state.token}` }
-    });
-    const data = await res.json();
+    const { supabaseAPI } = await import("./supabase-api.js");
+    const data = await supabaseAPI.removeAdminScope(scopeId);
     if (data.success) {
       showToast("Scope removed successfully", "info");
       loadAdminManagement(true);
@@ -1360,12 +1320,8 @@ window.toggleAdminStatus = async (adminId, status) => {
   const actionText = status === "DISABLED" ? "disable" : "enable";
   if (!confirm(`Are you sure you want to ${actionText} this administrator?`)) return;
   try {
-    const res = await fetch(`${API}/admin/scopes/status/${adminId}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json", Authorization: `Bearer ${state.token}` },
-      body: JSON.stringify({ status })
-    });
-    const data = await res.json();
+    const { supabaseAPI } = await import("./supabase-api.js");
+    const data = await supabaseAPI.toggleAdminStatus(adminId, status);
     if (data.success) {
       showToast(`Administrator ${actionText}d successfully`, "success");
       loadAdminManagement(true);

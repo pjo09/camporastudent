@@ -230,21 +230,26 @@ async function handleFileUpload(e, bookingId, docIndex) {
   }
 
   try {
-    const token = localStorage.getItem("token");
-    const headers = {};
-    if (token) headers.Authorization = `Bearer ${token}`;
+    const file = formData.get("document");
+    if (!file) throw new Error("No file selected for upload");
 
-    // Use raw fetch for multipart upload
-    const res = await fetch(`/api/student/bookings/${bookingId}/documents/${docIndex}`, {
-      method: "POST",
-      body: formData,
-      headers
-    });
+    const { uploadImageToSupabase } = await import("./image-utils.js");
+    const publicUrl = await uploadImageToSupabase(file, "documents");
 
-    const data = await res.json();
-    if (!res.ok || !data.success) {
-      throw new Error(data.message || "Failed to upload file");
-    }
+    const { supabase } = await import("./supabaseClient.js");
+    const { data: docData, error: docErr } = await supabase
+      .from("booking_documents")
+      .upsert({
+        booking_id: bookingId,
+        name: file.name || "Move-in Document",
+        document_url: publicUrl,
+        submitted: true,
+        submitted_at: new Date().toISOString()
+      })
+      .select()
+      .single();
+
+    if (docErr) throw docErr;
 
     window.showToast("Document submitted successfully!", "success");
     loadMoveInCenter(bookingId);
