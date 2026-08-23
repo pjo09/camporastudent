@@ -33,7 +33,7 @@ CREATE POLICY "Owners delete own properties" ON properties
 ALTER TABLE bookings ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Students read own bookings" ON bookings
-    FOR SELECT USING (auth.uid() = student_id);
+    FOR SELECT USING (auth.uid() = user_id);
 
 CREATE POLICY "Owners read property bookings" ON bookings
     FOR SELECT USING (auth.uid() = owner_id);
@@ -44,27 +44,27 @@ ALTER TABLE saved_properties ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Students manage own saved properties" ON saved_properties
     FOR ALL USING (auth.uid() = user_id);
 
-ALTER TABLE recent_properties ENABLE ROW LEVEL SECURITY;
+ALTER TABLE recently_viewed ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Students manage own recent properties" ON recent_properties
+CREATE POLICY "Students manage own recent properties" ON recently_viewed
     FOR ALL USING (auth.uid() = user_id);
 
 -- 5. REVIEWS SECURITY
 ALTER TABLE reviews ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Public read approved reviews" ON reviews
-    FOR SELECT USING (is_approved = true);
+    FOR SELECT USING (status = 'approved');
 
 CREATE POLICY "Students insert own review" ON reviews
-    FOR INSERT WITH CHECK (auth.uid() = student_id);
+    FOR INSERT WITH CHECK (auth.uid() = user_id);
 
 -- 6. MESSAGING SECURITY
-ALTER TABLE message_conversations ENABLE ROW LEVEL SECURITY;
+ALTER TABLE conversations ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Participants read conversations" ON message_conversations
+CREATE POLICY "Participants read conversations" ON conversations
     FOR SELECT USING (auth.uid() = student_id OR auth.uid() = owner_id);
 
-CREATE POLICY "Students start conversation" ON message_conversations
+CREATE POLICY "Students start conversation" ON conversations
     FOR INSERT WITH CHECK (auth.uid() = student_id);
 
 ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
@@ -72,7 +72,7 @@ ALTER TABLE messages ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Participants read messages" ON messages
     FOR SELECT USING (
         EXISTS (
-            SELECT 1 FROM message_conversations mc
+            SELECT 1 FROM conversations mc
             WHERE mc.id = conversation_id
             AND (mc.student_id = auth.uid() OR mc.owner_id = auth.uid())
         )
@@ -94,17 +94,23 @@ CREATE POLICY "Users update own notifications" ON notifications
 ALTER TABLE tenancies ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Residents read own tenancy" ON tenancies
-    FOR SELECT USING (auth.uid() = student_id OR auth.uid() = owner_id);
+    FOR SELECT USING (
+        auth.uid() = student_id OR
+        EXISTS (SELECT 1 FROM properties p WHERE p.id = tenancies.property_id AND p.owner_id = auth.uid())
+    );
 
 ALTER TABLE resident_requests ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Residents manage requests" ON resident_requests
-    FOR ALL USING (auth.uid() = student_id OR auth.uid() = owner_id);
+    FOR ALL USING (
+        auth.uid() = student_id OR
+        EXISTS (SELECT 1 FROM properties p WHERE p.id = resident_requests.property_id AND p.owner_id = auth.uid())
+    );
 
 -- 9. MAINTENANCE & ANNOUNCEMENTS
-ALTER TABLE maintenances ENABLE ROW LEVEL SECURITY;
+ALTER TABLE maintenance_requests ENABLE ROW LEVEL SECURITY;
 
-CREATE POLICY "Users read property maintenance" ON maintenances
+CREATE POLICY "Users read property maintenance" ON maintenance_requests
     FOR SELECT USING (auth.uid() = student_id OR auth.uid() = owner_id);
 
 ALTER TABLE announcements ENABLE ROW LEVEL SECURITY;
@@ -127,7 +133,7 @@ CREATE POLICY "No direct client access to otps" ON otps
 ALTER TABLE admin_scopes ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Admins read assigned scopes" ON admin_scopes
-    FOR SELECT USING (auth.uid() = user_id);
+    FOR SELECT USING (auth.uid() = admin_user_id);
 
 -- =====================================================
 -- TRANSACTIONAL BOOKING RPC FUNCTIONS
