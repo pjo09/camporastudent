@@ -715,12 +715,20 @@ export const supabaseAPI = {
     async getOwnerDashboardStats() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return { success: true, statistics: {} };
-        const [propsRes, bookingsRes, residentsRes] = await Promise.all([
+        const [propsRes, bookingsRes] = await Promise.all([
             supabase.from("properties").select("id, status, total_beds, available_beds", { count: "exact" }).eq("owner_id", user.id),
-            supabase.from("bookings").select("id, booking_status", { count: "exact" }).eq("owner_id", user.id),
-            supabase.from("tenancies").select("id", { count: "exact" }).eq("owner_id", user.id)
+            supabase.from("bookings").select("id, booking_status", { count: "exact" }).eq("owner_id", user.id)
         ]);
         const props = propsRes.data || [];
+        const propIds = props.map(p => p.id);
+        let activeResidentsCount = 0;
+        if (propIds.length > 0) {
+            const { count } = await supabase
+                .from("tenancies")
+                .select("id", { count: "exact", head: true })
+                .in("property_id", propIds);
+            activeResidentsCount = count || 0;
+        }
         let approvedCount = 0;
         let pendingCount = 0;
         let totalBeds = 0;
@@ -738,10 +746,71 @@ export const supabaseAPI = {
                 approvedProperties: approvedCount,
                 pendingProperties: pendingCount,
                 totalBookings: bookingsRes.count || 0,
-                activeResidents: residentsRes.count || 0,
+                activeResidents: activeResidentsCount,
                 totalBeds,
                 availableBeds
             }
+        };
+    },
+
+    async getOwnerMaintenanceStats() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, summary: { total: 0, pending: 0, in_progress: 0, resolved: 0 }, stats: { total: 0, pending: 0, in_progress: 0, resolved: 0 } };
+        const { data } = await supabase
+            .from("maintenance_requests")
+            .select("id, status")
+            .eq("owner_id", user.id);
+        const list = data || [];
+        let pending = 0, inProgress = 0, resolved = 0;
+        list.forEach(m => {
+            const s = (m.status || "").toLowerCase();
+            if (s === "pending") pending++;
+            else if (s === "in_progress" || s === "in-progress") inProgress++;
+            else if (s === "resolved" || s === "completed") resolved++;
+        });
+        const summary = { total: list.length, pending, in_progress: inProgress, resolved };
+        return {
+            success: true,
+            summary,
+            stats: summary
+        };
+    },
+
+    async getOwnerBookingStats() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, statistics: { total: 0, pending: 0, confirmed: 0, cancelled: 0 }, stats: { total: 0, pending: 0, confirmed: 0, cancelled: 0 } };
+        const { data } = await supabase
+            .from("bookings")
+            .select("id, booking_status")
+            .eq("owner_id", user.id);
+        const list = data || [];
+        let pending = 0, confirmed = 0, cancelled = 0;
+        list.forEach(b => {
+            const s = (b.booking_status || "").toLowerCase();
+            if (s === "pending") pending++;
+            else if (s === "confirmed" || s === "checked-in") confirmed++;
+            else if (s === "cancelled" || s === "rejected") cancelled++;
+        });
+        const statistics = { total: list.length, pending, confirmed, cancelled };
+        return {
+            success: true,
+            statistics,
+            stats: statistics
+        };
+    },
+
+    async getOwnerUnreadMessagesCount() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, unreadCount: 0, count: 0 };
+        const { count } = await supabase
+            .from("messages")
+            .select("id", { count: "exact", head: true })
+            .eq("receiver_id", user.id)
+            .eq("is_read", false);
+        return {
+            success: true,
+            unreadCount: count || 0,
+            count: count || 0
         };
     },
 

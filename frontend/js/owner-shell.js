@@ -186,6 +186,15 @@ export async function apiFetch(endpoint, opts = {}) {
   if (cleanPath === "/owner/maintenance" && method === "GET") {
     return await supabaseAPI.getOwnerMaintenances();
   }
+  if ((cleanPath.startsWith("/owner/maintenance/stats") || cleanPath.startsWith("/owner/maintenance/summary")) && method === "GET") {
+    return await supabaseAPI.getOwnerMaintenanceStats();
+  }
+  if ((cleanPath === "/owner/booking-statistics" || cleanPath.startsWith("/owner/bookings/stats") || cleanPath.startsWith("/owner/booking-stats")) && method === "GET") {
+    return await supabaseAPI.getOwnerBookingStats();
+  }
+  if ((cleanPath.startsWith("/owner/messages/unread") || cleanPath === "/owner/messages/unread-count") && method === "GET") {
+    return await supabaseAPI.getOwnerUnreadMessagesCount();
+  }
   if ((endpoint === "/owner/analytics" || endpoint === "/owner/top-properties" || endpoint === "/owner/earnings" || endpoint === "/owner/finance/summary") && method === "GET") {
     return await supabaseAPI.getOwnerAnalytics();
   }
