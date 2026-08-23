@@ -51,7 +51,7 @@ const anonKey = (
     process.env.VITE_SUPABASE_KEY ||
     process.env.SUPABASE_KEY ||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ||
-    ''
+    'sb_publishable_7aFR6JtiMMhSgVLDWJAvyA_eta3NIgA'
 ).trim();
 
 const nativeMode = (process.env.VITE_USE_SUPABASE_NATIVE || 'true').trim();

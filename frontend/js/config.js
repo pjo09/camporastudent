@@ -16,7 +16,7 @@ const getEnv = (key) => {
 };
 
 export const SUPABASE_URL = getEnv("VITE_SUPABASE_URL") || "https://wsldciqtznqjnmltgxpm.supabase.co";
-export const SUPABASE_ANON_KEY = getEnv("VITE_SUPABASE_ANON_KEY") || "";
+export const SUPABASE_ANON_KEY = getEnv("VITE_SUPABASE_ANON_KEY") || "sb_publishable_7aFR6JtiMMhSgVLDWJAvyA_eta3NIgA";
 export const GOOGLE_CLIENT_ID = getEnv("VITE_GOOGLE_CLIENT_ID") || getEnv("GOOGLE_CLIENT_ID") || "45569590642-4mehsdjfru09l14mmslif775edv7jego.apps.googleusercontent.com";
 export const API = getEnv("VITE_API_URL") || (typeof window !== "undefined" && (window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1") ? "http://localhost:5000/api" : "");
 export const USE_SUPABASE_NATIVE = true;
