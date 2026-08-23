@@ -60,14 +60,27 @@ window.addEventListener("DOMContentLoaded", () => {
 
 async function loadBooking() {
   try {
-    const res = await fetch(`${API_BASE}/bookings/${bookingId}`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
-    const data = await res.json();
-    if (!res.ok || !data.success) throw new Error(data.message || "Unable to load booking.");
+    const { supabase } = await import("./supabaseClient.js");
+    const { data: booking, error } = await supabase
+      .from("bookings")
+      .select("*, properties!property_id(*)")
+      .eq("id", bookingId)
+      .maybeSingle();
 
-    const booking = data.booking;
-    renderBooking(booking);
+    if (error || !booking) throw new Error(error?.message || "Unable to load booking details.");
+
+    const formattedBooking = {
+      ...booking,
+      propertyId: booking.properties ? {
+        propertyName: booking.properties.property_name,
+        city: booking.properties.city,
+        state: booking.properties.state,
+        rent: booking.properties.rent,
+        deposit: booking.properties.deposit,
+        images: booking.properties.images
+      } : {}
+    };
+    renderBooking(formattedBooking);
   } catch (err) {
     console.error("Load booking error:", err);
     showToast(err.message || "Unable to load booking details", "error");

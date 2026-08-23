@@ -7,49 +7,37 @@ import { API } from "./config.js";
 const API_BASE = `${API}/otp`;
 
 export async function sendOTP(name, email) {
-
-    const response = await fetch(`${API_BASE}/send`, {
-
-        method: "POST",
-
-        headers: {
-            "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-            name,
-            email
-        })
-
+    const { supabase } = await import("./supabaseClient.js");
+    const { data, error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+            data: { name, role: "student" }
+        }
     });
 
-    return await response.json();
-
+    if (error) {
+        return { success: false, message: error.message };
+    }
+    return { success: true, message: "OTP sent to " + email };
 }
 
 export async function verifyOTP(name, email, code, password) {
-
-    const response = await fetch(`${API_BASE}/verify`, {
-
-        method: "POST",
-
-        headers: {
-            "Content-Type": "application/json"
-        },
-
-        body: JSON.stringify({
-
-            name,
-            email,
-            code,
-            password
-
-        })
-
+    const { supabase } = await import("./supabaseClient.js");
+    const { data, error } = await supabase.auth.verifyOtp({
+        email,
+        token: code,
+        type: "signup"
     });
 
-    return await response.json();
+    if (error) {
+        return { success: false, message: error.message };
+    }
 
+    if (password && data.user) {
+        await supabase.auth.updateUser({ password });
+    }
+
+    return { success: true, user: data.user, token: data.session?.access_token };
 }
 
 export function saveLogin(data){

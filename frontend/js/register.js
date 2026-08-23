@@ -194,40 +194,25 @@ form.addEventListener("submit", async (e) => {
 
 window.handleGoogleRegister = async function (response) {
     try {
-        const res = await fetch(`${API}/auth/google`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-                credential: response.credential,
-                role: role.value
-            })
+        const { supabase } = await import("./supabaseClient.js");
+        const { data, error } = await supabase.auth.signInWithIdToken({
+            provider: "google",
+            token: response.credential
         });
 
-        const data = await res.json();
-
-        if (!data.success) {
-            throw new Error(data.message || "Google registration failed.");
-        }
-
-        login(data.token, data.user, false);
-
-        showSuccess("Welcome, " + data.user.name + "!");
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirectTo = urlParams.get("redirectTo");
+        if (error) throw error;
+        showSuccess("Google registration successful!");
         setTimeout(() => {
-            if (data.user.role === "owner" && data.user.accountStatus === "PENDING") {
-                window.location.href = getLoginUrl();
-            } else if (redirectTo && isValidRedirect(redirectTo)) {
-                window.location.href = redirectTo;
-            } else {
-                redirectBasedOnRole(data.user.role);
-            }
-        }, 800);
-
+            window.location.href = getLoginUrl();
+        }, 500);
     } catch (err) {
-        console.error("Google Register Error:", err);
-        showError(err.message || "Google registration failed.");
+        console.warn("ID token register fallback to OAuth redirect:", err);
+        try {
+            const selectedRole = role ? role.value : "student";
+            await supabaseAPI.signInWithGoogle(selectedRole);
+        } catch (e) {
+            showError(e.message || "Google registration failed.");
+        }
     }
 };
 

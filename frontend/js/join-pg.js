@@ -20,19 +20,22 @@ async function resolveInvite() {
     }
 
     try {
-        const response = await fetch(`${API_BASE}/join-pg/${token}`);
-        const data = await response.json();
+        const { supabase } = await import("./supabaseClient.js");
+        const { data: prop, error: pErr } = await supabase
+            .from("properties")
+            .select("*")
+            .eq("id", token)
+            .maybeSingle();
 
-        if (!response.ok || !data.success) {
-            throw new Error(data.message || "Failed to resolve invite token.");
-        }
+        if (pErr || !prop) throw new Error("No property details found for this invite link.");
 
-        const invite = data.invite;
-        const property = invite.property;
-
-        if (!property) {
-            throw new Error("No property details found for this invite link.");
-        }
+        const property = {
+            propertyName: prop.property_name,
+            city: prop.city,
+            state: prop.state,
+            address: prop.address,
+            images: prop.images
+        };
 
         // Render card
         $("propertyName").textContent = property.propertyName || "Campora PG";

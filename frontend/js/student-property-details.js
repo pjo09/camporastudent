@@ -186,23 +186,10 @@ function openJoinPgFlow() {
 }
 
 async function uploadDocument(file) {
-  const token = localStorage.getItem("camporaToken") || sessionStorage.getItem("camporaToken");
-  const formData = new FormData();
-  formData.append("images", file);
-
-  const res = await fetch(`${window.__API || '/api'}/upload`, {
-    method: "POST",
-    headers: {
-      "Authorization": `Bearer ${token}`
-    },
-    body: formData
-  });
-
-  const data = await res.json();
-  if (!res.ok || !data.success) {
-    throw new Error(data.message || "Failed to upload document.");
-  }
-  return data.images && data.images[0] ? data.images[0].url : "";
+  const { uploadImageToSupabase } = await import("./image-utils.js");
+  const publicUrl = await uploadImageToSupabase(file, "documents");
+  if (!publicUrl) throw new Error("Failed to upload document.");
+  return publicUrl;
 }
 
 async function handleJoinSubmit(e) {

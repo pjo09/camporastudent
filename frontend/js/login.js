@@ -223,36 +223,24 @@ async function loginUser(e) {
 
 window.handleGoogleLogin = async function (response) {
     try {
-        const res = await fetch(`${API}/auth/google`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ credential: response.credential })
+        const { supabase } = await import("./supabaseClient.js");
+        const { data, error } = await supabase.auth.signInWithIdToken({
+            provider: "google",
+            token: response.credential
         });
 
-        const data = await res.json();
-
-        if (!res.ok || !data.success) {
-            throw new Error(data.message || "Google login failed.");
-        }
-
-        const remember = rememberMeCheckbox ? rememberMeCheckbox.checked : false;
-        login(data.token, data.user, remember);
-
-        showSuccess("Welcome, " + data.user.name + "!");
-
-        const urlParams = new URLSearchParams(window.location.search);
-        const redirectTo = urlParams.get("redirectTo");
+        if (error) throw error;
+        showSuccess("Google authentication successful!");
         setTimeout(() => {
-            if (redirectTo && isValidRedirect(redirectTo)) {
-                window.location.href = redirectTo;
-            } else {
-                redirectBasedOnRole(data.user.role);
-            }
+            window.location.href = getLoginUrl();
         }, 500);
-
     } catch (err) {
-        console.error("Google Login Error:", err);
-        showError(err.message || "Google login failed.");
+        console.warn("ID token login fallback to OAuth redirect:", err);
+        try {
+            await supabaseAPI.signInWithGoogle("student");
+        } catch (e) {
+            showError(e.message || "Google Sign-In failed.");
+        }
     }
 };
 

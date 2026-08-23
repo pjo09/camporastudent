@@ -54,7 +54,8 @@ async function deleteAccount() {
   if (!btn) return;
   btn.disabled = true;
   try {
-    await apiFetch("/student/profile", { method: "DELETE" });
+    const { supabaseAPI } = await import("./supabase-api.js");
+    await supabaseAPI.deleteAccount();
     showToast("Account deleted successfully", "success");
     logout();
   } catch (err) {
