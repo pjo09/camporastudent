@@ -151,15 +151,16 @@
                     }
                 } catch (e) {}
 
-                // Create profile if missing
+                // Create profile if missing (never allow creating admin role from client callback)
                 if (!profile) {
-                    const accountStatus = requestedRole === "owner" ? "PENDING" : "ACTIVE";
+                    const safeRole = requestedRole === "owner" ? "owner" : "student";
+                    const accountStatus = safeRole === "owner" ? "PENDING" : "ACTIVE";
                     const newProfileData = {
                         id: user.id,
                         email: user.email,
                         name: user.user_metadata?.full_name || user.user_metadata?.name || user.email.split("@")[0],
                         avatar: user.user_metadata?.avatar_url || user.user_metadata?.picture || "",
-                        role: requestedRole,
+                        role: safeRole,
                         account_status: accountStatus
                     };
                     try {
