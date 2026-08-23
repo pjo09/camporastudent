@@ -177,6 +177,9 @@ export async function apiFetch(endpoint, opts = {}) {
   if ((cleanPath === "/owner/residents" || cleanPath === "/owner/students") && method === "GET") {
     return await supabaseAPI.getOwnerResidents();
   }
+  if ((cleanPath === "/owner/resident-requests" || cleanPath.startsWith("/owner/resident-requests")) && method === "GET") {
+    return await supabaseAPI.getOwnerResidentRequests();
+  }
   if (cleanPath === "/owner/notifications" && method === "GET") {
     return await supabaseAPI.getOwnerNotifications();
   }

@@ -875,10 +875,16 @@ export const supabaseAPI = {
     async getOwnerResidents() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return { success: true, residents: [] };
+        const { data: props } = await supabase.from("properties").select("id, property_name").eq("owner_id", user.id);
+        const propIds = (props || []).map(p => p.id);
+        if (propIds.length === 0) return { success: true, residents: [] };
+
         const { data, error } = await supabase
             .from("tenancies")
             .select("*, properties(property_name), student:profiles!student_id(name, email, phone)")
-            .eq("owner_id", user.id);
+            .in("property_id", propIds)
+            .order("created_at", { ascending: false });
+
         if (error) throw error;
         return {
             success: true,
@@ -886,11 +892,47 @@ export const supabaseAPI = {
                 _id: r.id,
                 id: r.id,
                 status: r.status,
+                room: r.room || "",
+                bed: r.bed || "",
                 propertyName: r.properties ? r.properties.property_name : "",
                 name: r.student ? r.student.name : "",
                 email: r.student ? r.student.email : "",
                 phone: r.student ? r.student.phone : "",
+                student: r.student || {},
                 createdAt: r.created_at
+            }))
+        };
+    },
+
+    async getOwnerResidentRequests() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, requests: [] };
+        const { data: props } = await supabase.from("properties").select("id, property_name").eq("owner_id", user.id);
+        const propIds = (props || []).map(p => p.id);
+        if (propIds.length === 0) return { success: true, requests: [] };
+
+        const { data, error } = await supabase
+            .from("resident_requests")
+            .select("*, properties(property_name), student:profiles!student_id(name, email, phone)")
+            .in("property_id", propIds)
+            .order("requested_at", { ascending: false });
+
+        if (error) throw error;
+        return {
+            success: true,
+            requests: (data || []).map(r => ({
+                _id: r.id,
+                id: r.id,
+                status: r.status,
+                room: r.room || "",
+                bed: r.bed || "",
+                moveInDate: r.move_in_date,
+                residenceSource: r.residence_source,
+                proofDocument: r.proof_document,
+                message: r.message,
+                propertyName: r.properties ? r.properties.property_name : "",
+                student: r.student || {},
+                createdAt: r.requested_at || r.created_at
             }))
         };
     },
