@@ -221,6 +221,11 @@ async function loginUser(e) {
 // GOOGLE LOGIN
 // ===============================================
 
+function getRequestedRoleFromURL() {
+    const params = new URLSearchParams(window.location.search);
+    return params.get("role") === "owner" ? "owner" : "student";
+}
+
 window.handleGoogleLogin = async function (response) {
     try {
         const { supabase } = await import("./supabaseClient.js");
@@ -237,7 +242,7 @@ window.handleGoogleLogin = async function (response) {
     } catch (err) {
         console.warn("ID token login fallback to OAuth redirect:", err);
         try {
-            await supabaseAPI.signInWithGoogle("student");
+            await supabaseAPI.signInWithGoogle(getRequestedRoleFromURL());
         } catch (e) {
             showError(e.message || "Google Sign-In failed.");
         }
@@ -255,7 +260,7 @@ window.handleGoogleLogin = async function (response) {
             btn.dataset.bound = "true";
             btn.addEventListener("click", async () => {
                 try {
-                    await supabaseAPI.signInWithGoogle("student");
+                    await supabaseAPI.signInWithGoogle(getRequestedRoleFromURL());
                 } catch (err) {
                     showError(err.message || "Google Sign-In failed.");
                 }

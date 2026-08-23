@@ -295,9 +295,24 @@ const AuthModal = (() => {
 
         try {
             const data = await apiClient.signIn(email, password);
-            login(data.token, data.user, remember);
-            showMessage(errorBox, "Welcome back, " + (data.user?.name || "User") + "!", "success");
-            setTimeout(() => { close(); redirectBasedOnRole(data.user?.role || "student"); }, 600);
+            const user = data.user;
+            if (user?.accountStatus === "BANNED" || user?.accountStatus === "DELETED") {
+                await apiClient.signOut().catch(() => {});
+                throw new Error("Your account has been suspended or deleted. Please contact support.");
+            }
+            if (user?.role === "owner" && user?.accountStatus === "PENDING") {
+                await apiClient.signOut().catch(() => {});
+                showMessage(errorBox, "Your owner account is pending approval by an administrator.", "error");
+                setTimeout(() => {
+                    close();
+                    window.location.href = "/login.html?pending=true";
+                }, 1000);
+                return;
+            }
+
+            login(data.token, user, remember);
+            showMessage(errorBox, "Welcome back, " + (user?.name || "User") + "!", "success");
+            setTimeout(() => { close(); redirectBasedOnRole(user?.role || "student"); }, 600);
         } catch (err) {
             showMessage(errorBox, err.message, "error");
         } finally {
@@ -339,9 +354,22 @@ const AuthModal = (() => {
             }
 
             const data = await apiClient.signUp(email, password, payload);
-            login(data.token, data.user, false);
+            const user = data.user;
+            const isOwnerPending = currentRole === "owner" || user?.role === "owner" || user?.accountStatus === "PENDING";
+
+            if (isOwnerPending) {
+                await apiClient.signOut().catch(() => {});
+                showMessage(errorBox, "Registration successful! Your owner account is pending approval by an administrator.", "success");
+                setTimeout(() => {
+                    close();
+                    window.location.href = "/login.html?pending=true";
+                }, 1200);
+                return;
+            }
+
+            login(data.token, user, false);
             showMessage(errorBox, "Account created successfully!", "success");
-            setTimeout(() => { close(); redirectBasedOnRole(data.user?.role || "student"); }, 700);
+            setTimeout(() => { close(); redirectBasedOnRole(user?.role || "student"); }, 700);
         } catch (err) {
             showMessage(errorBox, err.message, "error");
         } finally {

@@ -7,8 +7,10 @@ import { getToken, getUser, protectPageByRole, logout as sessionLogout, getLogin
 import { API } from "./config.js";
 import { getImageUrl } from "./image-utils.js";
 
+import { supabase } from "./supabaseClient.js";
+
 // =====================================================
-// AUTH GUARD
+// AUTH GUARD & LIVE DB VERIFICATION
 // =====================================================
 
 const user = protectPageByRole(["owner"]);
@@ -16,6 +18,69 @@ const token = getToken();
 if (!user || !token) {
   window.location.href = getLoginUrl();
 }
+
+export async function verifyLiveOwnerAuth() {
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const session = sessionData?.session;
+    if (!session || !session.user) {
+      sessionLogout();
+      return null;
+    }
+
+    let profile = null;
+    const { data: pById } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", session.user.id)
+      .maybeSingle();
+
+    if (pById) {
+      profile = pById;
+    } else if (session.user.email) {
+      const { data: pByEmail } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("email", session.user.email)
+        .maybeSingle();
+      if (pByEmail) profile = pByEmail;
+    }
+
+    if (!profile) {
+      sessionLogout();
+      return null;
+    }
+
+    if (profile.role !== "owner") {
+      if (profile.role === "student") {
+        window.location.href = "/pages/student/dashboard.html";
+      } else if (profile.role === "admin") {
+        window.location.href = "/pages/admin/dashboard.html";
+      } else {
+        sessionLogout();
+      }
+      return null;
+    }
+
+    if (profile.account_status === "PENDING") {
+      sessionLogout();
+      window.location.href = getLoginUrl() + "?pending=true";
+      return null;
+    }
+
+    if (profile.account_status !== "ACTIVE") {
+      sessionLogout();
+      return null;
+    }
+
+    return profile;
+  } catch (e) {
+    sessionLogout();
+    return null;
+  }
+}
+
+verifyLiveOwnerAuth();
 
 // =====================================================
 // CONFIGS

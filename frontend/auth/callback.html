@@ -138,20 +138,40 @@
                 const requestedRole = localStorage.getItem("campora_pending_role") || "student";
                 localStorage.removeItem("campora_pending_role");
 
-                // Check existing profile in database
+                console.log("⚡ Google OAuth callback reached:", { userId: user.id, email: user.email, pendingOAuthRole: requestedRole });
+
+                // Check existing profile in database by id, with fallback by email
                 let profile = null;
                 try {
-                    const { data, error } = await supabase
+                    const { data: pById, error: errById } = await supabase
                         .from("profiles")
                         .select("*")
                         .eq("id", user.id)
                         .maybeSingle();
-                    if (!error && data) {
-                        profile = data;
-                    }
-                } catch (e) {}
 
-                // Create profile if missing (never allow creating admin role from client callback)
+                    if (!errById && pById) {
+                        profile = pById;
+                    } else if (user.email) {
+                        const { data: pByEmail, error: errByEmail } = await supabase
+                            .from("profiles")
+                            .select("*")
+                            .eq("email", user.email)
+                            .maybeSingle();
+                        if (!errByEmail && pByEmail) {
+                            profile = pByEmail;
+                        }
+                    }
+                } catch (e) {
+                    console.error("❌ OAuth callback profile lookup error:", e);
+                }
+
+                console.log("⚡ OAuth callback DB profile resolved:", {
+                    profileFound: !!profile,
+                    profileRole: profile?.role || "none",
+                    profileAccountStatus: profile?.account_status || "none"
+                });
+
+                // Create profile ONLY if missing (never allow creating admin role from client callback)
                 if (!profile) {
                     const safeRole = requestedRole === "owner" ? "owner" : "student";
                     const accountStatus = safeRole === "owner" ? "PENDING" : "ACTIVE";
@@ -164,21 +184,33 @@
                         account_status: accountStatus
                     };
                     try {
-                        const { data } = await supabase
+                        const { data: createdProfile, error: insertErr } = await supabase
                             .from("profiles")
-                            .upsert(newProfileData)
+                            .insert(newProfileData)
                             .select()
                             .single();
-                        if (data) profile = data;
-                    } catch (e) {}
+                        if (createdProfile) {
+                            profile = createdProfile;
+                        } else if (insertErr) {
+                            console.error("❌ OAuth callback insert profile error:", insertErr.message);
+                        }
+                    } catch (e) {
+                        console.error("❌ OAuth callback insert exception:", e);
+                    }
                 }
 
-                const finalRole = profile?.role || requestedRole || "student";
+                // Authoritative role resolution: DB profile role ALWAYS overrides pending role hints
+                const finalRole = profile?.role || (requestedRole === "owner" ? "owner" : "student");
+                const finalAccountStatus = profile?.account_status || (finalRole === "owner" ? "PENDING" : "ACTIVE");
+
+                console.log("⚡ OAuth callback final decision:", { finalRole, finalAccountStatus });
+
                 const userObj = {
-                    id: user.id,
+                    id: profile?.id || user.id,
                     email: user.email,
                     name: profile?.name || user.user_metadata?.name || user.email.split("@")[0],
                     role: finalRole,
+                    accountStatus: finalAccountStatus,
                     avatar: profile?.avatar || user.user_metadata?.avatar_url || ""
                 };
 
@@ -186,12 +218,14 @@
                 login(session.access_token, userObj, true);
 
                 // Handle Pending Owner
-                if (finalRole === "owner" && profile?.account_status === "PENDING") {
+                if (finalRole === "owner" && finalAccountStatus === "PENDING") {
+                    console.log("⚡ Redirecting pending owner to login?pending=true");
                     window.location.href = getLoginUrl() + "?pending=true";
                     return;
                 }
 
                 // Redirect to role dashboard
+                console.log("⚡ Redirecting user via redirectBasedOnRole(" + finalRole + ")");
                 redirectBasedOnRole(finalRole);
             } catch (err) {
                 console.error("❌ OAuth callback fatal error:", err);

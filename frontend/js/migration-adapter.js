@@ -41,11 +41,32 @@ export const apiClient = {
 
     async signIn(email, password) {
         const data = await supabaseAPI.signIn(email, password);
+        let profile = null;
+        if (data.user) {
+            try {
+                const { data: pById } = await supabase
+                    .from("profiles")
+                    .select("*")
+                    .eq("id", data.user.id)
+                    .maybeSingle();
+                if (pById) {
+                    profile = pById;
+                } else if (data.user.email) {
+                    const { data: pByEmail } = await supabase
+                        .from("profiles")
+                        .select("*")
+                        .eq("email", data.user.email)
+                        .maybeSingle();
+                    if (pByEmail) profile = pByEmail;
+                }
+            } catch (e) {}
+        }
         const userObj = data.user ? {
-            id: data.user.id,
+            id: profile?.id || data.user.id,
             email: data.user.email,
-            name: data.user.user_metadata?.name || data.user.email.split("@")[0],
-            role: data.user.user_metadata?.role || "student"
+            name: profile?.name || data.user.user_metadata?.name || data.user.email.split("@")[0],
+            role: profile?.role || data.user.user_metadata?.role || "student",
+            accountStatus: profile?.account_status || "ACTIVE"
         } : null;
         return {
             success: true,
@@ -56,11 +77,32 @@ export const apiClient = {
 
     async signUp(email, password, userData = {}) {
         const data = await supabaseAPI.signUp(email, password, userData);
+        let profile = null;
+        if (data.user) {
+            try {
+                const { data: pById } = await supabase
+                    .from("profiles")
+                    .select("*")
+                    .eq("id", data.user.id)
+                    .maybeSingle();
+                if (pById) {
+                    profile = pById;
+                } else if (data.user.email) {
+                    const { data: pByEmail } = await supabase
+                        .from("profiles")
+                        .select("*")
+                        .eq("email", data.user.email)
+                        .maybeSingle();
+                    if (pByEmail) profile = pByEmail;
+                }
+            } catch (e) {}
+        }
         const userObj = data.user ? {
-            id: data.user.id,
+            id: profile?.id || data.user.id,
             email: data.user.email,
-            name: userData.name || email.split("@")[0],
-            role: userData.role || "student"
+            name: profile?.name || userData.name || data.user.email.split("@")[0],
+            role: profile?.role || userData.role || "student",
+            accountStatus: profile?.account_status || (userData.role === "owner" ? "PENDING" : "ACTIVE")
         } : null;
         return {
             success: true,
@@ -69,8 +111,8 @@ export const apiClient = {
         };
     },
 
-    async signInWithGoogle() {
-        return supabaseAPI.signInWithGoogle();
+    async signInWithGoogle(selectedRole = "student") {
+        return supabaseAPI.signInWithGoogle(selectedRole);
     },
 
     async signOut() {

@@ -1,20 +1,68 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<script>
-    (function () {
-        var path = window.location.pathname.toLowerCase();
-        var page = path.split("/").pop();
-        if (!path.includes("/pages/student/") && !path.includes("/pages/owner/") && !path.includes("/pages/admin/")) {
-            window.location.replace("pages/student/" + page + window.location.search + window.location.hash);
+<script type="module">
+    import { supabase } from "./js/supabaseClient.js";
+
+    async function routeDashboard() {
+        try {
+            const { data: sessionData } = await supabase.auth.getSession();
+            const session = sessionData?.session;
+
+            if (!session || !session.user) {
+                window.location.replace("login.html");
+                return;
+            }
+
+            let profile = null;
+            const { data: pById } = await supabase
+                .from("profiles")
+                .select("role, account_status")
+                .eq("id", session.user.id)
+                .maybeSingle();
+
+            if (pById) {
+                profile = pById;
+            } else if (session.user.email) {
+                const { data: pByEmail } = await supabase
+                    .from("profiles")
+                    .select("role, account_status")
+                    .eq("email", session.user.email)
+                    .maybeSingle();
+                if (pByEmail) profile = pByEmail;
+            }
+
+            if (!profile) {
+                window.location.replace("login.html");
+                return;
+            }
+
+            if (profile.role === "owner") {
+                if (profile.account_status === "PENDING") {
+                    window.location.replace("login.html?pending=true");
+                } else {
+                    window.location.replace("pages/owner/dashboard.html" + window.location.search + window.location.hash);
+                }
+                return;
+            }
+
+            if (profile.role === "admin") {
+                window.location.replace("pages/admin/dashboard.html" + window.location.search + window.location.hash);
+                return;
+            }
+
+            // Default student
+            window.location.replace("pages/student/dashboard.html" + window.location.search + window.location.hash);
+        } catch (e) {
+            window.location.replace("login.html");
         }
-    })();
+    }
+
+    routeDashboard();
 </script>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Campora • Student Dashboard</title>
-<meta name="description" content="Find verified student accommodation across India.">
-<link rel="preconnect" href="https://fonts.googleapis.com">
+<title>Campora • Router</title>
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="./css/student-v3.css">

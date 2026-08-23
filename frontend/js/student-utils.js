@@ -8,11 +8,64 @@ import { API } from "./config.js";
 import { getImageUrl } from "./image-utils.js";
 import { supabaseAPI } from "./supabase-api.js";
 
+import { supabase } from "./supabaseClient.js";
+
 const API_BASE = API;
 
 // =====================================================
-// AUTH GATE
+// AUTH GATE & LIVE DB VERIFICATION
 // =====================================================
+
+export async function verifyLiveStudentAuth() {
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    const session = sessionData?.session;
+    if (!session || !session.user) {
+      return null;
+    }
+
+    let profile = null;
+    const { data: pById } = await supabase
+      .from("profiles")
+      .select("*")
+      .eq("id", session.user.id)
+      .maybeSingle();
+
+    if (pById) {
+      profile = pById;
+    } else if (session.user.email) {
+      const { data: pByEmail } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("email", session.user.email)
+        .maybeSingle();
+      if (pByEmail) profile = pByEmail;
+    }
+
+    if (!profile) {
+      return null;
+    }
+
+    if (profile.role === "owner") {
+      if (profile.account_status === "PENDING") {
+        sessionLogout();
+        window.location.href = getLoginUrl() + "?pending=true";
+      } else {
+        window.location.href = "/pages/owner/dashboard.html";
+      }
+      return null;
+    }
+
+    if (profile.role === "admin") {
+      window.location.href = "/pages/admin/dashboard.html";
+      return null;
+    }
+
+    return profile;
+  } catch (e) {
+    return null;
+  }
+}
 
 export function gateStudent() {
   const user = protectPageByRole(["student"]);
@@ -21,6 +74,7 @@ export function gateStudent() {
     window.location.href = getLoginUrl();
     return null;
   }
+  verifyLiveStudentAuth();
   return user;
 }
 
