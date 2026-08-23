@@ -1033,5 +1033,395 @@ export const supabaseAPI = {
 
         if (error) throw error;
         return { success: true, count: count || 0 };
+    },
+
+    // Search Properties
+    async searchProperties(params = {}) {
+        let query = supabase
+            .from("properties")
+            .select("*, profiles!owner_id(name, profile_image, phone)", { count: "exact" })
+            .eq("status", "approved")
+            .eq("published", true);
+
+        if (params.city) query = query.ilike("city", `%${params.city.trim()}%`);
+        if (params.propertyType && params.propertyType !== "all") query = query.eq("property_type", params.propertyType);
+        if (params.minPrice) query = query.gte("rent", Number(params.minPrice));
+        if (params.maxPrice) query = query.lte("rent", Number(params.maxPrice));
+        if (params.maxRent) query = query.lte("rent", Number(params.maxRent));
+        if (params.college) query = query.or(`city.ilike.%${params.college.trim()}%,address.ilike.%${params.college.trim()}%,property_name.ilike.%${params.college.trim()}%`);
+
+        if (params.sort === "price_low") query = query.order("rent", { ascending: true });
+        else if (params.sort === "price_high") query = query.order("rent", { ascending: false });
+        else query = query.order("created_at", { ascending: false });
+
+        const page = Math.max(1, Number(params.page || 1));
+        const limit = Math.min(100, Math.max(1, Number(params.limit || 9)));
+        const from = (page - 1) * limit;
+        const to = from + limit - 1;
+
+        query = query.range(from, to);
+
+        const { data, error, count } = await query;
+        if (error) throw error;
+
+        const properties = (data || []).map(r => ({
+            _id: r.id,
+            id: r.id,
+            propertyName: r.property_name,
+            propertyType: r.property_type,
+            city: r.city,
+            state: r.state,
+            address: r.address,
+            rent: parseFloat(r.rent || 0),
+            deposit: parseFloat(r.deposit || 0),
+            sharing: r.sharing || [],
+            amenities: r.amenities || [],
+            images: r.images || [],
+            verified: r.status === "approved",
+            featured: !!r.featured,
+            rating: r.rating || 4.5,
+            owner: r.profiles ? { _id: r.owner_id, id: r.owner_id, name: r.profiles.name } : null,
+            createdAt: r.created_at
+        }));
+
+        return {
+            success: true,
+            total: count || 0,
+            currentPage: page,
+            totalPages: Math.ceil((count || 0) / limit),
+            properties
+        };
+    },
+
+    // Student Dashboard Stats
+    async getStudentDashboardStats() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        const [bookingsRes, savedRes, unreadRes, maintsRes, profileRes] = await Promise.all([
+            supabase.from("bookings").select("*, properties(property_name, images, address, rent)").eq("user_id", user.id).order("created_at", { ascending: false }),
+            supabase.from("saved_properties").select("id", { count: "exact", head: true }).eq("user_id", user.id),
+            supabase.from("notifications").select("id", { count: "exact", head: true }).eq("receiver_id", user.id).eq("is_read", false),
+            supabase.from("maintenances").select("id", { count: "exact", head: true }).eq("student_id", user.id).neq("status", "resolved"),
+            supabase.from("profiles").select("*").eq("id", user.id).maybeSingle()
+        ]);
+
+        const bookings = (bookingsRes.data || []).map(b => ({
+            _id: b.id,
+            id: b.id,
+            bookingStatus: b.booking_status,
+            paymentStatus: b.payment_status,
+            price: parseFloat(b.price || 0),
+            checkIn: b.check_in,
+            propertyName: b.properties ? b.properties.property_name : "Property",
+            createdAt: b.created_at
+        }));
+
+        const activeBookings = bookings.filter(b => b.bookingStatus === "confirmed" || b.bookingStatus === "checked-in");
+        let rentDue = 0;
+        activeBookings.forEach(b => { rentDue += b.price; });
+
+        const { data: recommended } = await supabase
+            .from("properties")
+            .select("*, profiles!owner_id(name)")
+            .eq("status", "approved")
+            .eq("published", true)
+            .limit(6);
+
+        const recProps = (recommended || []).map(r => ({
+            _id: r.id,
+            id: r.id,
+            propertyName: r.property_name,
+            propertyType: r.property_type,
+            city: r.city,
+            rent: parseFloat(r.rent || 0),
+            images: r.images || [],
+            featured: !!r.featured
+        }));
+
+        return {
+            success: true,
+            statistics: {
+                totalBookings: bookings.length,
+                activeBookings: activeBookings.length,
+                savedCount: savedRes.count || 0,
+                unreadNotifications: unreadRes.count || 0,
+                pendingMaintenance: maintsRes.count || 0,
+                rentDue
+            },
+            user: profileRes.data || { id: user.id, email: user.email },
+            activeTenancy: activeBookings.length > 0 ? activeBookings[0] : null,
+            residentRequests: [],
+            recommended: recProps,
+            recentBookings: bookings.slice(0, 5),
+            recentNotifications: []
+        };
+    },
+
+    // Student Finance
+    async getStudentFinanceSummary() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, summary: { totalDue: 0, totalPaid: 0, pendingCount: 0, paidCount: 0, overdueCount: 0 }, transactions: [] };
+
+        const { data: bookings } = await supabase.from("bookings").select("id, price, payment_status, created_at").eq("user_id", user.id);
+        let totalDue = 0;
+        let totalPaid = 0;
+        let pendingCount = 0;
+        let paidCount = 0;
+        const transactions = [];
+
+        (bookings || []).forEach(b => {
+            const amount = parseFloat(b.price || 0);
+            if (b.payment_status === "paid") {
+                totalPaid += amount;
+                paidCount++;
+                transactions.push({
+                    invoiceNumber: "INV-" + b.id.slice(0, 8),
+                    amount,
+                    method: "Online",
+                    paidAt: b.created_at
+                });
+            } else {
+                totalDue += amount;
+                pendingCount++;
+            }
+        });
+
+        return {
+            success: true,
+            summary: { totalDue, totalPaid, pendingCount, paidCount, overdueCount: 0 },
+            transactions
+        };
+    },
+
+    async getStudentInvoices() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, invoices: [] };
+
+        const { data, error } = await supabase
+            .from("bookings")
+            .select("*, properties(property_name)")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        const invoices = (data || []).map(b => ({
+            _id: b.id,
+            invoiceNumber: "INV-" + b.id.slice(0, 8),
+            totalAmount: parseFloat(b.price || 0),
+            amountPaid: b.payment_status === "paid" ? parseFloat(b.price || 0) : 0,
+            status: b.payment_status || "pending",
+            dueDate: b.check_in,
+            propertyId: { propertyName: b.properties ? b.properties.property_name : "Property" },
+            createdAt: b.created_at
+        }));
+
+        return { success: true, invoices };
+    },
+
+    // Student Messaging
+    async getStudentConversations() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, conversations: [] };
+
+        const { data, error } = await supabase
+            .from("messages")
+            .select("*, owner:profiles!receiver_id(name, business_name), property:properties(property_name)")
+            .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
+            .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        const convMap = new Map();
+        (data || []).forEach(m => {
+            const partnerId = m.sender_id === user.id ? m.receiver_id : m.sender_id;
+            if (!convMap.has(partnerId)) {
+                convMap.set(partnerId, {
+                    _id: partnerId,
+                    ownerId: { name: m.owner ? (m.owner.business_name || m.owner.name) : "Property Owner" },
+                    propertyId: { propertyName: m.property ? m.property.property_name : "Property" },
+                    lastMessage: m.content || m.message,
+                    lastMessageAt: m.created_at,
+                    unreadByStudent: (!m.is_read && m.receiver_id === user.id) ? 1 : 0
+                });
+            }
+        });
+
+        return { success: true, conversations: Array.from(convMap.values()) };
+    },
+
+    async getStudentMessages(convId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, messages: [] };
+
+        const { data, error } = await supabase
+            .from("messages")
+            .select("*")
+            .or(`and(sender_id.eq.${user.id},receiver_id.eq.${convId}),and(sender_id.eq.${convId},receiver_id.eq.${user.id})`)
+            .order("created_at", { ascending: true });
+
+        if (error) throw error;
+
+        const messages = (data || []).map(m => ({
+            _id: m.id,
+            sender: m.sender_id === user.id ? "student" : "owner",
+            content: m.content || m.message,
+            createdAt: m.created_at
+        }));
+
+        return { success: true, messages };
+    },
+
+    async sendStudentMessage(convId, message) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        const { data, error } = await supabase
+            .from("messages")
+            .insert({
+                sender_id: user.id,
+                receiver_id: convId,
+                message: message,
+                content: message,
+                is_read: false
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+        return { success: true, message: data };
+    },
+
+    // Student Maintenance
+    async getStudentMaintenances() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, requests: [] };
+
+        const { data, error } = await supabase
+            .from("maintenances")
+            .select("*, properties(property_name)")
+            .eq("student_id", user.id)
+            .order("created_at", { ascending: false });
+
+        if (error) throw error;
+
+        const requests = (data || []).map(m => ({
+            _id: m.id,
+            id: m.id,
+            title: m.title,
+            description: m.description,
+            category: m.category || "general",
+            priority: m.priority || "medium",
+            status: m.status || "pending",
+            propertyName: m.properties ? m.properties.property_name : "Property",
+            createdAt: m.created_at
+        }));
+
+        return { success: true, requests };
+    },
+
+    async createStudentMaintenance(payload = {}) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        const { data, error } = await supabase
+            .from("maintenances")
+            .insert({
+                student_id: user.id,
+                property_id: payload.propertyId || payload.property,
+                title: payload.title,
+                description: payload.description,
+                category: payload.category || "general",
+                priority: payload.priority || "medium",
+                status: "pending"
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+        return { success: true, request: data };
+    },
+
+    // Student Documents & Analytics
+    async getStudentDocuments() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, documents: { agreements: [], receipts: [], idProofs: [] } };
+
+        const { data: bookings } = await supabase
+            .from("bookings")
+            .select("*, properties(property_name)")
+            .eq("user_id", user.id);
+
+        const agreements = (bookings || []).map(b => ({
+            _id: b.id,
+            bookingId: b.id,
+            title: "Tenancy Agreement - " + (b.properties ? b.properties.property_name : "Property"),
+            property: b.properties ? b.properties.property_name : "Property",
+            date: b.created_at
+        }));
+
+        const receipts = (bookings || []).filter(b => b.payment_status === "paid").map(b => ({
+            _id: b.id,
+            title: "Rent Receipt #" + b.id.slice(0, 6),
+            property: b.properties ? b.properties.property_name : "Property",
+            amount: parseFloat(b.price || 0),
+            date: b.created_at
+        }));
+
+        return {
+            success: true,
+            documents: { agreements, receipts, idProofs: [] }
+        };
+    },
+
+    async getStudentAnalytics() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, analytics: {} };
+
+        const [bookingsRes, maintsRes] = await Promise.all([
+            supabase.from("bookings").select("price, payment_status, created_at, properties(city)").eq("user_id", user.id),
+            supabase.from("maintenances").select("id", { count: "exact", head: true }).eq("student_id", user.id)
+        ]);
+
+        const bookings = bookingsRes.data || [];
+        let totalSpent = 0;
+        let totalCancelled = 0;
+        const locationsMap = new Map();
+
+        bookings.forEach(b => {
+            if (b.payment_status === "paid") {
+                totalSpent += parseFloat(b.price || 0);
+            }
+            if (b.booking_status === "cancelled") {
+                totalCancelled++;
+            }
+            const city = b.properties ? b.properties.city : "Delhi";
+            if (city) {
+                locationsMap.set(city, (locationsMap.get(city) || 0) + 1);
+            }
+        });
+
+        const favoriteLocations = Array.from(locationsMap.entries()).map(([city, count]) => ({ city, count }));
+
+        return {
+            success: true,
+            analytics: {
+                totalBookings: bookings.length,
+                totalSpent,
+                totalMaintenance: maintsRes.count || 0,
+                totalCancelled,
+                favoriteLocations,
+                monthly: {},
+                bookingTimeline: bookings.map(b => ({ date: b.created_at, status: b.payment_status }))
+            }
+        };
+    },
+
+    // Account Deletion
+    async deleteAccount() {
+        const { data, error } = await supabase.rpc("delete_user_account");
+        if (error) throw error;
+        return data || { success: true };
     }
 };

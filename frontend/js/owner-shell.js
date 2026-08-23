@@ -82,6 +82,9 @@ export async function apiFetch(endpoint, opts = {}) {
     const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
     return await supabaseAPI.updateOwnerProfile(payload);
   }
+  if (endpoint === "/owner/profile" && method === "DELETE") {
+    return await supabaseAPI.deleteAccount();
+  }
   if (endpoint === "/owner/change-password" && method === "PUT") {
     const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
     return await supabaseAPI.changePassword(payload.newPassword);

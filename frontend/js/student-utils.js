@@ -42,7 +42,51 @@ export function $(id) {
 export async function apiFetch(endpoint, opts = {}) {
   const method = (opts.method || "GET").toUpperCase();
 
-  // Supabase Native Interceptor for Student Routes
+  // Supabase Native Interceptor for Student & Public Routes
+  if (endpoint === "/student/dashboard-v3" || endpoint === "/student/dashboard") {
+    return await supabaseAPI.getStudentDashboardStats();
+  }
+  if (endpoint.startsWith("/properties/search")) {
+    const queryStr = endpoint.includes("?") ? endpoint.split("?")[1] : "";
+    const params = Object.fromEntries(new URLSearchParams(queryStr).entries());
+    return await supabaseAPI.searchProperties(params);
+  }
+  if (endpoint === "/student/finance/summary") {
+    return await supabaseAPI.getStudentFinanceSummary();
+  }
+  if (endpoint === "/student/finance/invoices") {
+    return await supabaseAPI.getStudentInvoices();
+  }
+  if (endpoint === "/student/messages/conversations") {
+    return await supabaseAPI.getStudentConversations();
+  }
+  if (endpoint.startsWith("/student/messages/conversation/") && endpoint.endsWith("/messages")) {
+    const parts = endpoint.split("/");
+    const convId = parts[4];
+    return await supabaseAPI.getStudentMessages(convId);
+  }
+  if (endpoint.startsWith("/student/messages/conversation/") && endpoint.endsWith("/send")) {
+    const parts = endpoint.split("/");
+    const convId = parts[4];
+    const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
+    return await supabaseAPI.sendStudentMessage(convId, payload.message || payload.content || "");
+  }
+  if (endpoint === "/student/maintenance" && method === "GET") {
+    return await supabaseAPI.getStudentMaintenances();
+  }
+  if (endpoint === "/student/maintenance" && method === "POST") {
+    const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
+    return await supabaseAPI.createStudentMaintenance(payload);
+  }
+  if (endpoint === "/student/documents") {
+    return await supabaseAPI.getStudentDocuments();
+  }
+  if (endpoint === "/student/analytics") {
+    return await supabaseAPI.getStudentAnalytics();
+  }
+  if (endpoint === "/student/announcements") {
+    return await supabaseAPI.getOwnerAnnouncements();
+  }
   if (endpoint === "/student/notifications" && method === "GET") {
     return await supabaseAPI.getStudentNotifications();
   }
@@ -53,16 +97,31 @@ export async function apiFetch(endpoint, opts = {}) {
   if (endpoint === "/student/notifications/read-all" && method === "PUT") {
     return await supabaseAPI.markAllNotificationsRead();
   }
+  if ((endpoint === "/student/profile" || endpoint === "/pages/student/profile") && method === "DELETE") {
+    return await supabaseAPI.deleteAccount();
+  }
   if (endpoint === "/student/profile" && method === "GET") {
     return await supabaseAPI.getStudentProfile();
   }
   if (endpoint === "/student/profile" && method === "PUT") {
-    const payload = opts.body ? JSON.parse(opts.body) : {};
+    const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
     return await supabaseAPI.updateStudentProfile(payload);
+  }
+  if (endpoint === "/student/change-password" && method === "PUT") {
+    const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
+    return await supabaseAPI.changePassword(payload.newPassword);
   }
   if (endpoint === "/student/bookings" && method === "GET") {
     const bookings = await supabaseAPI.getMyBookings();
     return { success: true, bookings };
+  }
+  if (endpoint.startsWith("/student/saved/") && method === "POST") {
+    const propId = endpoint.split("/")[3];
+    return await supabaseAPI.toggleFavorite(propId);
+  }
+  if (endpoint.startsWith("/student/saved/") && method === "DELETE") {
+    const propId = endpoint.split("/")[3];
+    return await supabaseAPI.toggleFavorite(propId);
   }
   if (endpoint === "/student/saved" && method === "GET") {
     return { success: true, saved: [] };

@@ -3,6 +3,8 @@
 // =====================================================
 
 import { initShell, apiFetch, showToast, $ } from "./owner-shell.js";
+import { supabaseAPI } from "./supabase-api.js";
+import { logout } from "./session.js";
 
 const DOM = {
   profileForm: $("profileForm"),
@@ -134,12 +136,11 @@ async function handleDeleteAccount() {
   DOM.deleteAccountBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Deleting...';
 
   try {
-    // Owner route has no account-delete endpoint; attempt via a best-effort
-    // We block deletion server-side unless present. For now, inform user.
-    showToast("Account deletion is currently unavailable. Please contact CAMPORA support.", "info");
+    await supabaseAPI.deleteAccount();
+    showToast("Account deleted successfully", "success");
+    logout();
   } catch (err) {
     showToast("Failed to delete account: " + err.message, "error");
-  } finally {
     DOM.deleteAccountBtn.disabled = false;
     DOM.deleteAccountBtn.innerHTML = '<i class="fa-solid fa-trash"></i> Delete Account';
   }

@@ -3,7 +3,7 @@
 // =====================================================
 
 import { $, apiFetch, initShell, loadUnreadCount, showToast } from "./student-utils.js";
-import { getLoginUrl } from "./session.js";
+import { logout } from "./session.js";
 
 document.addEventListener("DOMContentLoaded", () => {
   initShell();
@@ -55,23 +55,10 @@ async function deleteAccount() {
   btn.disabled = true;
   try {
     await apiFetch("/student/profile", { method: "DELETE" });
+    showToast("Account deleted successfully", "success");
+    logout();
   } catch (err) {
-    const isUserNotFound = err.status === 404 && 
-      (err.message && err.message.toLowerCase().includes("user not found"));
-    if (!isUserNotFound) {
-      showToast(err.message || "Unable to delete account", "error");
-      btn.disabled = false;
-      return;
-    }
+    showToast(err.message || "Unable to delete account", "error");
+    btn.disabled = false;
   }
-
-  // Clear local authentication/session state
-  localStorage.removeItem("camporaToken");
-  localStorage.removeItem("camporaUser");
-  localStorage.removeItem("camporauser");
-  sessionStorage.removeItem("camporaToken");
-  sessionStorage.removeItem("camporaUser");
-  sessionStorage.removeItem("camporauser");
-
-  window.location.href = getLoginUrl();
 }
