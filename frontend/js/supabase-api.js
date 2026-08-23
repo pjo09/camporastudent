@@ -10,7 +10,7 @@ export const supabaseAPI = {
     async getProperties(filters = {}) {
         let query = supabase
             .from("properties")
-            .select("*, profiles!owner_id(name, profile_image)")
+            .select("*, profiles!owner_id(name, avatar)")
             .or("status.eq.published,status.eq.approved")
             .eq("published", true);
 
@@ -1039,7 +1039,7 @@ export const supabaseAPI = {
     async searchProperties(params = {}) {
         let query = supabase
             .from("properties")
-            .select("*, profiles!owner_id(name, profile_image, phone)", { count: "exact" })
+            .select("*, profiles!owner_id(name, avatar, phone)", { count: "exact" })
             .or("status.eq.published,status.eq.approved")
             .eq("published", true);
 
@@ -1429,7 +1429,7 @@ export const supabaseAPI = {
     async getPropertyById(id) {
         const { data, error } = await supabase
             .from("properties")
-            .select("*, profiles!owner_id(name, profile_image, phone)")
+            .select("*, profiles!owner_id(name, avatar, phone)")
             .eq("id", id)
             .maybeSingle();
 

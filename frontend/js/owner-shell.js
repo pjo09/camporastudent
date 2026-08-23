@@ -160,8 +160,14 @@ export async function apiFetch(endpoint, opts = {}) {
   if ((endpoint === "/owner/dashboard" || endpoint === "/owner/dashboard-v3") && method === "GET") {
     return await supabaseAPI.getOwnerDashboardStats();
   }
-  if (endpoint.startsWith("/owner/properties") && method === "GET") {
+  if ((endpoint === "/owner/properties" || endpoint === "/owner/properties/") && method === "GET") {
     return await supabaseAPI.getOwnerProperties();
+  }
+  if (endpoint.startsWith("/owner/properties/") && method === "GET") {
+    const propId = endpoint.split("/").pop();
+    if (propId) {
+      return await supabaseAPI.getPropertyById(propId);
+    }
   }
   if (endpoint === "/owner/bookings" && method === "GET") {
     return await supabaseAPI.getOwnerBookings();
