@@ -1036,12 +1036,15 @@ window.showToast = showToast;
 
 async function checkSuperAdminPermissions() {
   try {
-    const { supabaseAPI } = await import("./supabase-api.js");
-    const data = await supabaseAPI.getAdminScopes();
-    if (data.success) {
-      const navItem = document.getElementById("adminMgmtNavItem");
+    const u = state.user || getUser();
+    const isSuperAdminEmail = u && u.email && u.email.trim().toLowerCase() === "camporaforstudents@gmail.com";
+    const navItem = document.getElementById("adminMgmtNavItem");
+    if (isSuperAdminEmail) {
       if (navItem) navItem.style.display = "flex";
       state.isSuperAdmin = true;
+    } else {
+      if (navItem) navItem.style.display = "none";
+      state.isSuperAdmin = false;
     }
   } catch (e) {
     console.error("Failed checking super admin permissions", e);
