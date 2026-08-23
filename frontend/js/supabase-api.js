@@ -11,7 +11,7 @@ export const supabaseAPI = {
         let query = supabase
             .from("properties")
             .select("*, profiles!owner_id(name, profile_image)")
-            .eq("status", "approved")
+            .or("status.eq.published,status.eq.approved")
             .eq("published", true);
 
         if (filters.city) query = query.eq("city", filters.city);
@@ -1040,7 +1040,7 @@ export const supabaseAPI = {
         let query = supabase
             .from("properties")
             .select("*, profiles!owner_id(name, profile_image, phone)", { count: "exact" })
-            .eq("status", "approved")
+            .or("status.eq.published,status.eq.approved")
             .eq("published", true);
 
         if (params.city) query = query.ilike("city", `%${params.city.trim()}%`);
@@ -1124,7 +1124,7 @@ export const supabaseAPI = {
         const { data: recommended } = await supabase
             .from("properties")
             .select("*, profiles!owner_id(name)")
-            .eq("status", "approved")
+            .or("status.eq.published,status.eq.approved")
             .eq("published", true)
             .limit(6);
 
