@@ -1816,5 +1816,83 @@ export const supabaseAPI = {
 
         if (error) throw error;
         return { success: true, profile: data };
+    },
+
+    // Get Saved Properties for Current Student
+    async getSavedProperties() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        const { data, error } = await supabase
+            .from("saved_properties")
+            .select("*, properties(*)")
+            .eq("user_id", user.id);
+
+        if (error) throw error;
+
+        const saved = (data || []).map(s => {
+            const p = s.properties || {};
+            return {
+                _id: p.id,
+                id: p.id,
+                propertyName: p.property_name,
+                propertyType: p.property_type,
+                city: p.city,
+                state: p.state,
+                address: p.address,
+                rent: parseFloat(p.rent || 0),
+                deposit: parseFloat(p.deposit || 0),
+                images: p.images || [],
+                availableBeds: p.available_beds || 0,
+                rating: p.average_rating || 4.5
+            };
+        });
+
+        return { success: true, saved };
+    },
+
+    // Get Analytics for Owner
+    async getOwnerAnalytics() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        const [propsRes, bookingsRes, maintsRes] = await Promise.all([
+            supabase.from("properties").select("id, property_name, total_beds, available_beds, rent").eq("owner_id", user.id),
+            supabase.from("bookings").select("id, price, payment_status, created_at").eq("owner_id", user.id),
+            supabase.from("maintenance_requests").select("id, status").eq("owner_id", user.id)
+        ]);
+
+        const props = propsRes.data || [];
+        const bookings = bookingsRes.data || [];
+        let totalRevenue = 0;
+        bookings.forEach(b => {
+            if (b.payment_status === "paid") totalRevenue += Number(b.price || 0);
+        });
+
+        let totalBeds = 0;
+        let availableBeds = 0;
+        props.forEach(p => {
+            totalBeds += (p.total_beds || 0);
+            availableBeds += (p.available_beds || 0);
+        });
+
+        const occupiedBeds = Math.max(0, totalBeds - availableBeds);
+        const occupancyRate = totalBeds > 0 ? Math.round((occupiedBeds / totalBeds) * 100) : 0;
+
+        return {
+            success: true,
+            analytics: {
+                totalProperties: props.length,
+                totalBookings: bookings.length,
+                totalRevenue,
+                occupancyRate,
+                totalBeds,
+                occupiedBeds,
+                availableBeds,
+                pendingMaintenances: (maintsRes.data || []).filter(m => m.status === "PENDING").length
+            },
+            summary: { totalProperties: props.length, totalRevenue, occupancyRate },
+            earnings: { total: totalRevenue }
+        };
     }
 };

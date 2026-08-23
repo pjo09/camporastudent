@@ -114,7 +114,7 @@ export async function apiFetch(endpoint, opts = {}) {
     return await supabaseAPI.getOwnerMaintenances();
   }
   if ((endpoint === "/owner/analytics" || endpoint === "/owner/top-properties" || endpoint === "/owner/earnings" || endpoint === "/owner/finance/summary") && method === "GET") {
-    return { success: true, analytics: {}, summary: {}, earnings: { total: 0 } };
+    return await supabaseAPI.getOwnerAnalytics();
   }
 
   const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };

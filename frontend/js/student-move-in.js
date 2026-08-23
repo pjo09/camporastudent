@@ -176,8 +176,9 @@ function renderDocuments(documents, bookingId) {
       ? `<span style="color:#22c55e;font-size:12px;font-weight:600"><i class="fa-solid fa-circle-check"></i> Submitted</span>`
       : `<span style="color:#ef4444;font-size:12px;font-weight:600"><i class="fa-solid fa-circle-exclamation"></i> Upload Required</span>`;
 
-    const viewButton = d.submitted
-      ? `<a href="/api/student/bookings/${bookingId}/documents/${index}/view" target="_blank" class="sv3-btn sv3-btn-ghost sv3-btn-sm" style="padding:6px 12px;font-size:12px"><i class="fa-solid fa-eye"></i> View</a>`
+    const docUrl = d.document_url || d.url || "";
+    const viewButton = (d.submitted && docUrl)
+      ? `<a href="${esc(docUrl)}" target="_blank" rel="noopener noreferrer" class="sv3-btn sv3-btn-ghost sv3-btn-sm" style="padding:6px 12px;font-size:12px"><i class="fa-solid fa-eye"></i> View</a>`
       : "";
 
     card.innerHTML = `

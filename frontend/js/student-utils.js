@@ -124,7 +124,7 @@ export async function apiFetch(endpoint, opts = {}) {
     return await supabaseAPI.toggleFavorite(propId);
   }
   if (endpoint === "/student/saved" && method === "GET") {
-    return { success: true, saved: [] };
+    return await supabaseAPI.getSavedProperties();
   }
 
   const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
