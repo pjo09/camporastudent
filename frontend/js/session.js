@@ -5,8 +5,20 @@ const USER_KEY = "camporaUser";
 const ROLE_KEY = "camporaRole";
 const REMEMBER_KEY = "camporaRemember";
 
-// Production landing page — the single destination after logout.
-const LANDING_URL = "https://camporastudent.vercel.app/";
+// ===========================================
+// DYNAMIC LANDING URL FOR NESTED PAGES / ENVIRONMENT
+// ===========================================
+export function getLandingUrl() {
+    if (typeof window === "undefined") return "/index.html";
+    const path = window.location.pathname.toLowerCase();
+    if (path.includes("/pages/student/") ||
+        path.includes("/pages/owner/") ||
+        path.includes("/pages/admin/") ||
+        path.includes("/pages/property/")) {
+        return "../../index.html";
+    }
+    return "index.html";
+}
 
 // ===========================================
 // DYNAMIC LOGIN URL FOR NESTED PAGES
@@ -130,7 +142,7 @@ export function logout() {
     sessionStorage.removeItem(ROLE_KEY);
 
     // Always land on the Campora main landing page.
-    window.location.replace(LANDING_URL);
+    window.location.replace(getLandingUrl());
 }
 
 // ===========================================
@@ -143,7 +155,7 @@ export function logout() {
 // ===========================================
 
 export function redirectToLanding() {
-    window.location.replace(LANDING_URL);
+    window.location.replace(getLandingUrl());
 }
 
 // ===========================================

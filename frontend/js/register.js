@@ -166,19 +166,19 @@ form.addEventListener("submit", async (e) => {
 
         const isOwnerPending = selectedRole === "owner";
 
-        if (!isOwnerPending && authData.session && authData.user) {
+        if (authData.session && authData.user) {
             const userObj = {
                 id: authData.user.id,
                 email: authData.user.email,
                 name: name,
                 role: selectedRole,
-                accountStatus: "ACTIVE"
+                accountStatus: isOwnerPending ? "PENDING" : "ACTIVE"
             };
             login(authData.session.access_token, userObj, false);
         }
 
         if (isOwnerPending) {
-            showSuccess("Registration successful! Your owner account is pending approval by an admin.");
+            showSuccess("Registration successful! Welcome to Campora Owner Portal.");
         } else {
             showSuccess("Account created successfully!");
         }
@@ -187,9 +187,7 @@ form.addEventListener("submit", async (e) => {
         const urlParams = new URLSearchParams(window.location.search);
         const redirectTo = urlParams.get("redirectTo");
         setTimeout(() => {
-            if (isOwnerPending) {
-                window.location.href = getLoginUrl() + "?pending=true";
-            } else if (redirectTo && isValidRedirect(redirectTo)) {
+            if (redirectTo && isValidRedirect(redirectTo)) {
                 window.location.href = redirectTo;
             } else {
                 redirectBasedOnRole(selectedRole);
@@ -198,9 +196,21 @@ form.addEventListener("submit", async (e) => {
 
     } catch (err) {
         console.error("Register Error:", err);
-        showError(err.message || "Registration failed. Please try again.");
+        const msg = (err.message || "").toLowerCase();
+        if (msg.includes("rate limit") || msg.includes("too many requests") || err.status === 429) {
+            showError("Too many signup requests or verification emails sent. Please wait a few minutes before trying again, or log in if your account is already created.");
+            if (createBtn) createBtn.disabled = true;
+            setTimeout(() => {
+                if (createBtn) createBtn.disabled = false;
+            }, 30000);
+        } else {
+            showError(err.message || "Registration failed. Please try again.");
+        }
     } finally {
-        createBtn.disabled = false;
+        const msg = (err && err.message || "").toLowerCase();
+        if (!msg.includes("rate limit") && !msg.includes("too many requests") && err?.status !== 429) {
+            createBtn.disabled = false;
+        }
         if (labelEl) labelEl.textContent = "Create Account";
         if (spinner) spinner.style.display = "none";
     }

@@ -113,8 +113,32 @@ async function loadProperties() {
     state.totalPages = data.totalPages || 1;
 
     if (properties.length === 0) {
-      grid.innerHTML = `<div class="sv3-empty" style="grid-column:1/-1"><i class="fa-solid fa-house-circle-xmark"></i><h3>No properties found</h3><p>Try adjusting your filters or search.</p></div>`;
+      grid.innerHTML = `
+        <div class="sv3-empty" style="grid-column:1/-1;text-align:center;padding:48px 24px;background:var(--sv3-surface,#1e293b);border-radius:16px;border:1px solid rgba(255,255,255,0.08);margin:20px 0">
+          <div style="font-size:48px;color:var(--sv3-primary,#3b82f6);margin-bottom:16px"><i class="fa-solid fa-house-circle-xmark"></i></div>
+          <h3 style="font-size:20px;font-weight:700;margin-bottom:8px">No Available Properties Found</h3>
+          <p style="color:var(--sv3-muted,#94a3b8);max-width:460px;margin:0 auto 24px;line-height:1.5">We couldn't find any published properties matching your current criteria. Try adjusting your search term or clearing your filters.</p>
+          <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+            <button class="sv3-btn sv3-btn-primary" id="resetFiltersBtn" type="button" style="cursor:pointer"><i class="fa-solid fa-rotate-left"></i> Reset Filters</button>
+          </div>
+        </div>`;
       $("pagination").style.display = "none";
+      const resetBtn = document.getElementById("resetFiltersBtn");
+      if (resetBtn) {
+        resetBtn.addEventListener("click", () => {
+          state.search = "";
+          state.city = "";
+          state.college = "";
+          state.maxRent = "";
+          state.sharing = "";
+          state.filter = "all";
+          state.page = 1;
+          const searchInput = $("searchInput");
+          if (searchInput) searchInput.value = "";
+          document.querySelectorAll(".sv3-filter-btn").forEach((b) => b.classList.toggle("active", b.dataset.filter === "all"));
+          loadProperties();
+        });
+      }
       return;
     }
 

@@ -173,14 +173,9 @@ async function loginUser(e) {
         const role = profile?.role || authData.user.user_metadata?.role || "student";
         const accountStatus = profile?.account_status || "ACTIVE";
 
-        if (accountStatus === "BANNED" || accountStatus === "DELETED") {
+        if (accountStatus === "BANNED" || accountStatus === "DELETED" || accountStatus === "REJECTED") {
             await supabase.auth.signOut();
             throw new Error("Your account has been suspended or deleted. Please contact support.");
-        }
-
-        if (role === "owner" && accountStatus === "PENDING") {
-            await supabase.auth.signOut();
-            throw new Error("Your owner account is pending approval by an administrator.");
         }
 
         const userObj = {

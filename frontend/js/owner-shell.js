@@ -24,6 +24,15 @@ export async function verifyLiveOwnerAuth() {
     const { data: sessionData } = await supabase.auth.getSession();
     const session = sessionData?.session;
     if (!session || !session.user) {
+      const localUser = getUser();
+      const localToken = getToken();
+      if (localUser && localToken && localUser.role === "owner") {
+        if (localUser.accountStatus === "BANNED" || localUser.accountStatus === "DELETED" || localUser.accountStatus === "REJECTED") {
+          sessionLogout();
+          return null;
+        }
+        return localUser;
+      }
       sessionLogout();
       return null;
     }
@@ -62,13 +71,7 @@ export async function verifyLiveOwnerAuth() {
       return null;
     }
 
-    if (profile.account_status === "PENDING") {
-      sessionLogout();
-      window.location.href = getLoginUrl() + "?pending=true";
-      return null;
-    }
-
-    if (profile.account_status !== "ACTIVE") {
+    if (profile.account_status === "BANNED" || profile.account_status === "DELETED" || profile.account_status === "REJECTED") {
       sessionLogout();
       return null;
     }
@@ -432,6 +435,10 @@ export function initShell(pageTitle = "Dashboard") {
   // Render owner info
   renderOwnerInfo();
 
+  if (user && (user.accountStatus === "PENDING" || user.account_status === "PENDING")) {
+    renderPendingBanner();
+  }
+
   // Setup event listeners
   setupShellListeners();
 
@@ -440,6 +447,24 @@ export function initShell(pageTitle = "Dashboard") {
 
   // Poll notifications
   setInterval(loadNotificationCount, 60000);
+}
+
+function renderPendingBanner() {
+  if (document.querySelector(".v3-pending-banner")) return;
+  const mainContent = $("mainContent") || document.querySelector("main") || document.querySelector(".v3-content");
+  if (!mainContent) return;
+
+  const banner = document.createElement("div");
+  banner.className = "v3-pending-banner";
+  banner.style.cssText = "background:rgba(234,179,8,0.12);border:1px solid rgba(234,179,8,0.3);color:var(--v3-text,#f8fafc);padding:14px 20px;border-radius:12px;margin:0 0 20px 0;display:flex;align-items:center;gap:12px";
+  banner.innerHTML = `
+    <i class="fa-solid fa-clock-rotate-left" style="color:#eab308;font-size:20px"></i>
+    <div>
+      <strong style="font-size:14px;color:#eab308">Account Verification Pending</strong>
+      <p style="font-size:13px;margin:2px 0 0 0;color:var(--v3-muted,#94a3b8)">Your PG Owner account is pending administrative verification. You can draft, add properties, and submit them for moderation.</p>
+    </div>
+  `;
+  mainContent.insertBefore(banner, mainContent.firstChild);
 }
 
 // =====================================================

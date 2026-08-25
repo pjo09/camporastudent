@@ -21,6 +21,11 @@ export async function verifyLiveStudentAuth() {
     const { data: sessionData } = await supabase.auth.getSession();
     const session = sessionData?.session;
     if (!session || !session.user) {
+      const localUser = getUser();
+      const localToken = getToken();
+      if (localUser && localToken && localUser.role === "student") {
+        return localUser;
+      }
       return null;
     }
 
