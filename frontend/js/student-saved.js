@@ -22,16 +22,18 @@ grid.innerHTML = `<div class="sv3-empty" style="grid-column:1/-1"><i class="fa-s
       return;
     }
     grid.innerHTML = properties.map((p) => {
+      const propId = p.id || p._id;
       const name = p.propertyName || p.title || "Campora Property";
       const loc = p.city ? `${p.city}${p.state ? ", " + p.state : ""}` : "Location not specified";
       const rent = p.rent || p.price || 0;
       const rating = p.averageRating || 0;
       const img = p.images && p.images.length ? imageUrl(p.images[0]) : "/assets/logos/logo.png";
+      const detailUrl = `/property-details.html?id=${encodeURIComponent(propId)}`;
       return `
-<div class="sv3-property-card" onclick="window.location.href='/pages/property/property.html?id=${p._id}'" role="article" aria-label="${esc(name)}">
+<div class="sv3-property-card" onclick="window.location.href='${detailUrl}'" role="article" aria-label="${esc(name)}">
           <div class="sv3-property-image">
             <img src="${img}" alt="${esc(name)}" loading="lazy" onerror="this.src='/assets/logos/logo.png'">
-            <button class="sv3-save-btn" onclick="event.stopPropagation();window.removeSaved('${p._id}', this)" aria-label="Remove from saved" title="Remove"><i class="fa-solid fa-heart" style="color:#f87171"></i></button>
+            <button class="sv3-save-btn" onclick="event.stopPropagation();window.removeSaved('${propId}', this)" aria-label="Remove from saved" title="Remove"><i class="fa-solid fa-heart" style="color:#f87171"></i></button>
           </div>
           <div class="sv3-property-body">
             <div class="sv3-property-title">${esc(name)}</div>
@@ -39,7 +41,7 @@ grid.innerHTML = `<div class="sv3-empty" style="grid-column:1/-1"><i class="fa-s
             <div class="sv3-property-price">${inr(rent)}<span>/month</span></div>
             <div class="sv3-property-footer">
               <span class="sv3-rating">${rating > 0 ? '<i class="fa-solid fa-star"></i> ' + rating.toFixed(1) : "New"}</span>
-<button class="sv3-btn sv3-btn-primary" style="padding:8px 16px;font-size:13px" onclick="event.stopPropagation();window.location.href='/pages/property/property.html?id=${p._id}'">View</button>
+<button class="sv3-btn sv3-btn-primary" style="padding:8px 16px;font-size:13px" onclick="event.stopPropagation();window.location.href='${detailUrl}'">View</button>
             </div>
           </div>
         </div>`;

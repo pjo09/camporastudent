@@ -30,16 +30,36 @@ function setupEvents() {
   const bookBtn = $("bookBtn");
   if (bookBtn) {
     bookBtn.addEventListener("click", () => {
+      const token = localStorage.getItem("camporaToken") || sessionStorage.getItem("camporaToken");
+      if (!token) {
+        const currentUrl = window.location.pathname + window.location.search;
+        window.location.href = `/login.html?redirectTo=${encodeURIComponent(currentUrl)}`;
+        return;
+      }
       window.location.href = `/pages/student/booking-details.html?id=${propertyId}`;
     });
   }
   const saveBtn = $("saveBtn");
   if (saveBtn) {
-    saveBtn.addEventListener("click", toggleSave);
+    saveBtn.addEventListener("click", () => {
+      const token = localStorage.getItem("camporaToken") || sessionStorage.getItem("camporaToken");
+      if (!token) {
+        const currentUrl = window.location.pathname + window.location.search;
+        window.location.href = `/login.html?redirectTo=${encodeURIComponent(currentUrl)}`;
+        return;
+      }
+      toggleSave();
+    });
   }
   const contactBtn = $("contactOwnerBtn");
   if (contactBtn) {
     contactBtn.addEventListener("click", () => {
+      const token = localStorage.getItem("camporaToken") || sessionStorage.getItem("camporaToken");
+      if (!token) {
+        const currentUrl = window.location.pathname + window.location.search;
+        window.location.href = `/login.html?redirectTo=${encodeURIComponent(currentUrl)}`;
+        return;
+      }
       window.location.href = `messages.html?property=${propertyId}`;
     });
   }

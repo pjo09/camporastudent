@@ -497,7 +497,7 @@ async function loadProperties() {
           <td><span class="admin-status ${p.status || 'pending'}">${p.status || "pending"}</span></td>
           <td>
             <div class="action-group">
-              <button class="admin-btn admin-btn-sm admin-btn-primary" onclick="window.location.href='/pages/property/property.html?id=${p._id}'">View</button>
+              <button class="admin-btn admin-btn-sm admin-btn-primary" onclick="window.location.href='/property-details.html?id=${encodeURIComponent(p.id || p._id)}'">View</button>
               ${p.status === "pending" ? `<button class="admin-btn admin-btn-sm admin-btn-success" onclick="window.approveProperty('${p._id}')">Approve</button>` : ""}
               ${p.status !== "rejected" ? `<button class="admin-btn admin-btn-sm admin-btn-danger" onclick="window.rejectProperty('${p._id}')">Reject</button>` : ""}
               ${!p.featured ? `<button class="admin-btn admin-btn-sm admin-btn-warning" onclick="window.featureProperty('${p._id}')">Feature</button>` : ""}

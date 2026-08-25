@@ -1222,6 +1222,22 @@ export const supabaseAPI = {
         };
     },
 
+    async getPropertyReviews(propertyId) {
+        const { data, error } = await supabase
+            .from("reviews")
+            .select("*, profiles!user_id(name)")
+            .eq("property_id", propertyId)
+            .eq("status", "approved");
+        if (error) return [];
+        return (data || []).map(r => ({
+            id: r.id,
+            name: r.profiles?.name || "Student",
+            rating: r.rating || 5,
+            comment: r.comment || "",
+            createdAt: r.created_at
+        }));
+    },
+
     // Student Dashboard Stats
     async getStudentDashboardStats() {
         const { data: { user } } = await supabase.auth.getUser();

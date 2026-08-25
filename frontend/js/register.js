@@ -10,6 +10,24 @@ const API_BASE = API;
 
 const $ = (id) => document.getElementById(id);
 
+// ==========================================
+// LOADING SKELETON — hides once page is ready
+// ==========================================
+
+(function initSkeleton() {
+    const hide = () => {
+        const skeleton = $("authSkeleton");
+        const wrap = $("authFormWrap");
+        if (skeleton) skeleton.style.display = "none";
+        if (wrap) wrap.style.display = "block";
+    };
+    if (document.readyState === "loading") {
+        document.addEventListener("DOMContentLoaded", hide);
+    } else {
+        hide();
+    }
+})();
+
 // Form Elements
 const form = $("registerForm");
 const role = $("role");

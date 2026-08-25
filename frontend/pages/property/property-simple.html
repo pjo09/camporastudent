@@ -12,8 +12,8 @@
             var params = new URLSearchParams(window.location.search);
             var id = params.get("id");
             var target = id
-                ? "../property/property.html?id=" + encodeURIComponent(id)
-                : "../../properties.html";
+                ? "/property-details.html?id=" + encodeURIComponent(id)
+                : "/properties.html";
             window.location.replace(target);
         })();
     </script>

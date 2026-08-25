@@ -199,7 +199,7 @@ function renderProperties() {
 async function handleAction(action, id, btn) {
   switch (action) {
     case "view":
-      window.location.href = `/pages/property/property.html?id=${id}`;
+      window.location.href = `/property-details.html?id=${encodeURIComponent(id)}`;
       break;
     case "edit":
       window.location.href = `/pages/owner/add-property.html?id=${id}`;
@@ -269,7 +269,7 @@ async function deleteProperty(id, btn) {
 function openShare(id) {
   const property = state.properties.find((p) => p._id === id);
   if (!property) return;
-  const url = `${window.location.origin}${window.location.pathname.replace(/owner-properties\.html$/, "")}/pages/property/property.html?id=${id}`;
+  const url = `${window.location.origin}/property-details.html?id=${encodeURIComponent(id)}`;
   if (DOM.shareLink) DOM.shareLink.value = url;
   if (DOM.shareModal) DOM.shareModal.classList.add("active");
 }

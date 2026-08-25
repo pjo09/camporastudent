@@ -68,14 +68,35 @@ export async function verifyLiveStudentAuth() {
 }
 
 export function gateStudent() {
-  const user = protectPageByRole(["student"]);
+  const path = (window.location.pathname || "").toLowerCase();
+  const isPublicPage = path.includes("properties") ||
+                       path.includes("property-details") ||
+                       path.includes("nearby") ||
+                       path.includes("index") ||
+                       path.includes("forgot-password") ||
+                       path.includes("login") ||
+                       path.includes("register") ||
+                       path === "/" ||
+                       path === "";
+
+  const user = getUser();
   const token = getToken();
-  if (!user || !token) {
-    window.location.href = getLoginUrl();
+
+  if (isPublicPage) {
+    if (user && token && (user.role === "student" || !user.role)) {
+      verifyLiveStudentAuth();
+    }
+    return user || null;
+  }
+
+  const roleUser = protectPageByRole(["student"]);
+  if (!roleUser || !token) {
+    const currentUrl = window.location.pathname + window.location.search;
+    window.location.href = getLoginUrl() + "?redirectTo=" + encodeURIComponent(currentUrl);
     return null;
   }
   verifyLiveStudentAuth();
-  return user;
+  return roleUser;
 }
 
 export const currentUser = gateStudent();
@@ -104,6 +125,19 @@ export async function apiFetch(endpoint, opts = {}) {
     const queryStr = endpoint.includes("?") ? endpoint.split("?")[1] : "";
     const params = Object.fromEntries(new URLSearchParams(queryStr).entries());
     return await supabaseAPI.searchProperties(params);
+  }
+  if (endpoint.startsWith("/properties/") && !endpoint.includes("/search") && !endpoint.includes("/save/")) {
+    const propId = endpoint.split("?")[0].split("/")[2];
+    const property = await supabaseAPI.getProperty(propId);
+    if (property) {
+      property.propertyName = property.propertyName || property.property_name;
+    }
+    return { property, currentResidentsCount: 0, verifiedStaysCount: 0 };
+  }
+  if (endpoint.startsWith("/reviews/") && method === "GET") {
+    const propId = endpoint.split("?")[0].split("/")[2];
+    const reviews = await supabaseAPI.getPropertyReviews(propId);
+    return { success: true, reviews };
   }
   if (endpoint === "/student/finance/summary") {
     return await supabaseAPI.getStudentFinanceSummary();

@@ -539,7 +539,7 @@ const Properties = (() => {
                 <div class="property-footer">
                     <div class="property-price"><span>Rent / month</span><h3>${inr(rent)}</h3></div>
                     <span class="property-rating"><i class="fa-solid fa-star"></i> ${rating > 0 ? rating.toFixed(1) : "New"}</span>
-                    <a href="/pages/property/property.html?id=${p.id || p._id}" class="property-btn">Book</a>
+                    <a href="/property-details.html?id=${encodeURIComponent(p.id || p._id)}" class="property-btn">Book</a>
                 </div>
             </div>
         </div>`;

@@ -137,18 +137,20 @@ function renderRecommended(properties) {
     return;
   }
   grid.innerHTML = properties.map((p) => {
+    const propId = p._id;
     const name = p.propertyName || p.title || "Campora Property";
     const loc = p.city ? `${p.city}${p.state ? ", " + p.state : ""}` : "Location not specified";
     const rent = p.rent || p.price || 0;
     const rating = p.averageRating || 0;
     const img = p.images && p.images.length ? imageUrl(p.images[0]) : "/assets/logos/logo.png";
     const badge = p.verified ? "Verified" : p.featured ? "Featured" : "";
+    const detailUrl = `/property-details.html?id=${encodeURIComponent(propId)}`;
     return `
-<div class="sv3-property-card" onclick="window.location.href='/pages/property/property.html?id=${p._id}'" role="article" aria-label="${esc(name)}">
+<div class="sv3-property-card" onclick="window.location.href='${detailUrl}'" role="article" aria-label="${esc(name)}">
         <div class="sv3-property-image">
           <img src="${img}" alt="${esc(name)}" loading="lazy" onerror="this.src='/assets/logos/logo.png'">
           ${badge ? `<span class="sv3-property-badge">${badge}</span>` : ""}
-          <button class="sv3-save-btn" onclick="event.stopPropagation();window.toggleSave('${p._id}', this)" aria-label="Save ${esc(name)}"><i class="fa-${p.isSaved ? "solid" : "regular"} fa-heart"></i></button>
+          <button class="sv3-save-btn" onclick="event.stopPropagation();window.toggleSave('${propId}', this)" aria-label="Save ${esc(name)}"><i class="fa-${p.isSaved ? "solid" : "regular"} fa-heart"></i></button>
         </div>
         <div class="sv3-property-body">
           <div class="sv3-property-title">${esc(name)}</div>
@@ -156,7 +158,7 @@ function renderRecommended(properties) {
           <div class="sv3-property-price">${inr(rent)}<span>/month</span></div>
           <div class="sv3-property-footer">
             <span class="sv3-rating">${rating > 0 ? '<i class="fa-solid fa-star"></i> ' + rating.toFixed(1) : "New"}</span>
-            <button class="sv3-btn sv3-btn-primary" style="padding:8px 16px;font-size:13px" onclick="event.stopPropagation();window.location.href='/pages/property/property.html?id=${p._id}'">View</button>
+            <button class="sv3-btn sv3-btn-primary" style="padding:8px 16px;font-size:13px" onclick="event.stopPropagation();window.location.href='${detailUrl}'">View</button>
           </div>
         </div>
       </div>`;
@@ -251,7 +253,7 @@ function renderStaySection(activeTenancy, residentRequests) {
             </div>
           </div>
           <div style="display:flex; gap:10px; margin-top:18px; flex-wrap:wrap">
-            <a href="/pages/property/property.html?id=${prop._id}" class="sv3-btn sv3-btn-primary" style="padding:8px 16px; font-size:13px"><i class="fa-solid fa-eye"></i> View Property</a>
+            <a href="/property-details.html?id=${encodeURIComponent(prop.id || prop._id)}" class="sv3-btn sv3-btn-primary" style="padding:8px 16px; font-size:13px"><i class="fa-solid fa-eye"></i> View Property</a>
             <a href="messages.html?property=${prop._id}" class="sv3-btn sv3-btn-ghost" style="padding:8px 16px; font-size:13px"><i class="fa-solid fa-comments"></i> Contact Owner</a>
             <a href="maintenance.html" class="sv3-btn sv3-btn-ghost" style="padding:8px 16px; font-size:13px"><i class="fa-solid fa-screwdriver-wrench"></i> Maintenance</a>
             <a href="reviews.html" class="sv3-btn sv3-btn-ghost" style="padding:8px 16px; font-size:13px"><i class="fa-solid fa-star"></i> Reviews</a>

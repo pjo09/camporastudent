@@ -147,7 +147,7 @@ function renderList() {
         ${p.latitude && p.longitude ? `<div class="nearby-card-distance"><i class="fa-solid fa-location-crosshairs"></i> Has location</div>` : ""}
       </div>`;
     card.addEventListener("click", () => {
-      window.location.href = `/pages/property/property.html?id=${p._id}`;
+      window.location.href = `/property-details.html?id=${encodeURIComponent(p.id || p._id)}`;
     });
     DOM.nearbyList.appendChild(card);
   });
@@ -247,7 +247,7 @@ function updateMapMarkers() {
       .bindPopup(`<b>${p.propertyName || "Property"}</b><br>₹${(p.rent || 0).toLocaleString()}/month`);
 
     marker.on("click", () => {
-      window.location.href = `/pages/property/property.html?id=${p._id}`;
+      window.location.href = `/property-details.html?id=${encodeURIComponent(p.id || p._id)}`;
     });
 
     state.markers.push(marker);

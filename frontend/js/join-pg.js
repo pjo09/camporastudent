@@ -48,8 +48,8 @@ async function resolveInvite() {
 
         // Configure button
         $("continueBtn").addEventListener("click", () => {
-            const propertyId = property._id;
-            const destUrl = `/pages/property/property.html?id=${propertyId}&joinPg=true`;
+            const propertyId = property.id || property._id;
+            const destUrl = `/property-details.html?id=${encodeURIComponent(propertyId)}&joinPg=true`;
 
             if (!isLoggedIn()) {
                 // Not logged in -> go through login, then return

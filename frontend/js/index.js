@@ -22,7 +22,7 @@ card.innerHTML=`
 <div class="property-price">₹${property.rent || property.price}/month</div>
 <div class="property-footer">
 <span>⭐ ${property.rating || "New"}</span>
-<a href="property.html?id=${property._id || property.id}" class="property-btn">View</a>
+<a href="/property-details.html?id=${encodeURIComponent(property.id || property._id)}" class="property-btn">View</a>
 </div>
 </div>
 `;
