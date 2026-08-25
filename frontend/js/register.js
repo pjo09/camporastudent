@@ -174,7 +174,7 @@ form.addEventListener("submit", async (e) => {
                 role: selectedRole,
                 accountStatus: isOwnerPending ? "PENDING" : "ACTIVE"
             };
-            login(authData.session.access_token, userObj, false);
+            login(authData.session.access_token, userObj, true);
         }
 
         if (isOwnerPending) {

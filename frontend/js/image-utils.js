@@ -42,20 +42,47 @@ export async function uploadImageToSupabase(file, folder = "properties") {
   const fileExt = file.name.split('.').pop();
   const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
 
-  const { data, error } = await supabase.storage
+  let { data, error } = await supabase.storage
     .from("properties")
     .upload(fileName, file, {
       cacheControl: "3600",
       upsert: true
     });
 
-  if (error) throw error;
+  if (error) {
+    const errStr = (error.message || JSON.stringify(error)).toLowerCase();
+    if (errStr.includes("bucket not found") || error.status === 400 || error.statusCode === "404" || error.error === "Bucket not found") {
+      const fallbackBuckets = ["property-images", "documents", "public"];
+      for (const bucket of fallbackBuckets) {
+        try {
+          const { data: fbData, error: fbErr } = await supabase.storage
+            .from(bucket)
+            .upload(fileName, file, { cacheControl: "3600", upsert: true });
+          if (!fbErr && fbData) {
+            const { data: pubUrl } = supabase.storage.from(bucket).getPublicUrl(fileName);
+            return pubUrl.publicUrl;
+          }
+        } catch { /* continue */ }
+      }
+      return await fileToDataUrl(file);
+    }
+    throw error;
+  }
 
   const { data: publicUrlData } = supabase.storage
     .from("properties")
     .getPublicUrl(fileName);
 
   return publicUrlData.publicUrl;
+}
+
+function fileToDataUrl(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (e) => reject(e);
+    reader.readAsDataURL(file);
+  });
 }
 
 /**

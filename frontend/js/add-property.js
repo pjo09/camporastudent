@@ -536,6 +536,7 @@ async function handlePublish(e) {
   }
 
   state.isSubmitting = true;
+  setPublishingButtonState(true);
   showLoadingOverlay("Publishing Property...", "Please wait while we upload your property.");
 
   try {
@@ -543,7 +544,6 @@ async function handlePublish(e) {
 
     const newFiles = state.uploadedImages.filter((img) => !img.existing);
     const existingImages = state.uploadedImages.filter((img) => img.existing);
-    const isEditMode = !!state.editPropertyId;
 
     let uploadedImageUrls = [];
 
@@ -607,13 +607,22 @@ async function handlePublish(e) {
     // Clear draft
     localStorage.removeItem(DRAFT_KEY);
 
-    showSuccess(state.editPropertyId ? "Property Updated!" : "Property Published!");
+    showSuccess(state.editPropertyId ? "Property Updated!" : "Property Published!", propertyId);
   } catch (err) {
     console.error("Publish error:", err);
     hideLoadingOverlay();
+    setPublishingButtonState(false);
     showToast(err.message || "Failed to save property", "error");
     state.isSubmitting = false;
   }
+}
+
+function setPublishingButtonState(disabled) {
+  if (DOM.publishBtn) DOM.publishBtn.disabled = disabled;
+  if (DOM.saveDraftBtn) DOM.saveDraftBtn.disabled = disabled;
+  if (DOM.cancelBtn) DOM.cancelBtn.disabled = disabled;
+  if (DOM.prevBtn) DOM.prevBtn.disabled = disabled;
+  if (DOM.nextBtn) DOM.nextBtn.disabled = disabled;
 }
 
 function buildPropertyBody(images, isDraft) {
@@ -654,8 +663,12 @@ function buildPropertyBody(images, isDraft) {
 function showLoadingOverlay(title, desc) {
   const overlay = $("successOverlay");
   if (!overlay) return;
-  overlay.querySelector(".v3-success-icon").innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
-  overlay.querySelector(".v3-success-icon i").style.fontSize = "30px";
+  const icon = overlay.querySelector(".v3-success-icon");
+  if (icon) {
+    icon.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+    icon.style.background = "linear-gradient(135deg, #2563eb, #7c3aed)";
+    icon.style.boxShadow = "0 0 30px rgba(37, 99, 235, 0.4)";
+  }
   $("successTitle").textContent = title;
   $("successDesc").textContent = desc;
   overlay.classList.add("show");
@@ -666,14 +679,50 @@ function hideLoadingOverlay() {
   if (overlay) overlay.classList.remove("show");
 }
 
-function showSuccess(title) {
+function showSuccess(title, propertyId = null) {
   const overlay = $("successOverlay");
   if (!overlay) return;
-  overlay.querySelector(".v3-success-icon").innerHTML = '<i class="fa-solid fa-check"></i>';
-  overlay.querySelector(".v3-success-icon").style.background = "linear-gradient(135deg,#16a34a,#22c55e)";
-  overlay.querySelector(".v3-success-icon i").style.fontSize = "40px";
+  const icon = overlay.querySelector(".v3-success-icon");
+  if (icon) {
+    icon.innerHTML = '<i class="fa-solid fa-check"></i>';
+    icon.style.background = "linear-gradient(135deg, #16a34a, #22c55e)";
+    icon.style.boxShadow = "0 0 40px rgba(34, 197, 94, 0.4)";
+  }
   $("successTitle").textContent = title;
-  $("successDesc").textContent = "Your property is now live on Campora.";
+  $("successDesc").textContent = "Your property is now stored on Campora and submitted for review.";
+
+  const card = overlay.querySelector(".v3-success-card");
+  if (card) {
+    let actionsDiv = card.querySelector(".v3-success-actions");
+    if (!actionsDiv) {
+      actionsDiv = document.createElement("div");
+      actionsDiv.className = "v3-success-actions";
+      card.appendChild(actionsDiv);
+    }
+    actionsDiv.innerHTML = "";
+
+    const dashBtn = document.createElement("button");
+    dashBtn.className = "v3-btn-publish";
+    dashBtn.type = "button";
+    dashBtn.innerHTML = '<i class="fa-solid fa-gauge"></i> Go to Dashboard';
+    dashBtn.onclick = () => { window.location.href = "/pages/owner/dashboard.html"; };
+    actionsDiv.appendChild(dashBtn);
+
+    if (propertyId) {
+      const viewBtn = document.createElement("button");
+      viewBtn.className = "v3-btn-draft";
+      viewBtn.type = "button";
+      viewBtn.innerHTML = '<i class="fa-solid fa-eye"></i> View Property';
+      viewBtn.onclick = () => { window.location.href = `/property-details.html?id=${encodeURIComponent(propertyId)}`; };
+      actionsDiv.appendChild(viewBtn);
+    }
+
+    const defaultBtn = $("successBtn");
+    if (defaultBtn && defaultBtn.parentElement === card) {
+      defaultBtn.style.display = "none";
+    }
+  }
+
   overlay.classList.add("show");
   state.isSubmitting = false;
 }

@@ -1000,6 +1000,85 @@ export const supabaseAPI = {
         return { success: true };
     },
 
+    async updateOwnerProperty(id, payload = {}) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        const updateFields = {};
+        const name = payload.propertyName || payload.name;
+        if (name) updateFields.property_name = name;
+        const type = payload.propertyType || payload.type;
+        if (type) updateFields.property_type = type;
+        if (payload.description !== undefined) updateFields.description = payload.description;
+        if (payload.address !== undefined) updateFields.address = payload.address;
+        if (payload.city !== undefined) updateFields.city = payload.city;
+        if (payload.state !== undefined) updateFields.state = payload.state;
+        if (payload.college !== undefined) updateFields.college = payload.college;
+        if (payload.rent !== undefined) updateFields.rent = Number(payload.rent);
+        if (payload.deposit !== undefined) updateFields.deposit = Number(payload.deposit);
+        if (payload.sharing !== undefined) updateFields.sharing = payload.sharing;
+        if (payload.gender !== undefined) updateFields.gender = payload.gender;
+        if (payload.totalBeds !== undefined) updateFields.total_beds = Number(payload.totalBeds);
+        if (payload.availableBeds !== undefined) updateFields.available_beds = Number(payload.availableBeds);
+        if (payload.maintenanceCharge !== undefined) updateFields.maintenance_charge = Number(payload.maintenanceCharge);
+        if (payload.amenities !== undefined) updateFields.amenities = payload.amenities;
+        if (payload.houseRules !== undefined) updateFields.house_rules = payload.houseRules;
+        if (payload.images !== undefined) updateFields.images = payload.images;
+        if (payload.latitude !== undefined) updateFields.latitude = payload.latitude ? Number(payload.latitude) : null;
+        if (payload.longitude !== undefined) updateFields.longitude = payload.longitude ? Number(payload.longitude) : null;
+
+        updateFields.updated_at = new Date().toISOString();
+
+        const { data, error } = await supabase
+            .from("properties")
+            .update(updateFields)
+            .eq("id", id)
+            .eq("owner_id", user.id)
+            .select()
+            .maybeSingle();
+
+        if (error) {
+            const errStr = (error.message || "").toLowerCase();
+            if (error.code === "23505" || errStr.includes("duplicate") || error.status === 409) {
+                const { data: upData, error: upErr } = await supabase
+                    .from("properties")
+                    .upsert({ id, owner_id: user.id, ...updateFields }, { onConflict: "id" })
+                    .select()
+                    .single();
+                if (!upErr && upData) return { success: true, property: upData };
+            }
+            throw error;
+        }
+
+        if (!data) {
+            return await this.createOwnerProperty({ ...payload, id });
+        }
+
+        return { success: true, property: data };
+    },
+
+    async duplicateOwnerProperty(id) {
+        const { data: orig, error: origErr } = await supabase.from("properties").select("*").eq("id", id).single();
+        if (origErr || !orig) throw new Error("Property not found");
+
+        const copy = { ...orig };
+        delete copy.id;
+        delete copy.created_at;
+        delete copy.updated_at;
+        copy.property_name = `${orig.property_name || "Property"} (Copy)`;
+        copy.status = "pending";
+        copy.published = false;
+
+        const { data, error } = await supabase.from("properties").insert(copy).select().single();
+        if (error) throw error;
+        return { success: true, property: data };
+    },
+
+    async createResidentInvite(propertyId) {
+        const token = "inv_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9);
+        return { success: true, invite: { token, propertyId } };
+    },
+
     // Owner Profile & Unread Notifications
     async getOwnerProfile() {
         let user = null;
@@ -1689,13 +1768,36 @@ export const supabaseAPI = {
             available: true
         };
 
+        const propId = payload.id || payload._id || null;
+
+        if (propId) {
+            newProp.id = propId;
+            const { data: upData, error: upErr } = await supabase
+                .from("properties")
+                .upsert(newProp, { onConflict: "id" })
+                .select()
+                .single();
+            if (!upErr && upData) return { success: true, property: { ...upData, _id: upData.id } };
+        }
+
         const { data, error } = await supabase
             .from("properties")
             .insert(newProp)
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            const errStr = (error.message || "").toLowerCase();
+            if (error.code === "23505" || errStr.includes("duplicate") || error.status === 409) {
+                const { data: upData, error: upErr } = await supabase
+                    .from("properties")
+                    .upsert(newProp)
+                    .select()
+                    .single();
+                if (!upErr && upData) return { success: true, property: { ...upData, _id: upData.id } };
+            }
+            throw error;
+        }
         return { success: true, property: { ...data, _id: data.id } };
     },
 

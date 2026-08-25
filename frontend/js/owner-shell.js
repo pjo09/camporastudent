@@ -165,13 +165,36 @@ export async function apiFetch(endpoint, opts = {}) {
   if ((cleanPath === "/owner/dashboard" || cleanPath === "/owner/dashboard-v3") && method === "GET") {
     return await supabaseAPI.getOwnerDashboardStats();
   }
-  if (cleanPath === "/owner/properties" && method === "GET") {
+  if ((cleanPath === "/owner/properties" || cleanPath === "/properties") && method === "GET") {
     return await supabaseAPI.getOwnerProperties();
   }
-  if (cleanPath.startsWith("/owner/properties/") && method === "GET") {
-    const propId = cleanPath.split("/").pop();
-    if (propId) {
+  if ((cleanPath === "/owner/properties" || cleanPath === "/properties/create" || cleanPath === "/properties") && method === "POST") {
+    const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
+    return await supabaseAPI.createOwnerProperty(payload);
+  }
+  if (cleanPath.startsWith("/owner/properties/") || cleanPath.startsWith("/properties/")) {
+    const parts = cleanPath.split("/").filter(Boolean);
+    const propId = parts.length >= 3 ? parts[2] : parts[parts.length - 1];
+    const subAction = parts[parts.length - 1];
+
+    if (subAction === "publish" || subAction === "unpublish") {
+      return await supabaseAPI.toggleOwnerPropertyPublish(propId);
+    }
+    if (subAction === "duplicate" && method === "POST") {
+      return await supabaseAPI.duplicateOwnerProperty(propId);
+    }
+    if (subAction === "resident-invite" && method === "POST") {
+      return await supabaseAPI.createResidentInvite(propId);
+    }
+    if (method === "GET") {
       return await supabaseAPI.getPropertyById(propId);
+    }
+    if (method === "PUT" || method === "PATCH") {
+      const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
+      return await supabaseAPI.updateOwnerProperty(propId, payload);
+    }
+    if (method === "DELETE") {
+      return await supabaseAPI.deleteOwnerProperty(propId);
     }
   }
   if (cleanPath === "/owner/bookings" && method === "GET") {
