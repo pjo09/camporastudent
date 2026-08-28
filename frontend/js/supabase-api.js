@@ -154,6 +154,24 @@ export const supabaseAPI = {
         }
     },
 
+    async isSavedProperty(propertyId) {
+        let user = null;
+        try {
+            const { data: { user: u } } = await supabase.auth.getUser();
+            user = u;
+        } catch (e) {}
+        if (!user) return { saved: false };
+
+        const { data: existing } = await supabase
+            .from("saved_properties")
+            .select("id")
+            .eq("user_id", user.id)
+            .eq("property_id", propertyId)
+            .maybeSingle();
+
+        return { saved: Boolean(existing) };
+    },
+
     // Statistics
     async getStatistics() {
         const [propsRes, citiesRes, collegesRes, usersRes] = await Promise.all([

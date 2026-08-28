@@ -208,11 +208,15 @@ export async function apiFetch(endpoint, opts = {}) {
     const bookings = await supabaseAPI.getMyBookings();
     return { success: true, bookings };
   }
-  if (endpoint.startsWith("/student/saved/") && method === "POST") {
+  if (endpoint.startsWith("/properties/save/") && endpoint.endsWith("/check") && method === "GET") {
+    const propId = endpoint.split("/")[3];
+    return await supabaseAPI.isSavedProperty(propId);
+  }
+  if (endpoint.startsWith("/properties/save/") && (method === "POST" || method === "DELETE")) {
     const propId = endpoint.split("/")[3];
     return await supabaseAPI.toggleFavorite(propId);
   }
-  if (endpoint.startsWith("/student/saved/") && method === "DELETE") {
+  if (endpoint.startsWith("/student/saved/") && (method === "POST" || method === "DELETE")) {
     const propId = endpoint.split("/")[3];
     return await supabaseAPI.toggleFavorite(propId);
   }
