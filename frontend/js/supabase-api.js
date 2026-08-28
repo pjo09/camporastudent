@@ -974,6 +974,34 @@ export const supabaseAPI = {
         };
     },
 
+    async createResidentRequest(payload) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        const propId = payload.property || payload.propertyId;
+        if (!propId) throw new Error("Property ID is required for resident request");
+
+        const { data, error } = await supabase
+            .from("resident_requests")
+            .insert({
+                student_id: user.id,
+                property_id: propId,
+                room: payload.room || "N/A",
+                bed: payload.bed || "",
+                move_in_date: payload.moveInDate || new Date().toISOString(),
+                expected_move_out_date: payload.expectedMoveOutDate || null,
+                residence_source: payload.residenceSource || "DIRECT_OWNER",
+                proof_document: payload.proofDocument || "",
+                message: payload.message || "",
+                status: "PENDING"
+            })
+            .select()
+            .single();
+
+        if (error) throw error;
+        return { success: true, request: data };
+    },
+
     async getOwnerNotifications() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return { success: true, notifications: [] };

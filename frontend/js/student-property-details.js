@@ -27,17 +27,32 @@ loading.innerHTML = `<i class="fa-solid fa-triangle-exclamation" style="font-siz
 }
 
 function setupEvents() {
+  const isJoinMode = params.get("joinPg") === "true";
   const bookBtn = $("bookBtn");
   if (bookBtn) {
-    bookBtn.addEventListener("click", () => {
-      const token = localStorage.getItem("camporaToken") || sessionStorage.getItem("camporaToken");
-      if (!token) {
-        const currentUrl = window.location.pathname + window.location.search;
-        window.location.href = `/login.html?redirectTo=${encodeURIComponent(currentUrl)}`;
-        return;
-      }
-      window.location.href = `/pages/student/booking-details.html?id=${propertyId}`;
-    });
+    if (isJoinMode) {
+      bookBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i> Request to Join';
+      bookBtn.addEventListener("click", () => {
+        import("./session.js").then(({ isLoggedIn }) => {
+          if (!isLoggedIn()) {
+            const currentUrl = window.location.pathname + window.location.search;
+            window.location.href = `/login.html?redirectTo=${encodeURIComponent(currentUrl)}`;
+          } else {
+            openJoinPgFlow();
+          }
+        });
+      });
+    } else {
+      bookBtn.addEventListener("click", () => {
+        const token = localStorage.getItem("camporaToken") || sessionStorage.getItem("camporaToken");
+        if (!token) {
+          const currentUrl = window.location.pathname + window.location.search;
+          window.location.href = `/login.html?redirectTo=${encodeURIComponent(currentUrl)}`;
+          return;
+        }
+        window.location.href = `/pages/student/booking-details.html?id=${propertyId}`;
+      });
+    }
   }
   const saveBtn = $("saveBtn");
   if (saveBtn) {
@@ -100,9 +115,13 @@ async function loadProperty() {
     renderProperty(data.property, data.currentResidentsCount, data.verifiedStaysCount);
     loadReviews();
 
-    // Auto-trigger Join PG flow if returning from login
+    // Auto-trigger Join PG flow if joinPg=true and logged in
     if (params.get("joinPg") === "true") {
-      setTimeout(openJoinPgFlow, 800);
+      import("./session.js").then(({ isLoggedIn }) => {
+        if (isLoggedIn()) {
+          setTimeout(openJoinPgFlow, 800);
+        }
+      });
     }
   } catch (err) {
     showError(err.message || "Unable to load property");

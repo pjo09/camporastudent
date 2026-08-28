@@ -164,6 +164,10 @@ export async function apiFetch(endpoint, opts = {}) {
     const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
     return await supabaseAPI.sendStudentMessage(convId, payload.message || payload.content || "");
   }
+  if (endpoint === "/residents/requests" && method === "POST") {
+    const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
+    return await supabaseAPI.createResidentRequest(payload);
+  }
   if (endpoint === "/student/maintenance" && method === "GET") {
     return await supabaseAPI.getStudentMaintenances();
   }
