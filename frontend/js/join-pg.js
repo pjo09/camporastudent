@@ -1,7 +1,7 @@
-import CONFIG from "./config.js";
+import CONFIG, { API } from "./config.js";
 import { isLoggedIn } from "./session.js";
 
-const API_BASE = CONFIG.API_BASE;
+const API_BASE = API || CONFIG?.API || "";
 
 document.addEventListener("DOMContentLoaded", () => {
     resolveInvite();
@@ -85,7 +85,8 @@ async function resolveInvite() {
             : (property.address || "Location details unavailable");
 
         const img = property.images && property.images.length ? property.images[0] : "/assets/logos/logo.png";
-        $("propertyImage").src = img.startsWith("http") ? img : `${API_BASE.replace(/\/api$/, "")}${img}`;
+        const apiBaseClean = (API_BASE || "").replace(/\/api$/, "");
+        $("propertyImage").src = img.startsWith("http") ? img : `${apiBaseClean}${img}`;
 
         // Configure button
         $("continueBtn").addEventListener("click", () => {
