@@ -820,15 +820,34 @@ export const supabaseAPI = {
     async getOwnerUnreadMessagesCount() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return { success: true, unreadCount: 0, count: 0 };
-        const { count } = await supabase
-            .from("messages")
-            .select("id", { count: "exact", head: true })
-            .eq("receiver_id", user.id)
-            .eq("is_read", false);
+        const { data, error } = await supabase
+            .from("conversations")
+            .select("unread_by_owner")
+            .eq("owner_id", user.id)
+            .eq("status", "active");
+        if (error) throw error;
+        const totalUnread = (data || []).reduce((sum, c) => sum + (c.unread_by_owner || 0), 0);
         return {
             success: true,
-            unreadCount: count || 0,
-            count: count || 0
+            unreadCount: totalUnread,
+            count: totalUnread
+        };
+    },
+
+    async getStudentUnreadMessagesCount() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return { success: true, unreadCount: 0, count: 0 };
+        const { data, error } = await supabase
+            .from("conversations")
+            .select("unread_by_student")
+            .eq("student_id", user.id)
+            .eq("status", "active");
+        if (error) throw error;
+        const totalUnread = (data || []).reduce((sum, c) => sum + (c.unread_by_student || 0), 0);
+        return {
+            success: true,
+            unreadCount: totalUnread,
+            count: totalUnread
         };
     },
 
@@ -1507,29 +1526,25 @@ export const supabaseAPI = {
         if (!user) return { success: true, conversations: [] };
 
         const { data, error } = await supabase
-            .from("messages")
-            .select("*, owner:profiles!receiver_id(name, business_name), property:properties(property_name)")
-            .or(`sender_id.eq.${user.id},receiver_id.eq.${user.id}`)
-            .order("created_at", { ascending: false });
+            .from("conversations")
+            .select("*, owner:profiles!owner_id(name, business_name), property:properties(property_name)")
+            .eq("student_id", user.id)
+            .eq("status", "active")
+            .order("last_message_at", { ascending: false });
 
         if (error) throw error;
 
-        const convMap = new Map();
-        (data || []).forEach(m => {
-            const partnerId = m.sender_id === user.id ? m.receiver_id : m.sender_id;
-            if (!convMap.has(partnerId)) {
-                convMap.set(partnerId, {
-                    _id: partnerId,
-                    ownerId: { name: m.owner ? (m.owner.business_name || m.owner.name) : "Property Owner" },
-                    propertyId: { propertyName: m.property ? m.property.property_name : "Property" },
-                    lastMessage: m.content || m.message,
-                    lastMessageAt: m.created_at,
-                    unreadByStudent: (!m.is_read && m.receiver_id === user.id) ? 1 : 0
-                });
-            }
-        });
+        const conversations = (data || []).map(c => ({
+            _id: c.id,
+            id: c.id,
+            ownerId: { name: c.owner ? (c.owner.business_name || c.owner.name) : "Property Owner" },
+            propertyId: { propertyName: c.property ? c.property.property_name : "Property" },
+            lastMessage: c.last_message || "No messages yet",
+            lastMessageAt: c.last_message_at,
+            unreadByStudent: c.unread_by_student || 0
+        }));
 
-        return { success: true, conversations: Array.from(convMap.values()) };
+        return { success: true, conversations };
     },
 
     async getStudentMessages(convId) {
@@ -1539,15 +1554,15 @@ export const supabaseAPI = {
         const { data, error } = await supabase
             .from("messages")
             .select("*")
-            .or(`and(sender_id.eq.${user.id},receiver_id.eq.${convId}),and(sender_id.eq.${convId},receiver_id.eq.${user.id})`)
+            .eq("conversation_id", convId)
             .order("created_at", { ascending: true });
 
         if (error) throw error;
 
         const messages = (data || []).map(m => ({
             _id: m.id,
-            sender: m.sender_id === user.id ? "student" : "owner",
-            content: m.content || m.message,
+            sender: m.sender_id === user.id ? "student" : (m.sender || "owner"),
+            content: m.text || m.content || "",
             createdAt: m.created_at
         }));
 
@@ -1561,16 +1576,25 @@ export const supabaseAPI = {
         const { data, error } = await supabase
             .from("messages")
             .insert({
+                conversation_id: convId,
                 sender_id: user.id,
-                receiver_id: convId,
-                message: message,
-                content: message,
+                sender: "student",
+                text: message,
                 is_read: false
             })
             .select()
             .single();
 
         if (error) throw error;
+
+        try {
+            await supabase.from("conversations").update({
+                last_message: message,
+                last_message_at: new Date().toISOString(),
+                last_sender: "student"
+            }).eq("id", convId);
+        } catch (e) {}
+
         return { success: true, message: data };
     },
 
