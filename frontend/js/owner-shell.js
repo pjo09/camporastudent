@@ -233,6 +233,10 @@ export async function apiFetch(endpoint, opts = {}) {
   if ((cleanPath.startsWith("/owner/messages/unread") || cleanPath === "/owner/messages/unread-count") && method === "GET") {
     return await supabaseAPI.getOwnerUnreadMessagesCount();
   }
+  if ((cleanPath === "/owner/messages/broadcast" || cleanPath.startsWith("/owner/messages/broadcast")) && method === "POST") {
+    const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
+    return await supabaseAPI.sendOwnerBroadcast(payload);
+  }
   if ((endpoint === "/owner/analytics" || endpoint === "/owner/top-properties" || endpoint === "/owner/earnings" || endpoint === "/owner/finance/summary") && method === "GET") {
     return await supabaseAPI.getOwnerAnalytics();
   }

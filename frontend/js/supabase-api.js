@@ -1006,32 +1006,58 @@ export const supabaseAPI = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("Not authenticated");
 
-        const { data: req, error: fetchErr } = await supabase
+        // 1. Fetch request details
+        const { data: existingReq, error: fetchErr } = await supabase
+            .from("resident_requests")
+            .select("*")
+            .eq("id", requestId)
+            .single();
+
+        if (fetchErr) throw fetchErr;
+
+        // Idempotency check: if already approved, return success
+        if (existingReq.status === "APPROVED") {
+            return { success: true, request: existingReq, message: "Resident request is already approved" };
+        }
+
+        // 2. Update status to APPROVED
+        const { data: req, error: updateErr } = await supabase
             .from("resident_requests")
             .update({ status: "APPROVED", reviewed_at: new Date().toISOString(), reviewed_by: user.id })
             .eq("id", requestId)
             .select()
             .single();
 
-        if (fetchErr) throw fetchErr;
+        if (updateErr) throw updateErr;
 
-        // Create active tenancy for the resident
-        const { error: tenErr } = await supabase
+        // 3. Idempotently check if active tenancy already exists
+        const { data: existingTenancy } = await supabase
             .from("tenancies")
-            .insert({
-                student_id: req.student_id,
-                property_id: req.property_id,
-                room: req.room || "N/A",
-                bed: req.bed || "",
-                start_date: req.move_in_date || new Date().toISOString(),
-                end_date: req.expected_move_out_date || null,
-                status: "ACTIVE",
-                source: "EXISTING_RESIDENT",
-                verified_by: user.id,
-                verified_at: new Date().toISOString()
-            });
+            .select("id")
+            .eq("student_id", req.student_id)
+            .eq("property_id", req.property_id)
+            .eq("status", "ACTIVE")
+            .maybeSingle();
 
-        if (tenErr) console.warn("[supabaseAPI.approveResidentRequest] Tenancy creation warning:", tenErr.message);
+        if (!existingTenancy) {
+            const { error: tenErr } = await supabase
+                .from("tenancies")
+                .insert({
+                    student_id: req.student_id,
+                    property_id: req.property_id,
+                    room: req.room || "N/A",
+                    bed: req.bed || "",
+                    start_date: req.move_in_date || new Date().toISOString(),
+                    end_date: req.expected_move_out_date || null,
+                    status: "ACTIVE",
+                    source: "EXISTING_RESIDENT",
+                    verified_by: user.id,
+                    verified_at: new Date().toISOString()
+                });
+
+            if (tenErr) console.warn("[supabaseAPI.approveResidentRequest] Tenancy creation notice:", tenErr.message);
+        }
+
         return { success: true, request: req };
     },
 
@@ -1053,6 +1079,43 @@ export const supabaseAPI = {
 
         if (error) throw error;
         return { success: true, request: data };
+    },
+
+    async sendOwnerBroadcast(payload) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        const text = payload.text || payload.message || "";
+        if (!text) throw new Error("Broadcast message text is required");
+
+        const { data: props, error: pErr } = await supabase
+            .from("properties")
+            .select("id")
+            .eq("owner_id", user.id);
+
+        if (pErr) throw pErr;
+        const propIds = (props || []).map(p => p.id);
+        if (propIds.length === 0) return { success: true, count: 0, message: "No active properties to broadcast to" };
+
+        const { data: ann, error: annErr } = await supabase
+            .from("announcements")
+            .insert({
+                owner_id: user.id,
+                property_id: propIds[0],
+                title: payload.broadcastType || "Announcement",
+                message: text,
+                active: true
+            })
+            .select()
+            .single();
+
+        if (annErr) throw annErr;
+
+        return {
+            success: true,
+            message: "Broadcast sent to all active residents",
+            announcement: ann
+        };
     },
 
     async getOwnerNotifications() {
