@@ -1076,7 +1076,46 @@ export const supabaseAPI = {
 
     async createResidentInvite(propertyId) {
         const token = "inv_" + Date.now() + "_" + Math.random().toString(36).substring(2, 9);
-        return { success: true, invite: { token, propertyId } };
+        const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+        try {
+            const { data, error } = await supabase
+                .from("property_invites")
+                .insert({
+                    property_id: propertyId,
+                    token: token,
+                    expires_at: expiresAt,
+                    status: "ACTIVE"
+                })
+                .select()
+                .single();
+            if (error) {
+                console.warn("Notice saving property_invites:", error.message);
+            }
+        } catch (e) {
+            console.warn("Warning creating resident invite row:", e.message);
+        }
+        return { success: true, invite: { token, propertyId, expiresAt } };
+    },
+
+    async getInviteByToken(token) {
+        if (!token) return null;
+        try {
+            const { data: invite, error } = await supabase
+                .from("property_invites")
+                .select("*, properties(*)")
+                .eq("token", token)
+                .eq("status", "ACTIVE")
+                .maybeSingle();
+
+            if (error) {
+                console.warn("getInviteByToken error:", error.message);
+                return null;
+            }
+            return invite;
+        } catch (e) {
+            console.warn("getInviteByToken exception:", e.message);
+            return null;
+        }
     },
 
     // Owner Profile & Unread Notifications

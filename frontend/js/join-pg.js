@@ -10,9 +10,17 @@ document.addEventListener("DOMContentLoaded", () => {
 const $ = (id) => document.getElementById(id);
 
 async function resolveInvite() {
-    // Extract token from URL /join-pg/:token
-    const pathParts = window.location.pathname.split("/");
-    const token = pathParts.pop() || pathParts[pathParts.length - 1];
+    // 1. Flexible token extraction
+    const searchParams = new URLSearchParams(window.location.search);
+    let token = searchParams.get("token") || searchParams.get("property_id") || searchParams.get("id");
+
+    if (!token) {
+        const pathParts = window.location.pathname.split("/").filter(Boolean);
+        const lastPart = pathParts.pop();
+        if (lastPart && lastPart !== "join-pg.html" && lastPart !== "join-pg") {
+            token = lastPart;
+        }
+    }
 
     if (!token) {
         showError("Invite token is missing from the URL.");
@@ -21,35 +29,68 @@ async function resolveInvite() {
 
     try {
         const { supabase } = await import("./supabaseClient.js");
-        const { data: prop, error: pErr } = await supabase
-            .from("properties")
-            .select("*")
-            .eq("id", token)
+        let prop = null;
+        let propertyId = null;
+
+        // Step A: Canonical lookup in property_invites
+        const { data: invite, error: invErr } = await supabase
+            .from("property_invites")
+            .select("*, properties(*)")
+            .eq("token", token)
+            .eq("status", "ACTIVE")
             .maybeSingle();
 
-        if (pErr || !prop) throw new Error("No property details found for this invite link.");
+        if (invite) {
+            // Check expiration
+            if (invite.expires_at && new Date() > new Date(invite.expires_at)) {
+                throw new Error("This property invite link has expired.");
+            }
+            if (invite.properties) {
+                prop = invite.properties;
+                propertyId = invite.property_id || prop.id;
+            }
+        }
+
+        // Step B: Legacy / fallback lookup directly in properties table by id or mongo_id
+        if (!prop) {
+            const { data: propById, error: pErr } = await supabase
+                .from("properties")
+                .select("*")
+                .or(`id.eq.${token},mongo_id.eq.${token}`)
+                .maybeSingle();
+
+            if (propById) {
+                prop = propById;
+                propertyId = prop.id || prop.mongo_id || token;
+            }
+        }
+
+        if (!prop) {
+            throw new Error("No property details found for this invite link.");
+        }
 
         const property = {
-            propertyName: prop.property_name,
-            city: prop.city,
-            state: prop.state,
-            address: prop.address,
-            images: prop.images
+            id: propertyId || prop.id || prop._id,
+            propertyName: prop.property_name || prop.propertyName || "Campora PG",
+            city: prop.city || "",
+            state: prop.state || "",
+            address: prop.address || "",
+            images: prop.images || []
         };
 
         // Render card
-        $("propertyName").textContent = property.propertyName || "Campora PG";
+        $("propertyName").textContent = property.propertyName;
         $("propertyLocation").querySelector("span").textContent = property.city 
-            ? `${property.address ? property.address + ", " : ""}${property.city}, ${property.state || ""}`
-            : "Location details unavailable";
+            ? `${property.address ? property.address + ", " : ""}${property.city}${property.state ? ", " + property.state : ""}`
+            : (property.address || "Location details unavailable");
 
         const img = property.images && property.images.length ? property.images[0] : "/assets/logos/logo.png";
         $("propertyImage").src = img.startsWith("http") ? img : `${API_BASE.replace(/\/api$/, "")}${img}`;
 
         // Configure button
         $("continueBtn").addEventListener("click", () => {
-            const propertyId = property.id || property._id;
-            const destUrl = `/property-details.html?id=${encodeURIComponent(propertyId)}&joinPg=true`;
+            const targetPropId = property.id;
+            const destUrl = `/property-details.html?id=${encodeURIComponent(targetPropId)}&joinPg=true`;
 
             if (!isLoggedIn()) {
                 // Not logged in -> go through login, then return
