@@ -1202,9 +1202,67 @@ export const supabaseAPI = {
     },
 
     async deleteOwnerProperty(id) {
-        const { error } = await supabase.from("properties").delete().eq("id", id);
-        if (error) throw error;
-        return { success: true };
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        // 1. Try secure RPC first
+        try {
+            const { data: rpcRes, error: rpcErr } = await supabase
+                .rpc("delete_owner_property_transaction", { p_property_id: id });
+
+            if (rpcErr) {
+                if (rpcErr.message && rpcErr.message.includes("Cannot delete property")) {
+                    throw new Error(rpcErr.message);
+                }
+            } else if (rpcRes && rpcRes.success) {
+                return rpcRes;
+            }
+        } catch (e) {
+            if (e.message && e.message.includes("Cannot delete property")) {
+                throw e;
+            }
+            console.warn("[supabaseAPI.deleteOwnerProperty] RPC fallback:", e.message);
+        }
+
+        // 2. Fallback: Check active tenancies & pending requests prior to direct operation
+        const { data: tenancies } = await supabase
+            .from("tenancies")
+            .select("id")
+            .eq("property_id", id)
+            .eq("status", "ACTIVE");
+
+        if (tenancies && tenancies.length > 0) {
+            throw new Error(`Cannot delete property: This property has ${tenancies.length} active resident(s). Please end active tenancies first.`);
+        }
+
+        const { data: pendingReqs } = await supabase
+            .from("resident_requests")
+            .select("id")
+            .eq("property_id", id)
+            .eq("status", "PENDING");
+
+        if (pendingReqs && pendingReqs.length > 0) {
+            throw new Error(`Cannot delete property: This property has ${pendingReqs.length} pending resident join request(s). Please review pending requests first.`);
+        }
+
+        // Try direct deletion
+        const { error: delErr } = await supabase.from("properties").delete().eq("id", id).eq("owner_id", user.id);
+        if (delErr) {
+            // If foreign key constraint prevents physical delete, archive property
+            if (delErr.code === "23503" || delErr.status === 409 || (delErr.message && delErr.message.includes("violates foreign key"))) {
+                const { error: archErr } = await supabase
+                    .from("properties")
+                    .update({ published: false, status: "archived", updated_at: new Date().toISOString() })
+                    .eq("id", id)
+                    .eq("owner_id", user.id);
+
+                if (archErr) throw archErr;
+                return { success: true, archived: true, message: "Property archived to preserve historical business records." };
+            }
+            throw delErr;
+        }
+
+        return { success: true, deleted: true, message: "Property deleted successfully." };
     },
 
     async updateOwnerProperty(id, payload = {}) {

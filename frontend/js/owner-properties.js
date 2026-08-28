@@ -256,11 +256,12 @@ async function deleteProperty(id, btn) {
   if (!confirm("Are you sure you want to delete this property? This action cannot be undone.")) return;
   btn.disabled = true;
   try {
-    await apiFetch(`/owner/properties/${id}`, { method: "DELETE" });
-    showToast("Property deleted successfully", "success");
+    const res = await apiFetch(`/owner/properties/${id}`, { method: "DELETE" });
+    const msg = res?.message || (res?.archived ? "Property archived to preserve historical records" : "Property deleted successfully");
+    showToast(msg, "success");
     loadProperties();
   } catch (err) {
-    showToast("Failed to delete: " + err.message, "error");
+    showToast(err.message || "Failed to delete property", "error");
   } finally {
     btn.disabled = false;
   }
