@@ -1002,6 +1002,59 @@ export const supabaseAPI = {
         return { success: true, request: data };
     },
 
+    async approveResidentRequest(requestId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        const { data: req, error: fetchErr } = await supabase
+            .from("resident_requests")
+            .update({ status: "APPROVED", reviewed_at: new Date().toISOString(), reviewed_by: user.id })
+            .eq("id", requestId)
+            .select()
+            .single();
+
+        if (fetchErr) throw fetchErr;
+
+        // Create active tenancy for the resident
+        const { error: tenErr } = await supabase
+            .from("tenancies")
+            .insert({
+                student_id: req.student_id,
+                property_id: req.property_id,
+                room: req.room || "N/A",
+                bed: req.bed || "",
+                start_date: req.move_in_date || new Date().toISOString(),
+                end_date: req.expected_move_out_date || null,
+                status: "ACTIVE",
+                source: "EXISTING_RESIDENT",
+                verified_by: user.id,
+                verified_at: new Date().toISOString()
+            });
+
+        if (tenErr) console.warn("[supabaseAPI.approveResidentRequest] Tenancy creation warning:", tenErr.message);
+        return { success: true, request: req };
+    },
+
+    async rejectResidentRequest(requestId, reason = "") {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        const { data, error } = await supabase
+            .from("resident_requests")
+            .update({
+                status: "REJECTED",
+                rejection_reason: reason || "",
+                reviewed_at: new Date().toISOString(),
+                reviewed_by: user.id
+            })
+            .eq("id", requestId)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return { success: true, request: data };
+    },
+
     async getOwnerNotifications() {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) return { success: true, notifications: [] };

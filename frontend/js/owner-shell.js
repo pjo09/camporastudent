@@ -206,6 +206,15 @@ export async function apiFetch(endpoint, opts = {}) {
   if ((cleanPath === "/owner/resident-requests" || cleanPath.startsWith("/owner/resident-requests")) && method === "GET") {
     return await supabaseAPI.getOwnerResidentRequests();
   }
+  if (cleanPath.startsWith("/owner/resident-requests/") && cleanPath.endsWith("/approve") && method === "POST") {
+    const requestId = cleanPath.split("/")[3];
+    return await supabaseAPI.approveResidentRequest(requestId);
+  }
+  if (cleanPath.startsWith("/owner/resident-requests/") && cleanPath.endsWith("/reject") && method === "POST") {
+    const requestId = cleanPath.split("/")[3];
+    const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
+    return await supabaseAPI.rejectResidentRequest(requestId, payload.reason || "");
+  }
   if (cleanPath === "/owner/notifications" && method === "GET") {
     return await supabaseAPI.getOwnerNotifications();
   }
