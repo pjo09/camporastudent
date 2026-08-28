@@ -200,16 +200,20 @@ function openProfile(entry) {
 // BROADCAST
 // =====================================================
 
+let isBroadcasting = false;
 async function handleBroadcast(e) {
   e.preventDefault();
+  if (isBroadcasting) return;
+
   const message = DOM.broadcastText?.value.trim();
   if (!message) {
     showToast("Please enter a message", "error");
     return;
   }
 
-const btn = DOM.broadcastForm.querySelector("button[type='submit']");
-  btn.disabled = true;
+  isBroadcasting = true;
+  const btn = DOM.broadcastForm.querySelector("button[type='submit']");
+  if (btn) btn.disabled = true;
 
   try {
     await apiFetch("/owner/messages/broadcast", {
@@ -222,7 +226,8 @@ const btn = DOM.broadcastForm.querySelector("button[type='submit']");
   } catch (err) {
     showToast("Failed to send broadcast: " + err.message, "error");
   } finally {
-    btn.disabled = false;
+    isBroadcasting = false;
+    if (btn) btn.disabled = false;
   }
 }
 

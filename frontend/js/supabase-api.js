@@ -1085,9 +1085,33 @@ export const supabaseAPI = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("Not authenticated");
 
-        const text = payload.text || payload.message || "";
+        const text = (payload.text || payload.message || "").trim();
         if (!text) throw new Error("Broadcast message text is required");
 
+        const title = payload.broadcastType || payload.title || "Announcement";
+        const propertyId = payload.propertyId || payload.property_id || null;
+
+        // Try secure RPC first
+        try {
+            const { data: rpcRes, error: rpcErr } = await supabase
+                .rpc("create_owner_announcement_transaction", {
+                    p_title: title,
+                    p_message: text,
+                    p_property_id: propertyId
+                });
+
+            if (!rpcErr && rpcRes && rpcRes.success) {
+                return {
+                    success: true,
+                    message: "Broadcast sent to all active residents",
+                    announcementId: rpcRes.announcementId
+                };
+            }
+        } catch (e) {
+            console.warn("[supabaseAPI.sendOwnerBroadcast] RPC fallback:", e.message);
+        }
+
+        // Fallback: Direct owner-scoped insert
         const { data: props, error: pErr } = await supabase
             .from("properties")
             .select("id")
@@ -1095,14 +1119,16 @@ export const supabaseAPI = {
 
         if (pErr) throw pErr;
         const propIds = (props || []).map(p => p.id);
-        if (propIds.length === 0) return { success: true, count: 0, message: "No active properties to broadcast to" };
+        if (propIds.length === 0) throw new Error("No active properties registered to send a broadcast");
+
+        const targetPropId = propertyId || propIds[0];
 
         const { data: ann, error: annErr } = await supabase
             .from("announcements")
             .insert({
                 owner_id: user.id,
-                property_id: propIds[0],
-                title: payload.broadcastType || "Announcement",
+                property_id: targetPropId,
+                title: title,
                 message: text,
                 active: true
             })
