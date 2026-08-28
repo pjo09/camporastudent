@@ -167,7 +167,7 @@
   "rewrites": [
     {
       "source": "/join-pg/:token",
-      "destination": "/join-pg.html"
+      "destination": "/join-pg"
     }
   ]
 }
