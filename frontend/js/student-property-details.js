@@ -138,7 +138,7 @@ function renderProperty(p, currentResidentsCount, verifiedStaysCount) {
   const loc = p.city ? `${p.city}${p.state ? ", " + p.state : ""}` : "Location not specified";
   const rent = p.rent || p.price || 0;
   const rating = p.averageRating || 0;
-  const img = p.images && p.images.length ? imageUrl(p.images[0]) : "/assets/logos/logo.png";
+  const img = imageUrl(p.images?.[0] || p.image || p.imageUrl);
 
   if ($("propertyName")) $("propertyName").textContent = name;
   if ($("propertyLocation")) $("propertyLocation").textContent = loc;
@@ -146,7 +146,7 @@ function renderProperty(p, currentResidentsCount, verifiedStaysCount) {
   if ($("propertyRating")) $("propertyRating").innerHTML = rating > 0 ? `<i class="fa-solid fa-star"></i> ${rating.toFixed(1)} ${p.totalReviews ? `(${p.totalReviews})` : ""}` : "New listing";
   if ($("propertyDescription")) $("propertyDescription").textContent = p.description || "No description available.";
   const imgEl = $("propertyImage");
-  if (imgEl) { imgEl.src = img; imgEl.onerror = () => { imgEl.src = "/assets/logos/logo.png"; }; }
+  if (imgEl) { imgEl.src = img; imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = "/assets/images/property-placeholder.jpg"; }; }
 
   // Trust elements
   const verifiedProp = $("verifiedPropertyBadge");

@@ -9,20 +9,33 @@ import { supabase } from "./supabaseClient.js";
 
 const IMAGE_BASE = (SUPABASE_URL || API || "").replace(/\/+$/, "") + "/storage/v1/object/public/properties/";
 
-/**
- * Build a safe absolute URL for a stored image path.
- * @param {string} path - image path from DB (may be undefined)
- * @param {string} fallback - local fallback image
- * @returns {string} usable <img src>
- */
-export function getImageUrl(path, fallback = "/assets/images/property-placeholder.jpg") {
-  if (!path) return fallback;
+export function getImageUrl(pathInput, fallback = "/assets/images/property-placeholder.jpg") {
+  let path = pathInput;
+
+  if (Array.isArray(path)) {
+    path = path.length > 0 ? path[0] : "";
+  }
+
+  if (path && typeof path === "object") {
+    path = path.url || path.image_url || path.path || path.filename || path.src || "";
+  }
+
+  if (!path || typeof path !== "string" || !path.trim()) {
+    return fallback;
+  }
+
+  path = path.trim();
 
   // Already absolute URL (Cloudinary / Supabase Storage / http(s) / data: / blob:)
   if (/^(https?:|data:|blob:)/i.test(path)) return path;
 
-  // Already absolute path from web root (/assets/...)
+  // Already absolute path from web root (/assets/..., /images/...)
   if (path.startsWith("/")) return path;
+
+  // Clean relative storage path prefixes
+  path = path.replace(/^\/+/, "");
+  path = path.replace(/^storage\/v1\/object\/public\/properties\//i, "");
+  path = path.replace(/^properties\//i, "");
 
   // Stored in Supabase Storage or relative path
   return IMAGE_BASE + path;

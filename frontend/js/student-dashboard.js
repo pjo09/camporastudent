@@ -142,13 +142,13 @@ function renderRecommended(properties) {
     const loc = p.city ? `${p.city}${p.state ? ", " + p.state : ""}` : "Location not specified";
     const rent = p.rent || p.price || 0;
     const rating = p.averageRating || 0;
-    const img = p.images && p.images.length ? imageUrl(p.images[0]) : "/assets/logos/logo.png";
+    const img = imageUrl(p.images?.[0] || p.image || p.imageUrl);
     const badge = p.verified ? "Verified" : p.featured ? "Featured" : "";
     const detailUrl = `/property-details.html?id=${encodeURIComponent(propId)}`;
     return `
 <div class="sv3-property-card" onclick="window.location.href='${detailUrl}'" role="article" aria-label="${esc(name)}">
         <div class="sv3-property-image">
-          <img src="${img}" alt="${esc(name)}" loading="lazy" onerror="this.src='/assets/logos/logo.png'">
+          <img src="${img}" alt="${esc(name)}" loading="lazy" onerror="this.onerror=null; this.src='/assets/images/property-placeholder.jpg'">
           ${badge ? `<span class="sv3-property-badge">${badge}</span>` : ""}
           <button class="sv3-save-btn" onclick="event.stopPropagation();window.toggleSave('${propId}', this)" aria-label="Save ${esc(name)}"><i class="fa-${p.isSaved ? "solid" : "regular"} fa-heart"></i></button>
         </div>
@@ -231,7 +231,7 @@ function renderStaySection(activeTenancy, residentRequests) {
   let stayHTML = "";
   if (activeTenancy) {
     const prop = activeTenancy.property || {};
-    const img = prop.images && prop.images.length ? imageUrl(prop.images[0]) : "/assets/logos/logo.png";
+    const img = imageUrl(prop.images?.[0] || prop.image || prop.imageUrl);
     const name = prop.propertyName || "My Property";
     const room = activeTenancy.room || "—";
     const bed = activeTenancy.bed ? `, ${activeTenancy.bed}` : "";
@@ -241,7 +241,7 @@ function renderStaySection(activeTenancy, residentRequests) {
     stayHTML = `
       <div class="sv3-card" style="padding:24px; border-radius:18px; display:flex; gap:20px; align-items:start; flex-wrap:wrap">
         <div style="width:140px; height:100px; border-radius:12px; overflow:hidden; background:#111">
-          <img src="${img}" style="width:100%; height:100%; object-fit:cover" onerror="this.src='/assets/logos/logo.png'">
+          <img src="${img}" style="width:100%; height:100%; object-fit:cover" onerror="this.onerror=null; this.src='/assets/images/property-placeholder.jpg'">
         </div>
         <div style="flex:1; min-width:200px">
           <div style="display:flex; justify-content:space-between; align-items:start; gap:12px; flex-wrap:wrap">

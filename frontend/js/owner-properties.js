@@ -141,7 +141,7 @@ function renderProperties() {
 
     // Image slider
     let sliderHtml = `<div class="v3-prop-slider" data-id="${p._id}" style="position:relative;height:200px;overflow:hidden;background:#0f172a">
-      <img src="${formatImage(images[0])}" alt="${name}" style="width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.src='https://placehold.co/700x450?text=Campora'">
+      <img src="${formatImage(images[0])}" alt="${name}" style="width:100%;height:100%;object-fit:cover" loading="lazy" onerror="this.onerror=null; this.src='/assets/images/property-placeholder.jpg'">
       ${images.length > 1 ? `<div style="position:absolute;top:12px;right:12px;background:rgba(0,0,0,.6);color:#fff;border-radius:999px;padding:4px 10px;font-size:12px;font-weight:700"><i class="fa-solid fa-images"></i> ${images.length}</div>` : ""}
       <span class="v3-pill ${statusColor === 'success' ? 'v3-pill-success' : statusColor === 'danger' ? 'v3-pill-danger' : 'v3-pill-warning'}" style="position:absolute;top:12px;left:12px">${status.toUpperCase()}</span>
     </div>`;

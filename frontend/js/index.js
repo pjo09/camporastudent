@@ -1,6 +1,7 @@
 async function loadFeaturedProperties(){
 try{
 const { supabaseAPI } = await import("./supabase-api.js");
+const { getImageUrl } = await import("./image-utils.js");
 const data = await supabaseAPI.searchProperties({ featured: true, limit: 6 });
 const grid=document.getElementById("featuredPropertyGrid") || document.getElementById("featuredProperties");
 if (!grid) return;
@@ -14,8 +15,9 @@ return;
 data.properties.forEach(property=>{
 const card=document.createElement("div");
 card.className="property-card";
+const imgUrl = getImageUrl(property.images?.[0] || property.image || property.imageUrl);
 card.innerHTML=`
-<img src="${property.images?.[0] || "/assets/images/property-placeholder.jpg"}" alt="${property.propertyName || property.title}">
+<img src="${imgUrl}" alt="${property.propertyName || property.title}" loading="lazy" onerror="this.onerror=null; this.src='/assets/images/property-placeholder.jpg'">
 <div class="property-content">
 <div class="property-location">📍 ${property.city || "India"}</div>
 <h3>${property.propertyName || property.title}</h3>

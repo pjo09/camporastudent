@@ -302,7 +302,7 @@ export function timeAgo(input) {
 // =====================================================
 
 export function imageUrl(path) {
-  return getImageUrl(path, "/assets/logos/logo.png");
+  return getImageUrl(path, "/assets/images/property-placeholder.jpg");
 }
 
 // =====================================================

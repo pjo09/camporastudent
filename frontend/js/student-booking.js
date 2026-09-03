@@ -48,10 +48,10 @@ function renderSummary(p) {
   const loc = p.city ? `${p.city}${p.state ? ", " + p.state : ""}` : "Location not specified";
   const rent = p.rent || p.price || 0;
   const deposit = p.deposit || 0;
-  const img = p.images && p.images.length ? imageUrl(p.images[0]) : "/images/logo.png";
+  const img = imageUrl(p.images?.[0] || p.image || p.imageUrl);
   container.innerHTML = `
     <div style="position:relative;height:180px;border-radius:16px;overflow:hidden;margin-bottom:16px">
-      <img src="${img}" alt="${esc(name)}" style="width:100%;height:100%;object-fit:cover" onerror="this.src='/images/logo.png'">
+      <img src="${img}" alt="${esc(name)}" style="width:100%;height:100%;object-fit:cover" onerror="this.onerror=null; this.src='/assets/images/property-placeholder.jpg'">
     </div>
     <h3 style="font-size:20px;font-weight:800;margin-bottom:6px">${esc(name)}</h3>
     <p style="color:var(--sv3-muted);font-size:14px;margin-bottom:12px"><i class="fa-solid fa-location-dot"></i> ${esc(loc)}</p>

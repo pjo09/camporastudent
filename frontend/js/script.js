@@ -519,7 +519,7 @@ const Properties = (() => {
         const loc = p.city ? p.city + (p.state ? ", " + p.state : "") : "Location not specified";
         const rent = p.rent || p.price || 0;
         const rating = parseFloat(p.average_rating || p.averageRating || 0);
-        const img = p.images && p.images.length ? imageUrl(p.images[0]) : "/assets/images/property-placeholder.jpg";
+        const img = imageUrl(p.images?.[0] || p.image || p.imageUrl);
         const badge = p.verified ? "Verified" : p.featured ? "Featured" : "";
         const amenities = Array.isArray(p.amenities) && p.amenities.length
             ? p.amenities.slice(0, 3).map((a) => '<span class="feature-item"><i class="fa-solid fa-check"></i> ' + esc(a) + "</span>").join("")

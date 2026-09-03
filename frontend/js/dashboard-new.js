@@ -50,13 +50,13 @@ async function loadDashboardData() {
                 propertyGrid.innerHTML = `<div class="empty-state" style="grid-column: 1/-1; text-align: center; padding: 40px; color: var(--text-muted); font-size: 14px;">No properties are featured at the moment.</div>`;
             } else {
                 propertyGrid.innerHTML = data.recommended.map(p => {
-                    const imgUrl = (p.images && p.images.length > 0) ? imageUrl(p.images[0]) : "/assets/images/property-placeholder.jpg";
+                    const imgUrl = imageUrl(p.images?.[0] || p.image || p.imageUrl);
                     const priceStr = inr(p.rent || p.price);
                     const locationStr = p.city ? `${p.propertyName}, ${p.city}` : p.propertyName;
                     return `
                     <div class="property-card" onclick="window.location.href='properties.html?id=${p._id}'" style="cursor:pointer">
                         <div class="property-image">
-                            <img src="${imgUrl}">
+                            <img src="${imgUrl}" alt="${esc(p.propertyName)}" loading="lazy" onerror="this.onerror=null; this.src='/assets/images/property-placeholder.jpg'">
                             <span class="property-badge">${p.verified ? 'Verified' : 'Pending'}</span>
                             <button class="favorite-btn" data-id="${p._id}">
                                 <i class="fa-solid fa-heart"></i>

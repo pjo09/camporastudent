@@ -133,11 +133,11 @@ function renderBooking() {
   if (locEl) locEl.textContent = location;
 
   // Image
-  const img = getImageUrl(prop.images && prop.images.length ? prop.images[0] : "");
+  const img = getImageUrl(prop.images?.[0] || prop.image || prop.imageUrl);
   const imgEl = $("propertyImage");
   if (imgEl) {
     imgEl.src = img;
-    imgEl.onerror = () => { imgEl.src = "/assets/images/property-placeholder.jpg"; };
+    imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = "/assets/images/property-placeholder.jpg"; };
   }
 
   // Price

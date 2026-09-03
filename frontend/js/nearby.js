@@ -126,7 +126,7 @@ function renderList() {
   }
 
   state.filtered.slice(0, 30).forEach((p) => {
-    const img = p.images?.length ? getImageUrl(p.images[0]) : "/assets/images/property-placeholder.jpg";
+    const img = getImageUrl(p.images?.[0] || p.image || p.imageUrl);
     const name = p.propertyName || p.title || "Property";
     const loc = p.city ? `${p.city}${p.state ? ", " + p.state : ""}` : "";
     const rent = p.rent || p.price || 0;

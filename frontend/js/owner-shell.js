@@ -269,7 +269,7 @@ export async function apiFetch(endpoint, opts = {}) {
 // =====================================================
 
 export function formatImage(path) {
-  return getImageUrl(path, "https://placehold.co/700x450?text=Campora");
+  return getImageUrl(path, "/assets/images/property-placeholder.jpg");
 }
 
 // =====================================================
