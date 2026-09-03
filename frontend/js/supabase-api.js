@@ -10,7 +10,7 @@ export const supabaseAPI = {
     async getProperties(filters = {}) {
         let query = supabase
             .from("properties")
-            .select("*, profiles!owner_id(name, avatar)")
+            .select("*, property_images(image_url, sort_order), profiles!owner_id(name, avatar)")
             .or("status.eq.published,status.eq.approved")
             .eq("published", true);
 
@@ -21,16 +21,24 @@ export const supabaseAPI = {
 
         const { data, error } = await query;
         if (error) throw error;
-        return data;
+        return (data || []).map(p => {
+            const relImgs = (p.property_images || []).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map(i => i.image_url);
+            const imgs = (p.images && p.images.length > 0) ? p.images : relImgs;
+            return { ...p, images: imgs };
+        });
     },
 
     async getProperty(id) {
         const { data, error } = await supabase
             .from("properties")
-            .select("*, profiles!owner_id(*)")
+            .select("*, property_images(image_url, sort_order), profiles!owner_id(*)")
             .eq("id", id)
             .single();
         if (error) throw error;
+        if (data) {
+            const relImgs = (data.property_images || []).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map(i => i.image_url);
+            data.images = (data.images && data.images.length > 0) ? data.images : relImgs;
+        }
         return data;
     },
 
@@ -1551,7 +1559,7 @@ export const supabaseAPI = {
     async searchProperties(params = {}) {
         let query = supabase
             .from("properties")
-            .select("*, profiles!owner_id(name, avatar, phone)", { count: "exact" })
+            .select("*, property_images(image_url, sort_order), profiles!owner_id(name, avatar, phone)", { count: "exact" })
             .or("status.eq.published,status.eq.approved")
             .eq("published", true);
 
@@ -1576,25 +1584,29 @@ export const supabaseAPI = {
         const { data, error, count } = await query;
         if (error) throw error;
 
-        const properties = (data || []).map(r => ({
-            _id: r.id,
-            id: r.id,
-            propertyName: r.property_name,
-            propertyType: r.property_type,
-            city: r.city,
-            state: r.state,
-            address: r.address,
-            rent: parseFloat(r.rent || 0),
-            deposit: parseFloat(r.deposit || 0),
-            sharing: r.sharing || [],
-            amenities: r.amenities || [],
-            images: r.images || [],
-            verified: r.status === "approved",
-            featured: !!r.featured,
-            rating: r.rating || 4.5,
-            owner: r.profiles ? { _id: r.owner_id, id: r.owner_id, name: r.profiles.name } : null,
-            createdAt: r.created_at
-        }));
+        const properties = (data || []).map(r => {
+            const relImgs = (r.property_images || []).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map(i => i.image_url);
+            const resolvedImages = (r.images && r.images.length > 0) ? r.images : relImgs;
+            return {
+                _id: r.id,
+                id: r.id,
+                propertyName: r.property_name,
+                propertyType: r.property_type,
+                city: r.city,
+                state: r.state,
+                address: r.address,
+                rent: parseFloat(r.rent || 0),
+                deposit: parseFloat(r.deposit || 0),
+                sharing: r.sharing || [],
+                amenities: r.amenities || [],
+                images: resolvedImages,
+                verified: r.status === "approved",
+                featured: !!r.featured,
+                rating: r.rating || 4.5,
+                owner: r.profiles ? { _id: r.owner_id, id: r.owner_id, name: r.profiles.name } : null,
+                createdAt: r.created_at
+            };
+        });
 
         return {
             success: true,
