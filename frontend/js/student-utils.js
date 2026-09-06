@@ -47,7 +47,8 @@ export async function verifyLiveStudentAuth() {
       if (pByEmail) profile = pByEmail;
     }
 
-    if (!profile) {
+    if (!profile || profile.account_status === "DELETED" || profile.status === "inactive") {
+      sessionLogout();
       return null;
     }
 

@@ -61,6 +61,10 @@ export const apiClient = {
                 }
             } catch (e) {}
         }
+        if (profile && (profile.account_status === "DELETED" || profile.status === "inactive")) {
+            await supabase.auth.signOut().catch(() => {});
+            throw new Error("This account has been deleted and cannot be accessed.");
+        }
         const userObj = data.user ? {
             id: profile?.id || data.user.id,
             email: data.user.email,

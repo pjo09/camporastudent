@@ -128,18 +128,35 @@ export function login(token, user, remember = false) {
 // CLEAR SESSION
 // ===========================================
 
-export function logout() {
+export async function logout() {
     try {
-        supabase.auth.signOut();
+        await supabase.auth.signOut();
     } catch (e) {}
 
-    localStorage.removeItem(TOKEN_KEY);
-    localStorage.removeItem(USER_KEY);
-    localStorage.removeItem(ROLE_KEY);
-    localStorage.removeItem(REMEMBER_KEY);
-    sessionStorage.removeItem(TOKEN_KEY);
-    sessionStorage.removeItem(USER_KEY);
-    sessionStorage.removeItem(ROLE_KEY);
+    try {
+        if (typeof localStorage !== "undefined") {
+            // Remove known keys first, then clear all storage
+            localStorage.removeItem(TOKEN_KEY);
+            localStorage.removeItem(USER_KEY);
+            localStorage.removeItem(ROLE_KEY);
+            localStorage.removeItem(REMEMBER_KEY);
+            localStorage.removeItem("campora_supabase_auth");
+            localStorage.removeItem("campora_pending_role");
+            
+            // Remove any Supabase internal storage keys matching sb-*
+            for (let i = localStorage.length - 1; i >= 0; i--) {
+                const key = localStorage.key(i);
+                if (key && (key.startsWith("sb-") || key.includes("supabase") || key.includes("campora"))) {
+                    localStorage.removeItem(key);
+                }
+            }
+            localStorage.clear();
+        }
+
+        if (typeof sessionStorage !== "undefined") {
+            sessionStorage.clear();
+        }
+    } catch (e) {}
 
     // Always land on the Campora main landing page.
     window.location.replace(getLandingUrl());

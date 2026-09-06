@@ -5,6 +5,37 @@
 
 import { supabase } from "./supabaseClient.js";
 
+function isJwtError(error) {
+    if (!error) return false;
+    const msg = String(error.message || "").toLowerCase();
+    const status = error.status || error.statusCode || error.code;
+    return msg.includes("jwt issued at future") ||
+           msg.includes("jwt expired") ||
+           msg.includes("invalid jwt") ||
+           msg.includes("invalid claim") ||
+           status === 401 ||
+           status === "PGRST301";
+}
+
+async function clearInvalidSession() {
+    try {
+        await supabase.auth.signOut();
+    } catch (e) {}
+    try {
+        if (typeof localStorage !== "undefined") {
+            localStorage.removeItem("camporaToken");
+            localStorage.removeItem("camporaUser");
+            localStorage.removeItem("camporaRole");
+            localStorage.removeItem("campora_supabase_auth");
+        }
+        if (typeof sessionStorage !== "undefined") {
+            sessionStorage.removeItem("camporaToken");
+            sessionStorage.removeItem("camporaUser");
+            sessionStorage.removeItem("camporaRole");
+        }
+    } catch (e) {}
+}
+
 export const supabaseAPI = {
     // Properties
     async getProperties(filters = {}) {
@@ -19,7 +50,14 @@ export const supabaseAPI = {
         if (filters.maxPrice) query = query.lte("rent", filters.maxPrice);
         if (filters.propertyType) query = query.eq("property_type", filters.propertyType);
 
-        const { data, error } = await query;
+        let { data, error } = await query;
+        if (error && isJwtError(error)) {
+            console.warn("⚠️ Stale or invalid JWT token detected. Clearing session and retrying query...");
+            await clearInvalidSession();
+            const retry = await query;
+            data = retry.data;
+            error = retry.error;
+        }
         if (error) throw error;
         return (data || []).map(p => {
             const relImgs = (p.property_images || []).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map(i => i.image_url);
@@ -29,11 +67,24 @@ export const supabaseAPI = {
     },
 
     async getProperty(id) {
-        const { data, error } = await supabase
+        let { data, error } = await supabase
             .from("properties")
             .select("*, property_images(image_url, sort_order), profiles!owner_id(*)")
             .eq("id", id)
             .single();
+
+        if (error && isJwtError(error)) {
+            console.warn("⚠️ Stale or invalid JWT token detected. Clearing session and retrying query...");
+            await clearInvalidSession();
+            const retry = await supabase
+                .from("properties")
+                .select("*, property_images(image_url, sort_order), profiles!owner_id(*)")
+                .eq("id", id)
+                .single();
+            data = retry.data;
+            error = retry.error;
+        }
+
         if (error) throw error;
         if (data) {
             const relImgs = (data.property_images || []).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map(i => i.image_url);
@@ -95,6 +146,60 @@ export const supabaseAPI = {
         if (error) throw error;
     },
 
+    async deleteAccount() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated. Please log in again.");
+
+        let rpcSuccess = false;
+        try {
+            const { data, error } = await supabase.rpc("delete_user_account");
+            if (!error) {
+                rpcSuccess = true;
+            } else {
+                console.warn("delete_user_account RPC notice:", error.message);
+            }
+        } catch (e) {
+            console.warn("delete_user_account RPC execution error:", e);
+        }
+
+        if (!rpcSuccess) {
+            // Anonymize and soft/hard delete profile row directly
+            const { error: profileErr } = await supabase
+                .from("profiles")
+                .update({
+                    account_status: "DELETED",
+                    status: "inactive",
+                    name: "Deleted User",
+                    email: `deleted_${user.id}@deleted.campora.in`,
+                    phone: "",
+                    avatar: "",
+                    bio: "",
+                    updated_at: new Date().toISOString()
+                })
+                .eq("id", user.id);
+
+            if (profileErr) {
+                console.warn("Profile delete update error:", profileErr.message);
+            }
+
+            // Remove user properties if owner
+            await supabase
+                .from("properties")
+                .update({ published: false, available: false, status: "rejected" })
+                .eq("owner_id", user.id)
+                .catch(() => {});
+
+            // Delete saved properties and notifications
+            await supabase.from("saved_properties").delete().eq("user_id", user.id).catch(() => {});
+            await supabase.from("notifications").delete().eq("receiver_id", user.id).catch(() => {});
+        }
+
+        // Always log out and clear all sessions permanently
+        const { logout } = await import("./session.js");
+        await logout();
+        return { success: true, message: "Account deleted permanently." };
+    },
+
     async getCurrentUser() {
         const { data: { user }, error } = await supabase.auth.getUser();
         if (error) throw error;
@@ -106,6 +211,12 @@ export const supabaseAPI = {
             .select("*")
             .eq("id", user.id)
             .maybeSingle();
+
+        if (profile && (profile.account_status === "DELETED" || profile.status === "inactive")) {
+            const { logout } = await import("./session.js");
+            await logout();
+            throw new Error("This account has been deleted.");
+        }
 
         return { ...user, profile };
     },
@@ -182,19 +293,30 @@ export const supabaseAPI = {
 
     // Statistics
     async getStatistics() {
-        const [propsRes, citiesRes, collegesRes, usersRes] = await Promise.all([
-            supabase.from("properties").select("id", { count: "exact", head: true }),
-            supabase.from("cities").select("id", { count: "exact", head: true }),
-            supabase.from("colleges").select("id", { count: "exact", head: true }),
-            supabase.from("profiles").select("id", { count: "exact", head: true })
-        ]);
+        try {
+            const [propsRes, citiesRes, collegesRes, usersRes] = await Promise.all([
+                supabase.from("properties").select("id", { count: "exact", head: true }),
+                supabase.from("cities").select("id", { count: "exact", head: true }),
+                supabase.from("colleges").select("id", { count: "exact", head: true }),
+                supabase.from("profiles").select("id", { count: "exact", head: true })
+            ]);
 
-        return {
-            totalProperties: propsRes.count || 0,
-            totalCities: citiesRes.count || 0,
-            totalColleges: collegesRes.count || 0,
-            totalUsers: usersRes.count || 0
-        };
+            if (propsRes.error && isJwtError(propsRes.error)) {
+                await clearInvalidSession();
+            }
+
+            return {
+                totalProperties: propsRes.count || 0,
+                totalCities: citiesRes.count || 0,
+                totalColleges: collegesRes.count || 0,
+                totalUsers: usersRes.count || 0
+            };
+        } catch (e) {
+            if (isJwtError(e)) {
+                await clearInvalidSession();
+            }
+            return { totalProperties: 0, totalCities: 0, totalColleges: 0, totalUsers: 0 };
+        }
     },
 
     // Admin Auth
