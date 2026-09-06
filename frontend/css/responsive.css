@@ -1,1 +1,140 @@
-/* Responsive Styles */
+/* =====================================================
+   CAMPORA RESPONSIVE DESIGN SYSTEM (Desktop, Tablet, Mobile)
+   ===================================================== */
+
+/* Desktop Large (1200px and above) */
+@media (min-width: 1200px) {
+    .container {
+        max-width: 1280px;
+    }
+}
+
+/* Tablet Layout (768px to 1199px) */
+@media (min-width: 768px) and (max-width: 1199px) {
+    .hero {
+        margin: 80px 16px 24px 16px;
+        padding: 56px 24px;
+    }
+
+    .hero-search-pill {
+        max-width: 100%;
+        padding: 8px 12px 8px 20px;
+    }
+
+    .property-grid {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 20px;
+    }
+
+    .footer-grid {
+        grid-template-columns: repeat(3, 1fr) !important;
+        gap: 32px;
+    }
+}
+
+/* Mobile Layout (320px to 767px) */
+@media (max-width: 767px) {
+    body {
+        overflow-x: hidden;
+    }
+
+    .container {
+        padding: 0 16px;
+    }
+
+    .header {
+        height: 64px;
+    }
+
+    .logo span {
+        font-size: 19px;
+    }
+
+    .hero {
+        margin: 72px 12px 20px 12px;
+        padding: 40px 16px;
+        border-radius: 16px;
+    }
+
+    .hero-title {
+        font-size: 32px;
+        line-height: 1.2;
+    }
+
+    .hero-description {
+        font-size: 14px;
+        margin-bottom: 24px;
+    }
+
+    /* Stacked mobile search bar */
+    .hero-search-pill {
+        flex-direction: column;
+        border-radius: 20px;
+        padding: 16px;
+        gap: 12px;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.18);
+    }
+
+    .search-main-field {
+        width: 100%;
+        padding-bottom: 8px;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .search-filters-row {
+        width: 100%;
+        justify-content: space-between;
+        gap: 8px;
+    }
+
+    .search-filters-row .search-item {
+        border-left: none;
+        padding-left: 0;
+        flex: 1;
+    }
+
+    .search-filters-row select {
+        width: 100%;
+        font-size: 13px;
+    }
+
+    .hero-search-btn {
+        width: 100%;
+        padding: 12px;
+        border-radius: 12px;
+    }
+
+    .hero-trust-badges {
+        gap: 8px;
+    }
+
+    .trust-badge-pill {
+        font-size: 11px;
+        padding: 6px 12px;
+    }
+
+    .city-shortcuts {
+        gap: 6px;
+    }
+
+    .city-badge {
+        font-size: 11px;
+        padding: 5px 12px;
+    }
+
+    .property-grid {
+        grid-template-columns: 1fr !important;
+        gap: 20px;
+    }
+
+    .footer-grid {
+        grid-template-columns: 1fr !important;
+        gap: 28px;
+    }
+
+    .footer-bottom {
+        flex-direction: column;
+        gap: 12px;
+        text-align: center;
+    }
+}
