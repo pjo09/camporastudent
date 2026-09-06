@@ -32,7 +32,14 @@ async function getSupabaseClient() {
                 '012_system_and_audit.sql',
                 '013_admin_scopes.sql',
                 '014_supabase_native_rls_and_rpc.sql',
-                '015_admin_native_rls.sql'
+                '015_admin_native_rls.sql',
+                '016_security_hardening.sql',
+                '017_delete_user_account_rpc.sql',
+                '018_super_admin_hardening.sql',
+                '019_profile_insert_rls.sql',
+                '020_owner_announcements_rls_and_rpc.sql',
+                '021_delete_owner_property_rpc.sql',
+                '022_storage_properties_rls.sql'
             ];
 
             for (const file of migrationFiles) {

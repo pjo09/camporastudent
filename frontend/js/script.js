@@ -462,14 +462,23 @@ const Search = (() => {
         form.addEventListener("submit", (e) => {
             e.preventDefault();
 
-            const location = $("searchLocation").value.trim();
-            const university = $("searchUniversity").value.trim();
-            const budget = $("searchBudget").value;
-            const type = $("searchType").value;
+            const heroInput = $("heroQueryInput");
+            const query = heroInput ? heroInput.value.trim() : "";
+            const location = $("searchLocation") ? $("searchLocation").value.trim() : "";
+            const university = $("searchUniversity") ? $("searchUniversity").value.trim() : "";
+            const budget = $("searchBudget") ? $("searchBudget").value : "";
+            const type = $("searchType") ? $("searchType").value : "";
 
             const params = new URLSearchParams();
-            if (location) params.set("city", location);
-            if (university) params.set("college", university);
+
+            if (query) {
+                params.set("city", query);
+                params.set("college", query);
+            } else {
+                if (location) params.set("city", location);
+                if (university) params.set("college", university);
+            }
+
             if (budget) params.set("maxRent", budget);
             if (type) params.set("sharing", type);
 

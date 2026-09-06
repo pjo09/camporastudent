@@ -37,23 +37,8 @@ export async function verifyLiveOwnerAuth() {
       return null;
     }
 
-    let profile = null;
-    const { data: pById } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", session.user.id)
-      .maybeSingle();
-
-    if (pById) {
-      profile = pById;
-    } else if (session.user.email) {
-      const { data: pByEmail } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("email", session.user.email)
-        .maybeSingle();
-      if (pByEmail) profile = pByEmail;
-    }
+    const { supabaseAPI } = await import("./supabase-api.js");
+    const profile = await supabaseAPI.ensureUserProfile(session.user, "owner");
 
     if (!profile) {
       sessionLogout();

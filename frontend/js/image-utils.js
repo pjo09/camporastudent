@@ -26,16 +26,17 @@ export function getImageUrl(pathInput, fallback = "/assets/images/property-place
 
   path = path.trim();
 
-  // Already absolute URL (Cloudinary / Supabase Storage / http(s) / data: / blob:)
-  if (/^(https?:|data:|blob:)/i.test(path)) return path;
+  // If path is a full URL (http, https, data, blob)
+  if (/^(https?:|data:|blob:)/i.test(path)) {
+    return path;
+  }
 
   // Already absolute path from web root (/assets/..., /images/...)
   if (path.startsWith("/")) return path;
 
-  // Clean relative storage path prefixes
+  // Clean relative storage path prefixes if present
   path = path.replace(/^\/+/, "");
   path = path.replace(/^storage\/v1\/object\/public\/properties\//i, "");
-  path = path.replace(/^properties\//i, "");
 
   // Stored in Supabase Storage or relative path
   return IMAGE_BASE + path;
@@ -52,10 +53,10 @@ export async function uploadImageToSupabase(file, folder = "properties") {
   
   validateImageFile(file);
 
-  const fileExt = file.name.split('.').pop();
+  const fileExt = (file.name || "image.jpg").split('.').pop() || "jpg";
   const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(2, 9)}.${fileExt}`;
 
-  let { data, error } = await supabase.storage
+  const { data, error } = await supabase.storage
     .from("properties")
     .upload(fileName, file, {
       cacheControl: "3600",
@@ -63,28 +64,17 @@ export async function uploadImageToSupabase(file, folder = "properties") {
     });
 
   if (error) {
-    const errStr = (error.message || JSON.stringify(error)).toLowerCase();
-    if (errStr.includes("bucket not found") || error.status === 400 || error.statusCode === "404" || error.error === "Bucket not found") {
-      const fallbackBuckets = ["property-images", "documents", "public"];
-      for (const bucket of fallbackBuckets) {
-        try {
-          const { data: fbData, error: fbErr } = await supabase.storage
-            .from(bucket)
-            .upload(fileName, file, { cacheControl: "3600", upsert: true });
-          if (!fbErr && fbData) {
-            const { data: pubUrl } = supabase.storage.from(bucket).getPublicUrl(fileName);
-            return pubUrl.publicUrl;
-          }
-        } catch { /* continue */ }
-      }
-      return await fileToDataUrl(file);
-    }
-    throw error;
+    console.error("Supabase Storage image upload error:", error);
+    throw new Error(`Failed to upload property image: ${error.message || "Storage upload failed"}`);
   }
 
   const { data: publicUrlData } = supabase.storage
     .from("properties")
     .getPublicUrl(fileName);
+
+  if (!publicUrlData || !publicUrlData.publicUrl) {
+    throw new Error("Failed to generate public URL for uploaded property image");
+  }
 
   return publicUrlData.publicUrl;
 }

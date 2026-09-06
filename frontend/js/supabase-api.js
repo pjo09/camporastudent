@@ -200,17 +200,85 @@ export const supabaseAPI = {
         return { success: true, message: "Account deleted permanently." };
     },
 
+    async ensureUserProfile(user, defaultRole = "student") {
+        if (!user || !user.id) return null;
+
+        // 1. Check if profile already exists by exact auth user ID (auth.uid())
+        const { data: pById, error: errById } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", user.id)
+            .maybeSingle();
+
+        if (!errById && pById) {
+            return pById;
+        }
+
+        // 2. Profile missing for user.id: Create profile row with id = user.id (matching auth.users.id)
+        const role = user.user_metadata?.role || defaultRole;
+        const name = user.user_metadata?.full_name || user.user_metadata?.name || (user.email ? user.email.split("@")[0] : "User");
+        const avatar = user.user_metadata?.avatar_url || user.user_metadata?.picture || "";
+
+        const newProfile = {
+            id: user.id,
+            email: user.email || "",
+            name: name,
+            avatar: avatar,
+            role: role,
+            account_status: role === "owner" ? "PENDING" : "ACTIVE",
+            status: "active",
+            verified: role !== "owner"
+        };
+
+        const { data: created, error: insertErr } = await supabase
+            .from("profiles")
+            .insert(newProfile)
+            .select()
+            .maybeSingle();
+
+        if (!insertErr && created) {
+            return created;
+        }
+
+        // 3. If insert failed due to unique email constraint (legacy profile with different ID):
+        if (insertErr && user.email) {
+            const { data: pByEmail } = await supabase
+                .from("profiles")
+                .select("*")
+                .eq("email", user.email)
+                .maybeSingle();
+
+            if (pByEmail && pByEmail.id !== user.id) {
+                console.error("[ensureUserProfile] Mismatched legacy profile detected:", {
+                    authUserId: user.id,
+                    legacyProfileId: pByEmail.id,
+                    email: user.email
+                });
+                throw new Error(
+                    "Profile ID mismatch: Your email is linked to a legacy profile (ID: " +
+                    pByEmail.id +
+                    "). Please contact support@campora.in to migrate your historical records to active auth ID (" +
+                    user.id +
+                    ")."
+                );
+            }
+        }
+
+        if (insertErr) {
+            console.error("[ensureUserProfile] Profile creation error:", insertErr);
+            throw new Error(insertErr.message || "Failed to create user profile.");
+        }
+
+        return newProfile;
+    },
+
     async getCurrentUser() {
         const { data: { user }, error } = await supabase.auth.getUser();
         if (error) throw error;
         if (!user) return null;
 
-        // Fetch full user profile
-        const { data: profile } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", user.id)
-            .maybeSingle();
+        // Fetch & sync full user profile
+        const profile = await this.ensureUserProfile(user);
 
         if (profile && (profile.account_status === "DELETED" || profile.status === "inactive")) {
             const { logout } = await import("./session.js");
@@ -2187,6 +2255,12 @@ export const supabaseAPI = {
         const { data: { user } } = await supabase.auth.getUser();
         if (!user) throw new Error("Not authenticated");
 
+        // Ensure user profile exists in profiles table before inserting property (FK owner_id -> profiles.id)
+        const profile = await this.ensureUserProfile(user, "owner");
+        if (profile && profile.role === "student") {
+            throw new Error("Unauthorized: Student accounts cannot publish property listings.");
+        }
+
         const newProp = {
             owner_id: user.id,
             property_name: payload.propertyName || payload.name,
@@ -2220,7 +2294,20 @@ export const supabaseAPI = {
                 .upsert(newProp, { onConflict: "id" })
                 .select()
                 .single();
-            if (!upErr && upData) return { success: true, property: { ...upData, _id: upData.id } };
+            if (upErr) {
+                console.error("Supabase property upsert error details:", {
+                    code: upErr.code,
+                    message: upErr.message,
+                    details: upErr.details,
+                    hint: upErr.hint
+                });
+                const errObj = new Error(upErr.message || "Failed to update property");
+                errObj.code = upErr.code;
+                errObj.details = upErr.details;
+                errObj.hint = upErr.hint;
+                throw errObj;
+            }
+            if (upData) return { success: true, property: { ...upData, _id: upData.id } };
         }
 
         const { data, error } = await supabase
@@ -2230,16 +2317,17 @@ export const supabaseAPI = {
             .single();
 
         if (error) {
-            const errStr = (error.message || "").toLowerCase();
-            if (error.code === "23505" || errStr.includes("duplicate") || error.status === 409) {
-                const { data: upData, error: upErr } = await supabase
-                    .from("properties")
-                    .upsert(newProp)
-                    .select()
-                    .single();
-                if (!upErr && upData) return { success: true, property: { ...upData, _id: upData.id } };
-            }
-            throw error;
+            console.error("Supabase property insert error details:", {
+                code: error.code,
+                message: error.message,
+                details: error.details,
+                hint: error.hint
+            });
+            const errObj = new Error(error.message || "Failed to insert property");
+            errObj.code = error.code;
+            errObj.details = error.details;
+            errObj.hint = error.hint;
+            throw errObj;
         }
         return { success: true, property: { ...data, _id: data.id } };
     },

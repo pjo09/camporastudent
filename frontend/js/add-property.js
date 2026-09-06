@@ -550,13 +550,31 @@ async function handlePublish(e) {
     if (newFiles.length > 0) {
       const { uploadImageToSupabase } = await import("./image-utils.js");
       for (const imgObj of newFiles) {
-        if (imgObj.file) {
+        let fileToUpload = imgObj.file;
+        if (!fileToUpload && imgObj.url && (imgObj.url.startsWith("data:") || imgObj.url.startsWith("blob:"))) {
           try {
-            const publicUrl = await uploadImageToSupabase(imgObj.file, "properties");
+            const res = await fetch(imgObj.url);
+            const blob = await res.blob();
+            fileToUpload = new File([blob], `property_${Date.now()}.jpg`, { type: blob.type || "image/jpeg" });
+          } catch (e) {
+            console.warn("Could not convert data/blob URL to file:", e);
+          }
+        }
+
+        if (fileToUpload) {
+          try {
+            const publicUrl = await uploadImageToSupabase(fileToUpload, "properties");
             if (publicUrl) uploadedImageUrls.push(publicUrl);
           } catch (err) {
             console.error("Supabase Storage image upload error:", err);
+            hideLoadingOverlay();
+            setPublishingButtonState(false);
+            state.isSubmitting = false;
+            showToast(`Image upload failed: ${err.message}`, "error");
+            return;
           }
+        } else if (imgObj.url && !imgObj.url.startsWith("blob:") && !imgObj.url.startsWith("data:")) {
+          uploadedImageUrls.push(imgObj.url);
         }
       }
     }
@@ -609,10 +627,17 @@ async function handlePublish(e) {
 
     showSuccess(state.editPropertyId ? "Property Updated!" : "Property Published!", propertyId);
   } catch (err) {
-    console.error("Publish error:", err);
+    console.error("Publish error details:", {
+      code: err?.code || err?.status,
+      message: err?.message,
+      details: err?.details,
+      hint: err?.hint,
+      error: err
+    });
     hideLoadingOverlay();
     setPublishingButtonState(false);
-    showToast(err.message || "Failed to save property", "error");
+    const errDisplay = [err?.message, err?.details, err?.hint].filter(Boolean).join(" | ") || "Failed to save property";
+    showToast(errDisplay, "error");
     state.isSubmitting = false;
   }
 }
