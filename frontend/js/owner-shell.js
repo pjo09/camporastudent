@@ -233,10 +233,14 @@ export async function apiFetch(endpoint, opts = {}) {
   try {
     res = await fetch(`${API_BASE}${endpoint}`, { ...opts, headers });
   } catch (netErr) {
-    // Retry once on HTTP/2 ping failure or transient network reset
-    console.warn(`[apiFetch] Network drop detected (${netErr.message}). Retrying request...`);
-    await new Promise((r) => setTimeout(r, 300));
-    res = await fetch(`${API_BASE}${endpoint}`, { ...opts, headers });
+    if (method === "GET") {
+      // Retry once on HTTP/2 ping failure or transient network reset for safe GET requests only
+      console.warn(`[apiFetch] Safe GET network drop detected (${netErr.message}). Retrying request...`);
+      await new Promise((r) => setTimeout(r, 300));
+      res = await fetch(`${API_BASE}${endpoint}`, { ...opts, headers });
+    } else {
+      throw netErr;
+    }
   }
 
   const contentType = res.headers.get("content-type") || "";

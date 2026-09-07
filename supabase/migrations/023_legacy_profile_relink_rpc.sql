@@ -11,6 +11,9 @@ SECURITY DEFINER
 SET search_path = public, pg_temp
 AS $$
 DECLARE
+    v_caller_id UUID;
+    v_is_admin BOOLEAN := FALSE;
+    v_auth_email TEXT;
     v_legacy_id UUID;
     v_existing_target_id UUID;
     v_name VARCHAR;
@@ -21,11 +24,42 @@ DECLARE
     v_avatar TEXT;
     v_created_at TIMESTAMPTZ;
 BEGIN
+    v_caller_id := auth.uid();
+
     IF p_email IS NULL OR TRIM(p_email) = '' OR p_target_auth_id IS NULL THEN
         RAISE EXCEPTION 'Invalid parameters: email and target_auth_id are required';
     END IF;
 
-    -- 1. Check if target_auth_id profile is already aligned
+    -- Security check 1: Caller must be authenticated
+    IF v_caller_id IS NULL THEN
+        RAISE EXCEPTION 'Unauthorized: caller must be authenticated';
+    END IF;
+
+    -- Security check 2: Check if caller is admin
+    SELECT EXISTS (
+        SELECT 1 FROM public.profiles
+        WHERE id = v_caller_id AND LOWER(role) = 'admin'
+    ) INTO v_is_admin;
+
+    -- Security check 3: auth.uid() must match p_target_auth_id UNLESS caller is admin
+    IF v_caller_id != p_target_auth_id AND NOT v_is_admin THEN
+        RAISE EXCEPTION 'Unauthorized: caller (%) cannot relink profile for target user (%)', v_caller_id, p_target_auth_id;
+    END IF;
+
+    -- Security check 4: Verify target auth user exists in auth.users and email matches p_email
+    SELECT email INTO v_auth_email
+    FROM auth.users
+    WHERE id = p_target_auth_id;
+
+    IF v_auth_email IS NULL THEN
+        RAISE EXCEPTION 'Target auth user % does not exist in auth.users', p_target_auth_id;
+    END IF;
+
+    IF LOWER(v_auth_email) != LOWER(TRIM(p_email)) THEN
+        RAISE EXCEPTION 'Target auth user email (%) does not match specified email (%)', v_auth_email, p_email;
+    END IF;
+
+    -- 1. Check if target_auth_id profile is already aligned in public.profiles
     SELECT id INTO v_existing_target_id
     FROM public.profiles
     WHERE id = p_target_auth_id;
@@ -90,7 +124,7 @@ BEGIN
         NOW()
     );
 
-    -- 5. Update all dependent foreign keys in historical & active relational tables
+    -- 5. Update all 25 dependent foreign keys in historical & active relational tables
     UPDATE public.properties SET owner_id = p_target_auth_id WHERE owner_id = v_legacy_id;
     UPDATE public.bookings SET user_id = p_target_auth_id WHERE user_id = v_legacy_id;
     UPDATE public.bookings SET owner_id = p_target_auth_id WHERE owner_id = v_legacy_id;
@@ -127,3 +161,8 @@ BEGIN
     );
 END;
 $$;
+
+-- Restrict execution permissions
+REVOKE EXECUTE ON FUNCTION public.relink_legacy_profile_by_email(TEXT, UUID) FROM PUBLIC;
+GRANT EXECUTE ON FUNCTION public.relink_legacy_profile_by_email(TEXT, UUID) TO authenticated, service_role;
+

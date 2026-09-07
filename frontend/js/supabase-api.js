@@ -286,11 +286,32 @@ export const supabaseAPI = {
                 .maybeSingle();
 
             if (pByEmail && pByEmail.id !== user.id) {
-                console.error("[ensureUserProfile] Mismatched legacy profile detected:", {
+                console.warn("[ensureUserProfile] Mismatched legacy profile detected. Attempting automated relink...", {
                     authUserId: user.id,
                     legacyProfileId: pByEmail.id,
                     email: user.email
                 });
+
+                try {
+                    const { data: relinkRes, error: relinkErr } = await supabase.rpc("relink_legacy_profile_by_email", {
+                        p_email: user.email,
+                        p_target_auth_id: user.id
+                    });
+
+                    if (!relinkErr && relinkRes && relinkRes.success) {
+                        const { data: alignedProfile } = await supabase
+                            .from("profiles")
+                            .select("*")
+                            .eq("id", user.id)
+                            .maybeSingle();
+                        if (alignedProfile) return alignedProfile;
+                    } else if (relinkErr) {
+                        console.warn("[ensureUserProfile] relink_legacy_profile_by_email error:", relinkErr.message);
+                    }
+                } catch (relinkEx) {
+                    console.warn("[ensureUserProfile] relink_legacy_profile_by_email exception:", relinkEx);
+                }
+
                 throw new Error(
                     "Profile ID mismatch: Your email is linked to a legacy profile (ID: " +
                     pByEmail.id +
