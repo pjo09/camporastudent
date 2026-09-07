@@ -553,37 +553,34 @@
     </footer>
 
     <!-- ===================================================== -->
-    <!-- AUTH MODAL (Exact original auth modal preserved) -->
+    <!-- UNIFIED AUTHENTICATION MODAL SYSTEM -->
     <!-- ===================================================== -->
     <div class="auth-modal" id="authModal" aria-hidden="true">
         <div class="auth-modal-backdrop" data-close-modal></div>
-        <div class="auth-modal-content">
-            <button class="auth-modal-close" data-close-modal aria-label="Close">&times;</button>
-
-            <!-- Tabs -->
-            <div class="auth-tabs">
-                <button class="auth-tab active" data-auth-view="login">Login</button>
-                <button class="auth-tab" data-auth-view="register">Register</button>
+        <div class="auth-modal-card">
+            <button type="button" class="auth-modal-close" data-close-modal aria-label="Close modal">&times;</button>
+            <div class="auth-card-logo">
+                <img src="images/logo.png" alt="Campora Logo">
             </div>
 
-            <!-- LOGIN VIEW -->
+            <!-- 1. LOGIN VIEW (Default) -->
             <div class="auth-view" id="authViewLogin">
-                <h3>Welcome back</h3>
-                <p class="auth-sub">Log in to continue your housing journey.</p>
+                <h2 class="auth-title">Welcome Back</h2>
+                <p class="auth-subtitle">Sign in to your Campora account</p>
 
-                <div class="auth-role-switch">
-                    <button class="auth-role active" data-auth-role="student">Student</button>
-                    <button class="auth-role" data-auth-role="owner">Owner</button>
-                </div>
-
-                <form id="loginForm">
+                <form id="loginForm" novalidate>
                     <div class="auth-field">
-                        <label for="loginEmail">Email</label>
-                        <input type="email" id="loginEmail" placeholder="you@example.com" required>
+                        <label for="loginEmail">Email address</label>
+                        <input type="email" id="loginEmail" placeholder="you@example.com" required autocomplete="email">
                     </div>
                     <div class="auth-field">
                         <label for="loginPassword">Password</label>
-                        <input type="password" id="loginPassword" placeholder="Your password" required>
+                        <div class="auth-input-pass-wrap">
+                            <input type="password" id="loginPassword" placeholder="Your password" required autocomplete="current-password">
+                            <button type="button" class="auth-pass-toggle" data-toggle-pass="loginPassword" aria-label="Toggle password visibility">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
                     </div>
 
                     <div class="auth-row">
@@ -595,7 +592,7 @@
 
                     <div class="auth-message" id="loginError"></div>
 
-                    <button type="submit" class="btn btn-primary auth-submit">Login</button>
+                    <button type="submit" class="auth-submit-btn">Login</button>
                 </form>
 
                 <div class="auth-divider"><span>or</span></div>
@@ -614,41 +611,62 @@
 
                 <p class="auth-switch-text">
                     Don't have an account?
-                    <button type="button" class="auth-link" data-auth-switch="register">Create one</button>
+                    <button type="button" class="auth-link-bold" data-auth-switch="register">Sign up</button>
                 </p>
             </div>
 
-            <!-- REGISTER VIEW -->
+            <!-- 2. SIGNUP VIEW -->
             <div class="auth-view" id="authViewRegister" style="display:none">
-                <h3>Create your account</h3>
-                <p class="auth-sub">Join thousands of students finding their home.</p>
+                <h2 class="auth-title">Create Your Account</h2>
+                <p class="auth-subtitle">Join Campora and find your perfect student home</p>
 
                 <div class="auth-role-switch">
-                    <button class="auth-role active" data-auth-role="student">Student</button>
-                    <button class="auth-role" data-auth-role="owner">Owner</button>
+                    <button type="button" class="auth-role-btn active" data-auth-role="student">Student</button>
+                    <button type="button" class="auth-role-btn" data-auth-role="owner">Owner</button>
                 </div>
 
-                <form id="registerForm">
+                <form id="registerForm" novalidate>
                     <div class="auth-field">
-                        <label for="registerName">Full Name</label>
-                        <input type="text" id="registerName" placeholder="Your name" required>
+                        <label for="registerName">Full name</label>
+                        <input type="text" id="registerName" placeholder="Your full name" required autocomplete="name">
                     </div>
                     <div class="auth-field">
-                        <label for="registerEmail">Email</label>
-                        <input type="email" id="registerEmail" placeholder="you@example.com" required>
+                        <label for="registerEmail">Email address</label>
+                        <input type="email" id="registerEmail" placeholder="you@example.com" required autocomplete="email">
                     </div>
                     <div class="auth-field" id="ownerField" style="display:none">
                         <label for="registerBusiness">Business / Property Name</label>
                         <input type="text" id="registerBusiness" placeholder="Your business name">
                     </div>
                     <div class="auth-field">
-                        <label for="registerPassword">Password</label>
-                        <input type="password" id="registerPassword" placeholder="Min 6 characters" required>
+                        <label for="registerPassword">Create password</label>
+                        <div class="auth-input-pass-wrap">
+                            <input type="password" id="registerPassword" placeholder="Min 6 characters" required autocomplete="new-password">
+                            <button type="button" class="auth-pass-toggle" data-toggle-pass="registerPassword" aria-label="Toggle password visibility">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="auth-field">
+                        <label for="registerConfirmPassword">Confirm password</label>
+                        <div class="auth-input-pass-wrap">
+                            <input type="password" id="registerConfirmPassword" placeholder="Re-enter password" required autocomplete="new-password">
+                            <button type="button" class="auth-pass-toggle" data-toggle-pass="registerConfirmPassword" aria-label="Toggle password visibility">
+                                <i class="fa-regular fa-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="auth-row terms-row">
+                        <label class="auth-check">
+                            <input type="checkbox" id="registerTerms" required>
+                            <span>I agree to the <a href="terms.html" target="_blank" class="auth-link">Terms &amp; Conditions</a> and <a href="privacy.html" target="_blank" class="auth-link">Privacy Policy</a></span>
+                        </label>
                     </div>
 
                     <div class="auth-message" id="registerError"></div>
 
-                    <button type="submit" class="btn btn-primary auth-submit">Create Account</button>
+                    <button type="submit" class="auth-submit-btn">Create Account</button>
                 </form>
 
                 <div class="auth-divider"><span>or</span></div>
@@ -667,8 +685,44 @@
 
                 <p class="auth-switch-text">
                     Already have an account?
-                    <button type="button" class="auth-link" data-auth-switch="login">Login</button>
+                    <button type="button" class="auth-link-bold" data-auth-switch="login">Login</button>
                 </p>
+            </div>
+
+            <!-- 3. PROFILE COMPLETION VIEW (NEW USERS) -->
+            <div class="auth-view" id="authViewProfile" style="display:none">
+                <h2 class="auth-title">Complete Your Profile</h2>
+                <p class="auth-subtitle">Tell us a bit more about yourself to get started</p>
+
+                <form id="profileCompletionForm" novalidate>
+                    <div class="auth-field">
+                        <label for="profileName">Full name</label>
+                        <input type="text" id="profileName" placeholder="Your full name" required>
+                    </div>
+                    <div class="auth-field">
+                        <label for="profilePhone">Mobile number</label>
+                        <input type="tel" id="profilePhone" placeholder="10-digit mobile number" required pattern="[0-9]{10}">
+                    </div>
+                    <div class="auth-field" id="profileCollegeField">
+                        <label for="profileCollege">University / College</label>
+                        <input type="text" id="profileCollege" placeholder="e.g. Delhi University / IIT Delhi">
+                    </div>
+                    <div class="auth-field">
+                        <label for="profileCity">City</label>
+                        <input type="text" id="profileCity" placeholder="e.g. New Delhi" required>
+                    </div>
+                    <div class="auth-field">
+                        <label>Role</label>
+                        <div class="auth-role-switch" id="profileRoleSwitch">
+                            <button type="button" class="auth-profile-role-btn active" data-profile-role="student">Student</button>
+                            <button type="button" class="auth-profile-role-btn" data-profile-role="owner">Owner</button>
+                        </div>
+                    </div>
+
+                    <div class="auth-message" id="profileError"></div>
+
+                    <button type="submit" class="auth-submit-btn">Save &amp; Continue</button>
+                </form>
             </div>
         </div>
     </div>

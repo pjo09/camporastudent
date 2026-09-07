@@ -6,6 +6,7 @@ import CONFIG from "./config.js";
 import { login, logout, getUser, getToken, redirectBasedOnRole } from "./session.js";
 import { getImageUrl } from "./image-utils.js";
 import { apiClient } from "./migration-adapter.js";
+import { supabase } from "./supabaseClient.js";
 
 console.log("📡 Using backend:", apiClient.provider || "supabase");
 
@@ -176,9 +177,14 @@ const Navbar = (() => {
 // AUTH MODAL
 // =====================================================
 
+// =====================================================
+// AUTH MODAL MODULE — UNIFIED 3-VIEW SYSTEM
+// =====================================================
+
 const AuthModal = (() => {
     let inited = false;
     let currentRole = "student";
+    let profileRole = "student";
 
     function init() {
         if (inited) return;
@@ -187,7 +193,7 @@ const AuthModal = (() => {
         const modal = $("authModal");
         if (!modal) return;
 
-        // Open modal buttons
+        // Open modal triggers
         document.querySelectorAll("[data-open-modal]").forEach((btn) => {
             btn.addEventListener("click", (e) => {
                 e.preventDefault();
@@ -195,36 +201,55 @@ const AuthModal = (() => {
             });
         });
 
-        // Close on backdrop / close button
+        // Close on backdrop or close button
         modal.querySelectorAll("[data-close-modal]").forEach((el) => {
             el.addEventListener("click", close);
         });
 
-        // Close on Escape
+        // Close on Escape key
         document.addEventListener("keydown", (e) => {
             if (e.key === "Escape") close();
         });
 
-        // Tabs (login / register)
+        // Switch between login & register views
         modal.querySelectorAll("[data-auth-switch]").forEach((btn) => {
             btn.addEventListener("click", () => switchView(btn.dataset.authSwitch));
         });
 
-        modal.querySelectorAll("[data-auth-view]").forEach((tab) => {
-            tab.addEventListener("click", () => switchView(tab.dataset.authView));
+        // Password Show/Hide Toggles
+        modal.querySelectorAll("[data-toggle-pass]").forEach((btn) => {
+            btn.addEventListener("click", () => {
+                const targetId = btn.dataset.togglePass;
+                const input = $(targetId);
+                if (!input) return;
+                const isPass = input.type === "password";
+                input.type = isPass ? "text" : "password";
+                const icon = btn.querySelector("i");
+                if (icon) {
+                    icon.className = isPass ? "fa-regular fa-eye-slash" : "fa-regular fa-eye";
+                }
+            });
         });
 
-        // Role switch
+        // Role switch on Register view
         modal.querySelectorAll("[data-auth-role]").forEach((btn) => {
             btn.addEventListener("click", () => setRole(btn.dataset.authRole));
         });
 
-        // Forms
+        // Role switch on Profile Completion view
+        modal.querySelectorAll("[data-profile-role]").forEach((btn) => {
+            btn.addEventListener("click", () => setProfileRole(btn.dataset.profileRole));
+        });
+
+        // Form Submit Listeners
         const loginForm = $("loginForm");
         if (loginForm) loginForm.addEventListener("submit", handleLogin);
 
         const registerForm = $("registerForm");
         if (registerForm) registerForm.addEventListener("submit", handleRegister);
+
+        const profileForm = $("profileCompletionForm");
+        if (profileForm) profileForm.addEventListener("submit", handleProfileCompletion);
 
         const forgotBtn = $("forgotPassword");
         if (forgotBtn) forgotBtn.addEventListener("click", handleForgot);
@@ -238,7 +263,7 @@ const AuthModal = (() => {
         switchView(view || "login");
         modal.classList.add("open");
         modal.setAttribute("aria-hidden", "false");
-        document.body.style.overflow = "hidden";
+        document.body.classList.add("auth-modal-open");
     }
 
     function close() {
@@ -246,22 +271,21 @@ const AuthModal = (() => {
         if (!modal) return;
         modal.classList.remove("open");
         modal.setAttribute("aria-hidden", "true");
-        document.body.style.overflow = "";
+        document.body.classList.remove("auth-modal-open");
     }
 
     function switchView(view) {
         const loginView = $("authViewLogin");
         const registerView = $("authViewRegister");
-        if (!loginView || !registerView) return;
+        const profileView = $("authViewProfile");
 
-        const isLogin = view === "login";
+        if (loginView) loginView.style.display = view === "login" ? "block" : "none";
+        if (registerView) registerView.style.display = view === "register" ? "block" : "none";
+        if (profileView) profileView.style.display = view === "profile" ? "block" : "none";
 
-        loginView.style.display = isLogin ? "block" : "none";
-        registerView.style.display = isLogin ? "none" : "block";
-
-        document.querySelectorAll("[data-auth-view]").forEach((tab) => {
-            tab.classList.toggle("active", tab.dataset.authView === view);
-        });
+        clearMessage($("loginError"));
+        clearMessage($("registerError"));
+        clearMessage($("profileError"));
     }
 
     function setRole(role) {
@@ -272,6 +296,16 @@ const AuthModal = (() => {
 
         const ownerField = $("ownerField");
         if (ownerField) ownerField.style.display = role === "owner" ? "block" : "none";
+    }
+
+    function setProfileRole(role) {
+        profileRole = role;
+        document.querySelectorAll("[data-profile-role]").forEach((btn) => {
+            btn.classList.toggle("active", btn.dataset.profileRole === role);
+        });
+
+        const collegeField = $("profileCollegeField");
+        if (collegeField) collegeField.style.display = role === "student" ? "block" : "none";
     }
 
     // ---------- LOGIN ----------
@@ -311,10 +345,32 @@ const AuthModal = (() => {
             }
 
             login(data.token, user, remember);
-            showMessage(errorBox, "Welcome back, " + (user?.name || "User") + "!", "success");
-            setTimeout(() => { close(); redirectBasedOnRole(user?.role || "student"); }, 600);
+
+            // Fetch live profile from Supabase to verify profile completeness
+            let prof = null;
+            try {
+                const { data: pData } = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
+                prof = pData;
+            } catch (e) {}
+
+            const activeProf = prof || user;
+            const isComplete = Boolean(activeProf.name && activeProf.phone && activeProf.city);
+
+            if (!isComplete) {
+                switchView("profile");
+                if ($("profileName")) $("profileName").value = activeProf.name || "";
+                if ($("profilePhone")) $("profilePhone").value = activeProf.phone || "";
+                if ($("profileCollege")) $("profileCollege").value = activeProf.college || "";
+                if ($("profileCity")) $("profileCity").value = activeProf.city || "";
+                setProfileRole(activeProf.role || "student");
+                showMessage($("profileError"), "Please complete your profile details to get started.", "success");
+                return;
+            }
+
+            showMessage(errorBox, "Welcome back, " + (activeProf.name || "User") + "!", "success");
+            setTimeout(() => { close(); redirectBasedOnRole(activeProf.role || "student"); }, 500);
         } catch (err) {
-            showMessage(errorBox, err.message, "error");
+            showMessage(errorBox, err.message || "Login failed.", "error");
         } finally {
             setLoading(btn, false, "Login");
         }
@@ -327,16 +383,35 @@ const AuthModal = (() => {
         const name = $("registerName").value.trim();
         const email = $("registerEmail").value.trim();
         const password = $("registerPassword").value;
+        const confirmPassword = $("registerConfirmPassword") ? $("registerConfirmPassword").value : password;
+        const termsChecked = $("registerTerms") ? $("registerTerms").checked : true;
         const errorBox = $("registerError");
 
         clearMessage(errorBox);
 
-        if (!name || !email || !password) {
-            showMessage(errorBox, "Please fill in all fields.", "error");
+        if (!name || !email || !password || !confirmPassword) {
+            showMessage(errorBox, "Please fill in all required fields.", "error");
             return;
         }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            showMessage(errorBox, "Please enter a valid email address.", "error");
+            return;
+        }
+
         if (password.length < 6) {
             showMessage(errorBox, "Password must be at least 6 characters.", "error");
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            showMessage(errorBox, "Passwords do not match.", "error");
+            return;
+        }
+
+        if (!termsChecked) {
+            showMessage(errorBox, "You must agree to the Terms & Conditions and Privacy Policy.", "error");
             return;
         }
 
@@ -359,7 +434,7 @@ const AuthModal = (() => {
 
             if (isOwnerPending) {
                 await apiClient.signOut().catch(() => {});
-                showMessage(errorBox, "Registration successful! Your owner account is pending approval by an administrator.", "success");
+                showMessage(errorBox, "Registration successful! Your owner account is pending administrative approval.", "success");
                 setTimeout(() => {
                     close();
                     window.location.href = "/login.html?pending=true";
@@ -368,12 +443,98 @@ const AuthModal = (() => {
             }
 
             login(data.token, user, false);
-            showMessage(errorBox, "Account created successfully!", "success");
-            setTimeout(() => { close(); redirectBasedOnRole(user?.role || "student"); }, 700);
+
+            // Move to Profile Completion view inside the same modal
+            switchView("profile");
+            if ($("profileName")) $("profileName").value = name;
+            setProfileRole(currentRole);
+            showMessage($("profileError"), "Account created! Please complete your profile to continue.", "success");
         } catch (err) {
-            showMessage(errorBox, err.message, "error");
+            showMessage(errorBox, err.message || "Registration failed.", "error");
         } finally {
             setLoading(btn, false, "Create Account");
+        }
+    }
+
+    // ---------- PROFILE COMPLETION ----------
+
+    async function handleProfileCompletion(e) {
+        e.preventDefault();
+        const name = $("profileName").value.trim();
+        const phone = $("profilePhone").value.trim();
+        const college = $("profileCollege") ? $("profileCollege").value.trim() : "";
+        const city = $("profileCity").value.trim();
+        const errorBox = $("profileError");
+
+        clearMessage(errorBox);
+
+        if (!name || !phone || !city) {
+            showMessage(errorBox, "Please fill in your name, mobile number, and city.", "error");
+            return;
+        }
+
+        const phoneClean = phone.replace(/\D/g, "");
+        if (phoneClean.length !== 10) {
+            showMessage(errorBox, "Please enter a valid 10-digit mobile number.", "error");
+            return;
+        }
+
+        const btn = e.target.querySelector("button[type='submit']");
+        setLoading(btn, true, "Saving profile...");
+
+        try {
+            const currentUser = getUser();
+            if (!currentUser || !currentUser.id) {
+                throw new Error("Session expired. Please log in again.");
+            }
+
+            const updatePayload = {
+                name,
+                phone: phoneClean,
+                city,
+                role: profileRole,
+                updated_at: new Date().toISOString()
+            };
+
+            if (profileRole === "student" && college) {
+                updatePayload.college = college;
+            }
+
+            const { data: updatedProf, error: upErr } = await supabase
+                .from("profiles")
+                .update(updatePayload)
+                .eq("id", currentUser.id)
+                .select()
+                .maybeSingle();
+
+            if (upErr) throw upErr;
+
+            // Update stored user session object
+            const updatedUser = {
+                ...currentUser,
+                name: updatedProf ? updatedProf.name : name,
+                phone: updatedProf ? updatedProf.phone : phoneClean,
+                city: updatedProf ? updatedProf.city : city,
+                college: updatedProf ? updatedProf.college : college,
+                role: profileRole
+            };
+
+            if (typeof localStorage !== "undefined" && localStorage.getItem("camporaUser")) {
+                localStorage.setItem("camporaUser", JSON.stringify(updatedUser));
+            }
+            if (typeof sessionStorage !== "undefined" && sessionStorage.getItem("camporaUser")) {
+                sessionStorage.setItem("camporaUser", JSON.stringify(updatedUser));
+            }
+
+            showMessage(errorBox, "Profile saved successfully!", "success");
+            setTimeout(() => {
+                close();
+                redirectBasedOnRole(profileRole);
+            }, 600);
+        } catch (err) {
+            showMessage(errorBox, err.message || "Failed to update profile.", "error");
+        } finally {
+            setLoading(btn, false, "Save & Continue");
         }
     }
 
@@ -385,7 +546,7 @@ const AuthModal = (() => {
         clearMessage(errorBox);
 
         if (!email) {
-            showMessage(errorBox, "Please enter your email above, then click Forgot password.", "error");
+            showMessage(errorBox, "Please enter your email address above, then tap Forgot password.", "error");
             return;
         }
 
@@ -407,8 +568,8 @@ const AuthModal = (() => {
         const triggerAuth = async (e) => {
             if (e) e.preventDefault();
             try {
-                const activeRoleBtn = document.querySelector(".auth-role.active");
-                const selectedRole = activeRoleBtn ? activeRoleBtn.dataset.authRole : "student";
+                const activeRoleBtn = document.querySelector(".auth-role-btn.active") || document.querySelector(".auth-profile-role-btn.active");
+                const selectedRole = activeRoleBtn ? (activeRoleBtn.dataset.authRole || activeRoleBtn.dataset.profileRole) : "student";
                 await apiClient.signInWithGoogle(selectedRole);
             } catch (err) {
                 const errorBox = $("loginError") || $("registerError");
@@ -442,7 +603,7 @@ const AuthModal = (() => {
         btn.textContent = text;
     }
 
-    return { init, open };
+    return { init, open, close, switchView };
 })();
 
 // =====================================================
