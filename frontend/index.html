@@ -101,7 +101,7 @@
                 </div>
 
                 <div class="nav-actions">
-                    <button class="get-started-btn" id="getStartedBtn">Get Started</button>
+                    <button class="get-started-btn" id="getStartedBtn" data-open-modal="login">Get Started</button>
                     <a href="dashboard.html" class="dashboard-btn" id="navDashboard" style="display:none">Dashboard</a>
                     <button class="logout-btn" id="navLogout" style="display:none">Logout</button>
                 </div>
@@ -114,38 +114,6 @@
                 </button>
             </nav>
         </div>
-
-        <!-- ===================================================== -->
-        <!-- GET STARTED POPUP / POPOVER -->
-        <!-- ===================================================== -->
-        <div class="auth-popover" id="authPopover">
-            <div class="popover-arrow"></div>
-            <div class="popover-header">
-                <h4>Welcome to Campora</h4>
-                <p>Your campus housing journey starts here.</p>
-            </div>
-            <div class="popover-options">
-                <button class="popover-opt-btn" id="popoverStudentRegister" data-open-modal="register">
-                    <span class="icon">🎓</span>
-                    <div class="text">
-                        <strong>Student</strong>
-                        <span>Find verified student homes</span>
-                    </div>
-                </button>
-                <button class="popover-opt-btn" id="popoverOwnerRegister" data-open-modal="register">
-                    <span class="icon">🏠</span>
-                    <div class="text">
-                        <strong>Property Owner</strong>
-                        <span>List and manage listings</span>
-                    </div>
-                </button>
-            </div>
-            <div class="popover-footer">
-                <span class="footer-lbl">Already have an account?</span>
-                <button class="popover-login-btn" id="navLogin" data-open-modal="login">Login</button>
-                <button id="navRegister" data-open-modal="register" style="display:none"></button>
-            </div>
-        </div>
     </header>
 
     <!-- Mobile Menu -->
@@ -155,7 +123,7 @@
         <a href="#universities">Universities</a>
         <a href="#cities">Cities</a>
         <a href="#how">How it works</a>
-        <button class="get-started-btn" id="mobileGetStarted">Get Started</button>
+        <button class="get-started-btn" id="mobileGetStarted" data-open-modal="login">Get Started</button>
     </div>
 
     <main>
@@ -727,61 +695,6 @@
         </div>
     </div>
 
-    <!-- Extra scripts to handle custom popup triggers without changing original script.js -->
-    <script>
-        document.addEventListener("DOMContentLoaded", () => {
-            // Get Started popover toggle
-            const getStartedBtn = document.getElementById("getStartedBtn");
-            const mobileGetStarted = document.getElementById("mobileGetStarted");
-            const popover = document.getElementById("authPopover");
-
-            const togglePopover = (e) => {
-                e.stopPropagation();
-                popover.classList.toggle("active");
-            };
-
-            if (getStartedBtn && popover) {
-                getStartedBtn.addEventListener("click", togglePopover);
-            }
-            if (mobileGetStarted && popover) {
-                mobileGetStarted.addEventListener("click", togglePopover);
-            }
-
-            // Close popover when clicking anywhere else
-            document.addEventListener("click", (e) => {
-                if (popover && !popover.contains(e.target) && e.target !== getStartedBtn && e.target !== mobileGetStarted) {
-                    popover.classList.remove("active");
-                }
-            });
-
-            // Close popover on Escape key
-            document.addEventListener("keydown", (e) => {
-                if (e.key === "Escape" && popover) {
-                    popover.classList.remove("active");
-                }
-            });
-
-            // Role selection simulation inside Auth Modal from popover triggers
-            const ownerRegBtn = document.getElementById("popoverOwnerRegister");
-            if (ownerRegBtn) {
-                ownerRegBtn.addEventListener("click", () => {
-                    setTimeout(() => {
-                        const ownerSwitch = document.querySelector("#authModal [data-auth-role='owner']");
-                        if (ownerSwitch) ownerSwitch.click();
-                    }, 50);
-                });
-            }
-            const studentRegBtn = document.getElementById("popoverStudentRegister");
-            if (studentRegBtn) {
-                studentRegBtn.addEventListener("click", () => {
-                    setTimeout(() => {
-                        const studentSwitch = document.querySelector("#authModal [data-auth-role='student']");
-                        if (studentSwitch) studentSwitch.click();
-                    }, 50);
-                });
-            }
-        });
-    </script>
     <script type="module" src="js/script.js"></script>
 </body>
 
