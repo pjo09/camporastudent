@@ -228,7 +228,16 @@ export async function apiFetch(endpoint, opts = {}) {
 
   const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
   if (token) headers.Authorization = `Bearer ${token}`;
-  const res = await fetch(`${API_BASE}${endpoint}`, { ...opts, headers });
+
+  let res;
+  try {
+    res = await fetch(`${API_BASE}${endpoint}`, { ...opts, headers });
+  } catch (netErr) {
+    // Retry once on HTTP/2 ping failure or transient network reset
+    console.warn(`[apiFetch] Network drop detected (${netErr.message}). Retrying request...`);
+    await new Promise((r) => setTimeout(r, 300));
+    res = await fetch(`${API_BASE}${endpoint}`, { ...opts, headers });
+  }
 
   const contentType = res.headers.get("content-type") || "";
   let data;

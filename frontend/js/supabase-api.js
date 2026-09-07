@@ -104,13 +104,29 @@ export const supabaseAPI = {
 
         // Upsert user profile into profiles table
         if (authData && authData.user) {
-            await supabase.from("profiles").upsert({
+            const { error: upsertErr } = await supabase.from("profiles").upsert({
                 id: authData.user.id,
                 email: email,
                 name: userData.name || email.split("@")[0],
                 role: userData.role || "student",
                 account_status: userData.role === "owner" ? "PENDING" : "ACTIVE"
             });
+
+            if (upsertErr) {
+                const errStr = (upsertErr.message || JSON.stringify(upsertErr)).toLowerCase();
+                if (upsertErr.code === "23505" || errStr.includes("duplicate") || upsertErr.status === 409) {
+                    try {
+                        await supabase.rpc("relink_legacy_profile_by_email", {
+                            p_email: email,
+                            p_target_auth_id: authData.user.id
+                        });
+                    } catch (e) {
+                        console.warn("relink_legacy_profile_by_email RPC notice:", e.message);
+                    }
+                } else {
+                    console.warn("Profile upsert warning:", upsertErr.message);
+                }
+            }
         }
         return authData;
     },
@@ -121,6 +137,27 @@ export const supabaseAPI = {
             password
         });
         if (error) throw error;
+
+        // Check if legacy profile relinking is needed for existing user
+        if (data && data.user) {
+            try {
+                const { data: prof, error: profErr } = await supabase
+                    .from("profiles")
+                    .select("id")
+                    .eq("id", data.user.id)
+                    .maybeSingle();
+
+                if (!prof && (!profErr || profErr.code === "PGRST116")) {
+                    await supabase.rpc("relink_legacy_profile_by_email", {
+                        p_email: data.user.email || email,
+                        p_target_auth_id: data.user.id
+                    });
+                }
+            } catch (e) {
+                console.warn("Profile relink check notice:", e.message);
+            }
+        }
+
         return data;
     },
 
