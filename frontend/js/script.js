@@ -699,17 +699,19 @@ const Properties = (() => {
         <div class="property-card reveal">
             <div class="property-image">
                 <img src="${img}" alt="${esc(name)}" loading="lazy" onerror="this.onerror=null; this.src='/assets/images/property-placeholder.jpg'">
-                ${badge ? '<span class="property-badge">' + esc(badge) + "</span>" : ""}
+                ${badge ? '<span class="property-badge"><i class="fa-solid fa-shield-check"></i> ' + esc(badge) + "</span>" : ""}
                 ${p.property_type || p.propertyType ? '<span class="property-type">' + esc(p.property_type || p.propertyType) + "</span>" : ""}
             </div>
             <div class="property-body">
-                <div class="property-location"><i class="fa-solid fa-location-dot"></i> ${esc(loc)}</div>
-                <h3 class="property-title">${esc(name)}</h3>
-                <div class="property-features">${amenities}</div>
+                <div>
+                    <div class="property-location"><i class="fa-solid fa-location-dot"></i> ${esc(loc)}</div>
+                    <h3 class="property-title">${esc(name)}</h3>
+                    <div class="property-features">${amenities}</div>
+                </div>
                 <div class="property-footer">
                     <div class="property-price"><span>Rent / month</span><h3>${inr(rent)}</h3></div>
                     <span class="property-rating"><i class="fa-solid fa-star"></i> ${rating > 0 ? rating.toFixed(1) : "New"}</span>
-                    <a href="/property-details.html?id=${encodeURIComponent(p.id || p._id)}" class="property-btn">Book</a>
+                    <a href="/property-details.html?id=${encodeURIComponent(p.id || p._id)}" class="property-btn">View Details</a>
                 </div>
             </div>
         </div>`;
@@ -767,15 +769,17 @@ const Universities = (() => {
     }
 
     function renderCard(u) {
+        const uniUrl = "properties.html?college=" + encodeURIComponent(u.name);
         return `
-        <div class="why-card reveal">
+        <div class="why-card reveal" onclick="window.location.href='${uniUrl}'" style="cursor:pointer;">
             <div class="why-icon"><i class="fa-solid fa-graduation-cap"></i></div>
             <h3>${esc(u.name)}</h3>
             <p>${esc(u.city || "Across India")}</p>
             <ul>
-                <li>${u.count} properties nearby</li>
-                <li>Verified student homes</li>
+                <li><i class="fa-solid fa-house-user"></i> ${u.count} homes nearby</li>
+                <li>Zero brokerage fees</li>
             </ul>
+            <a href="${uniUrl}" class="view-all-link" style="margin-top:12px; display:inline-flex;">View Accommodations <i class="fa-solid fa-arrow-right"></i></a>
         </div>`;
     }
 
@@ -831,18 +835,17 @@ const Cities = (() => {
     }
 
     function renderCard(c) {
+        const cityUrl = "properties.html?city=" + encodeURIComponent(c.name);
         return `
-        <div class="property-card reveal">
-            <div class="property-body">
-                <div class="property-location"><i class="fa-solid fa-city"></i> ${esc(c.state || "India")}</div>
-                <h3 class="property-title">${esc(c.name)}</h3>
-                <div class="property-features">
-                    <span class="feature-item"><i class="fa-solid fa-building"></i> ${c.count} properties</span>
-                </div>
-                <div class="property-footer">
-                    <a href="properties.html?city=${encodeURIComponent(c.name)}" class="view-all">Explore <i class="fa-solid fa-arrow-right"></i></a>
-                </div>
-            </div>
+        <div class="why-card reveal" onclick="window.location.href='${cityUrl}'" style="cursor:pointer;">
+            <div class="why-icon"><i class="fa-solid fa-city"></i></div>
+            <h3>${esc(c.name)}</h3>
+            <p>${esc(c.state || "India")}</p>
+            <ul>
+                <li><i class="fa-solid fa-building"></i> ${c.count} verified properties</li>
+                <li>Ready for student move-in</li>
+            </ul>
+            <a href="${cityUrl}" class="view-all-link" style="margin-top:12px; display:inline-flex;">Explore City <i class="fa-solid fa-arrow-right"></i></a>
         </div>`;
     }
 

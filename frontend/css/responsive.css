@@ -1,286 +1,318 @@
 /* =====================================================
-   CAMPORA RESPONSIVE DESIGN SYSTEM (Desktop, Tablet, Mobile)
+   CAMPORA RESPONSIVE SYSTEM
+   Breakpoints: 320px, 375px, 390px, 414px, 768px, 1024px, 1280px, 1440px
    ===================================================== */
 
-/* Global Overflow Protection */
-html, body {
-    overflow-x: hidden !important;
-    width: 100%;
-    margin: 0;
-    padding: 0;
-}
-
-* {
-    box-sizing: border-box;
-}
-
-/* Desktop Large (1200px and above) */
-@media (min-width: 1200px) {
+/* Ultra Wide Screens (1440px+) */
+@media (min-width: 1440px) {
     .container {
-        max-width: 1280px;
+        max-width: 1360px;
     }
 }
 
-/* Tablet Layout (768px to 1199px) */
-@media (min-width: 768px) and (max-width: 1199px) {
+/* Laptops & Desktops (1024px to 1327px) */
+@media (max-width: 1280px) {
+    .bento-lg { grid-column: span 2; }
+    .bento-md { grid-column: span 1; }
+    .bento-cta { grid-column: span 3; }
+}
+
+/* Tablets & Small Laptops (769px to 1023px) */
+@media (max-width: 1023px) {
+    .header {
+        height: 68px;
+    }
+
+    .mobile-menu {
+        top: 68px;
+    }
+
     .hero {
-        margin: 80px 16px 24px 16px;
-        padding: 56px 24px;
+        margin: 80px 16px 32px 16px;
+        padding: 60px 20px;
+        border-radius: var(--radius-lg);
     }
 
-    .hero-search-pill {
-        max-width: 100%;
-        padding: 8px 12px 8px 20px;
+    .bento-grid {
+        grid-template-columns: repeat(2, 1fr);
     }
 
-    .property-grid {
-        grid-template-columns: repeat(2, 1fr) !important;
-        gap: 20px;
+    .bento-lg { grid-column: span 2; }
+    .bento-md { grid-column: span 1; }
+    .bento-sm { grid-column: span 1; }
+    .bento-cta { grid-column: span 2; }
+
+    .steps-wrapper {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 16px;
+    }
+
+    .cta-grid {
+        grid-template-columns: 1fr;
     }
 
     .footer-grid {
-        grid-template-columns: repeat(3, 1fr) !important;
-        gap: 32px;
+        grid-template-columns: 1fr repeat(2, 1fr);
     }
 }
 
-/* Mobile Layout (320px to 767px) */
-@media (max-width: 767px) {
+/* Mobile & Small Tablets (up to 768px) */
+@media (max-width: 768px) {
     .container {
         padding: 0 16px;
-        width: 100%;
     }
 
-    /* Fixed mobile header, logo & menu alignment */
-    .header {
-        height: 60px !important;
-        padding: 0 16px;
+    .section-header {
+        margin-bottom: 32px;
     }
 
-    .navbar {
-        height: 100%;
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+    .section-header h2 {
+        font-size: 26px;
     }
 
-    .logo {
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .logo img {
-        width: 28px !important;
-        height: 28px !important;
-        object-fit: contain;
-    }
-
-    .logo span {
-        font-size: 18px !important;
-        line-height: 1;
-    }
-
-    .menu-toggle {
-        display: flex !important;
-        align-items: center;
-        justify-content: center;
-        padding: 4px;
-        margin: 0;
-        height: 36px;
-        width: 36px;
-    }
-
-    /* Mobile Hero section with dark navy text & readable background overlay */
     .hero {
-        margin: 68px 12px 16px 12px !important;
-        padding: 24px 16px !important;
-        border-radius: 16px !important;
-        background-size: cover;
-        background-position: center;
-    }
-
-    .hero::before {
-        background: linear-gradient(180deg, rgba(248, 250, 252, 0.94) 0%, rgba(248, 250, 252, 0.88) 100%) !important;
-    }
-
-    .hero-badge {
-        color: #059669 !important;
-        background: #ecfdf5 !important;
-        border: 1px solid rgba(5, 150, 105, 0.2) !important;
-        font-size: 12px !important;
-        padding: 6px 14px !important;
-        margin-bottom: 16px !important;
+        margin: 76px 12px 24px 12px;
+        padding: 48px 16px;
+        border-radius: var(--radius-lg);
     }
 
     .hero-title {
-        color: #0b1f3a !important;
-        font-size: clamp(26px, 7.5vw, 34px) !important;
-        line-height: 1.2 !important;
-        margin-bottom: 12px !important;
-    }
-
-    .hero-title span {
-        color: #059669 !important;
+        font-size: 34px;
+        line-height: 1.15;
     }
 
     .hero-description {
-        color: #475569 !important;
-        font-size: 14px !important;
-        line-height: 1.5 !important;
-        margin-bottom: 20px !important;
+        font-size: 15px;
+        margin-bottom: 28px;
     }
 
-    /* Mobile Search Card */
+    /* Stack Search Bar Controls */
     .hero-search-pill {
-        display: flex !important;
-        flex-direction: column !important;
-        width: calc(100% - 16px) !important;
-        max-width: 100% !important;
-        margin: 0 auto 20px auto !important;
-        padding: 14px !important;
-        gap: 10px !important;
-        box-sizing: border-box !important;
-        border-radius: 16px !important;
-        background: #ffffff !important;
-        box-shadow: 0 10px 25px rgba(11, 31, 58, 0.12) !important;
-        border: 1px solid var(--border-color) !important;
+        flex-direction: column;
+        border-radius: var(--radius-lg);
+        padding: 16px;
+        gap: 14px;
     }
 
     .search-main-field {
-        display: flex !important;
-        align-items: center !important;
-        width: 100% !important;
-        gap: 10px !important;
-        padding-bottom: 8px !important;
-        border-bottom: 1px solid rgba(15, 23, 42, 0.08) !important;
-    }
-
-    .search-field-icon {
-        font-size: 16px !important;
-        color: #059669 !important;
-        flex-shrink: 0;
-    }
-
-    .hero-query-input {
-        flex: 1 !important;
-        min-width: 0 !important;
-        width: 100% !important;
-        overflow: hidden !important;
-        text-overflow: ellipsis !important;
-        white-space: nowrap !important;
-        font-size: 14px !important;
-        border: none !important;
-        outline: none !important;
-        background: transparent !important;
+        width: 100%;
+        border-bottom: 1px solid #E2E8F0;
+        padding-bottom: 12px;
     }
 
     .search-filters-row {
-        display: grid !important;
-        grid-template-columns: 1fr 1fr !important;
-        gap: 8px !important;
-        width: 100% !important;
+        width: 100%;
+        flex-direction: row;
+        gap: 8px;
+        border-bottom: 1px solid #E2E8F0;
+        padding-bottom: 12px;
     }
 
     .search-filters-row .search-item {
-        border-left: none !important;
-        padding-left: 0 !important;
-        width: 100% !important;
-        background: #f8fafc !important;
-        border-radius: 8px !important;
-        padding: 6px 8px !important;
-        box-sizing: border-box !important;
-        border: 1px solid rgba(15, 23, 42, 0.06) !important;
+        flex: 1;
+        border-left: none;
+        padding-left: 0;
     }
 
     .search-filters-row select {
-        width: 100% !important;
-        font-size: 12px !important;
-        color: #0b1f3a !important;
-        background: transparent !important;
-        border: none !important;
+        width: 100%;
+        font-size: 13px;
     }
 
     .hero-search-btn {
-        width: 100% !important;
-        justify-content: center !important;
-        padding: 12px 16px !important;
-        border-radius: 10px !important;
-        font-size: 14px !important;
-        background-color: #059669 !important;
-        color: #ffffff !important;
-        box-sizing: border-box !important;
+        width: 100%;
+        padding: 14px;
+        border-radius: var(--radius-md);
     }
 
-    /* Stacked Trust Badges */
     .hero-trust-badges {
-        display: flex !important;
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 8px !important;
-        width: 100% !important;
-        margin-bottom: 20px !important;
+        gap: 8px;
     }
 
     .trust-badge-pill {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 8px !important;
-        padding: 8px 14px !important;
-        width: 100% !important;
-        box-sizing: border-box !important;
-        background: #ffffff !important;
-        border: 1px solid var(--border-color) !important;
-        color: #0b1f3a !important;
-        font-size: 12px !important;
-        font-weight: 600 !important;
-        border-radius: 999px !important;
-        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.04) !important;
+        font-size: 11px;
+        padding: 6px 12px;
     }
 
-    .trust-badge-pill i {
-        color: #059669 !important;
-    }
-
-    /* Mobile City Shortcuts */
     .city-shortcuts {
-        display: flex !important;
-        align-items: center !important;
-        justify-content: center !important;
-        gap: 6px !important;
-        flex-wrap: wrap !important;
+        gap: 6px;
     }
 
     .shortcut-lbl {
-        font-size: 12px !important;
-        color: #475569 !important;
-        width: 100% !important;
-        text-align: center !important;
-        margin-bottom: 4px !important;
+        width: 100%;
+        margin-bottom: 4px;
     }
 
-    .city-badge {
-        font-size: 11px !important;
-        padding: 5px 12px !important;
-        color: #0b1f3a !important;
-        background: #ffffff !important;
-        border: 1px solid var(--border-color) !important;
+    /* Bento Grid Mobile Stacking */
+    .bento-section {
+        padding: 60px 0;
+    }
+
+    .bento-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-top: 32px;
+    }
+
+    .bento-lg, .bento-md, .bento-sm, .bento-cta {
+        grid-column: span 1;
+        min-height: auto;
+        padding: 24px 20px;
+    }
+
+    .bento-card h3 {
+        font-size: 20px;
+    }
+
+    .bento-stat-highlight {
+        font-size: 26px;
+    }
+
+    /* Property Cards Mobile */
+    .featured, .cities-section, .universities-section, .testimonials {
+        padding: 50px 0;
     }
 
     .property-grid {
-        grid-template-columns: 1fr !important;
+        grid-template-columns: 1fr;
         gap: 20px;
     }
 
+    .property-body {
+        padding: 18px;
+    }
+
+    .property-title {
+        font-size: 18px;
+    }
+
+    /* Steps Mobile */
+    .how-it-works {
+        padding: 60px 0;
+    }
+
+    .steps-wrapper {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-top: 32px;
+    }
+
+    .step-card {
+        padding: 24px 20px;
+    }
+
+    .step-num {
+        font-size: 36px;
+        margin-bottom: 8px;
+    }
+
+    /* Why Grid Mobile */
+    .why-campora {
+        padding: 60px 0;
+    }
+
+    .why-grid {
+        grid-template-columns: 1fr;
+        gap: 16px;
+        margin-top: 32px;
+    }
+
+    .why-card {
+        padding: 24px 20px;
+    }
+
+    /* CTA Section Mobile */
+    .cta-section {
+        padding: 50px 0;
+    }
+
+    .cta-card {
+        padding: 32px 24px;
+        border-radius: var(--radius-lg);
+    }
+
+    .cta-card h2 {
+        font-size: 24px;
+    }
+
+    .cta-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* FAQ Mobile */
+    .faq-section {
+        padding: 60px 0;
+    }
+
+    .faq-wrapper {
+        margin-top: 32px;
+        gap: 12px;
+    }
+
+    .faq-question {
+        padding: 16px 18px;
+        font-size: 16px;
+    }
+
+    .faq-item.active .faq-answer {
+        padding: 0 18px 18px 18px;
+    }
+
+    /* Final CTA Mobile */
+    .final-cta {
+        padding: 60px 0;
+    }
+
+    .final-cta h2 {
+        font-size: 28px;
+    }
+
+    .final-btn {
+        width: 100%;
+        justify-content: center;
+    }
+
+    /* Footer Mobile */
+    .footer {
+        padding: 60px 0 24px 0;
+    }
+
     .footer-grid {
-        grid-template-columns: 1fr !important;
-        gap: 28px;
+        grid-template-columns: 1fr;
+        gap: 32px;
+        margin-bottom: 40px;
     }
 
     .footer-bottom {
         flex-direction: column;
-        gap: 12px;
+        gap: 16px;
         text-align: center;
+    }
+
+    /* Auth Modal Mobile */
+    .auth-modal-card {
+        padding: 28px 20px;
+        border-radius: var(--radius-lg);
+    }
+}
+
+/* Small Phones (320px to 390px) */
+@media (max-width: 390px) {
+    .hero-title {
+        font-size: 28px;
+    }
+
+    .hero-badge {
+        font-size: 11px;
+        padding: 6px 14px;
+    }
+
+    .bento-card {
+        padding: 20px 16px;
+    }
+
+    .auth-modal-card {
+        padding: 24px 16px;
     }
 }

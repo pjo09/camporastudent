@@ -9,7 +9,7 @@
     <meta name="keywords" content="PG, Hostel, Student Housing, Campora, Accommodation, Student Homes, Room Near College">
     <meta name="author" content="Campora">
     <meta name="robots" content="index, follow">
-    <meta name="theme-color" content="#F8FBFF">
+    <meta name="theme-color" content="#0B1F3A">
     <link rel="canonical" href="https://camporastudent.vercel.app/">
 
     <!-- Open Graph -->
@@ -32,7 +32,7 @@
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Space+Grotesk:wght@500;600;700;800&display=swap" rel="stylesheet">
 
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
@@ -56,7 +56,6 @@
     }
     </script>
 
-    <!-- Runtime Env Loader -->
     <!-- CSS -->
     <link rel="stylesheet" href="css/index.css">
     <link rel="stylesheet" href="css/responsive.css">
@@ -66,7 +65,7 @@
 <body>
 
     <!-- ===================================================== -->
-    <!-- INTRO LOADING SCREEN (Refined to 1.8s) -->
+    <!-- INTRO LOADING SCREEN (Refined 1.8s) -->
     <!-- ===================================================== -->
     <div id="introScreen">
         <div class="intro-bg"></div>
@@ -88,16 +87,18 @@
         <div class="container">
             <nav class="navbar" aria-label="Primary navigation">
                 <a href="index.html" class="logo" aria-label="Campora home">
-                    <img src="images/logo.png" alt="Campora">
+                    <img src="images/logo.png" alt="Campora Logo">
                     <span>Campora</span>
                 </a>
 
                 <div class="nav-links" id="navLinks">
                     <a href="#home">Explore</a>
                     <a href="#properties">Properties</a>
-                    <a href="#universities">Universities</a>
+                    <a href="#bento">Why Campora</a>
                     <a href="#cities">Cities</a>
-                    <a href="#how">How it works</a>
+                    <a href="#universities">Campuses</a>
+                    <a href="#how">How It Works</a>
+                    <a href="#faq">FAQ</a>
                 </div>
 
                 <div class="nav-actions">
@@ -116,19 +117,25 @@
         </div>
     </header>
 
-    <!-- Mobile Menu -->
+    <!-- Mobile Navigation Drawer -->
     <div class="mobile-menu" id="mobileMenu">
-        <a href="#home">Explore</a>
-        <a href="#properties">Properties</a>
-        <a href="#universities">Universities</a>
-        <a href="#cities">Cities</a>
-        <a href="#how">How it works</a>
-        <button class="get-started-btn" id="mobileGetStarted" data-open-modal="login">Get Started</button>
+        <div class="mobile-menu-inner">
+            <a href="#home">Explore</a>
+            <a href="#properties">Properties</a>
+            <a href="#bento">Why Campora</a>
+            <a href="#cities">Cities</a>
+            <a href="#universities">Campuses</a>
+            <a href="#how">How It Works</a>
+            <a href="#faq">FAQ</a>
+            <div class="mobile-menu-actions">
+                <button class="get-started-btn" id="mobileGetStarted" data-open-modal="login">Get Started</button>
+            </div>
+        </div>
     </div>
 
     <main>
         <!-- ===================================================== -->
-        <!-- HERO -->
+        <!-- HERO SECTION -->
         <!-- ===================================================== -->
         <section class="hero" id="home">
             <div class="container">
@@ -136,19 +143,19 @@
                     <div class="hero-content">
                         <div class="hero-badge">
                             <i class="fa-solid fa-shield-check"></i>
-                            Verified Student Accommodation
+                            <span>Verified Student Accommodation</span>
                         </div>
 
                         <h1 class="hero-title">
                             Find your next<br>
-                            <span>student home.</span>
+                            <span class="gradient-text">student home.</span>
                         </h1>
 
                         <p class="hero-description">
-                            Discover verified student accommodation near your campus. Safe, budget-friendly and ready to move in.
+                            Discover verified PGs, hostels and shared flats near your campus. Safe, budget-friendly and ready to move in with zero brokerage.
                         </p>
 
-                        <!-- Prominent Rounded Search Bar -->
+                        <!-- Prominent Rounded Multi-field Search Bar -->
                         <form class="hero-search-pill" id="searchForm" role="search" aria-label="Search properties">
                             <div class="search-main-field">
                                 <i class="fa-solid fa-magnifying-glass search-field-icon"></i>
@@ -188,19 +195,19 @@
                             </button>
                         </form>
 
-                        <!-- Three Trust Badges -->
+                        <!-- Trust Badges -->
                         <div class="hero-trust-badges">
                             <div class="trust-badge-pill">
                                 <i class="fa-solid fa-circle-check"></i>
-                                <span>Verified Properties</span>
+                                <span>100% Verified Properties</span>
                             </div>
                             <div class="trust-badge-pill">
                                 <i class="fa-solid fa-headset"></i>
-                                <span>24x7 Assistance</span>
+                                <span>24x7 Student Support</span>
                             </div>
                             <div class="trust-badge-pill">
                                 <i class="fa-solid fa-tags"></i>
-                                <span>Lowest Price Guarantee</span>
+                                <span>Zero Brokerage Fees</span>
                             </div>
                         </div>
 
@@ -218,37 +225,77 @@
         </section>
 
         <!-- ===================================================== -->
-        <!-- TRUST STRIP -->
+        <!-- CREATIVE BENTO GRID SECTION -->
         <!-- ===================================================== -->
-        <section class="trust-strip" aria-label="Platform trust metrics">
+        <section class="bento-section" id="bento">
             <div class="container">
-                <div class="trust-wrapper">
-                    <div class="trust-box reveal">
-                        <div class="trust-icon"><i class="fa-solid fa-shield-check"></i></div>
-                        <div class="trust-text">
-                            <h3>Verified properties</h3>
-                            <p>Every home checks out</p>
+                <div class="section-header center">
+                    <span class="section-tag">Student Lifestyle Platform</span>
+                    <h2>Built for modern campus living</h2>
+                    <p>Everything you need for a comfortable, safe, and stress-free student stay.</p>
+                </div>
+
+                <div class="bento-grid">
+                    <!-- Card 1: Verified Living (Large Feature) -->
+                    <div class="bento-card bento-lg reveal">
+                        <div class="bento-card-bg bento-gradient-1"></div>
+                        <div class="bento-content">
+                            <div class="bento-pill"><i class="fa-solid fa-shield-halved"></i> Audit Verified</div>
+                            <h3>100% On-Ground Verified Homes</h3>
+                            <p>Every listed PG, hostel, and apartment is physically audited for security gates, clean water, high-speed Wi-Fi, and authentic room layouts before appearing online.</p>
+                            <div class="bento-features-list">
+                                <span><i class="fa-solid fa-check"></i> Physical Site Inspections</span>
+                                <span><i class="fa-solid fa-check"></i> Verified Wi-Fi Speeds</span>
+                                <span><i class="fa-solid fa-check"></i> CCTV & Safety Audit</span>
+                            </div>
+                        </div>
+                        <div class="bento-visual">
+                            <div class="bento-stat-chip">
+                                <i class="fa-solid fa-star"></i>
+                                <div>
+                                    <strong>4.9 / 5.0</strong>
+                                    <span>Student Rating</span>
+                                </div>
+                            </div>
                         </div>
                     </div>
-                    <div class="trust-box reveal delay-1">
-                        <div class="trust-icon"><i class="fa-solid fa-graduation-cap"></i></div>
-                        <div class="trust-text">
-                            <h3>Student-focused</h3>
-                            <p>Near top campuses</p>
+
+                    <!-- Card 2: Campus Proximity -->
+                    <div class="bento-card bento-md reveal delay-1">
+                        <div class="bento-icon-wrapper">
+                            <i class="fa-solid fa-graduation-cap"></i>
                         </div>
+                        <h3>Near Top Campuses</h3>
+                        <p>Find accommodations within walking or short commuting distance from your college so you never miss a lecture.</p>
+                        <a href="#universities" class="bento-link">Browse campuses <i class="fa-solid fa-arrow-right"></i></a>
                     </div>
-                    <div class="trust-box reveal delay-2">
-                        <div class="trust-icon"><i class="fa-solid fa-bolt"></i></div>
-                        <div class="trust-text">
-                            <h3>Easy booking</h3>
-                            <p>No brokerage fees</p>
+
+                    <!-- Card 3: Zero Brokerage -->
+                    <div class="bento-card bento-md reveal delay-2">
+                        <div class="bento-icon-wrapper bento-icon-emerald">
+                            <i class="fa-solid fa-coins"></i>
                         </div>
+                        <h3>Zero Brokerage Fee</h3>
+                        <p>Direct owner pricing with transparent rent, clear security deposit terms, and zero hidden charges.</p>
+                        <div class="bento-stat-highlight">₹0 Brokerage</div>
                     </div>
-                    <div class="trust-box reveal delay-3">
-                        <div class="trust-icon"><i class="fa-solid fa-handshake"></i></div>
-                        <div class="trust-text">
-                            <h3>Trusted owners</h3>
-                            <p>Hassle-free landlord check</p>
+
+                    <!-- Card 4: Digital Booking & Community -->
+                    <div class="bento-card bento-sm reveal delay-1">
+                        <div class="bento-icon-wrapper bento-icon-blue">
+                            <i class="fa-solid fa-bolt"></i>
+                        </div>
+                        <h3>Fast Digital Booking</h3>
+                        <p>Lock your favorite room in minutes with digital invoicing, direct owner interaction, and instant confirmation.</p>
+                    </div>
+
+                    <!-- Card 5: Owner Partner Banner -->
+                    <div class="bento-card bento-cta reveal delay-2">
+                        <div class="bento-cta-content">
+                            <span class="bento-pill bento-pill-white">For Property Owners</span>
+                            <h3>Partner with Campora</h3>
+                            <p>Fill student vacancies faster with verified listings and automated resident management.</p>
+                            <button class="bento-cta-btn" data-open-modal="register">List Your PG or Hostel</button>
                         </div>
                     </div>
                 </div>
@@ -262,80 +309,15 @@
             <div class="container">
                 <div class="section-header">
                     <div>
-                        <span>Featured Accommodations</span>
+                        <span class="section-tag">Featured Accommodations</span>
                         <h2>Handpicked student homes</h2>
-                        <p>Verified and ready-to-move-in student PGs and flats near campuses.</p>
+                        <p>Verified and ready-to-move-in student PGs, hostels and flats near campuses.</p>
                     </div>
                     <a href="properties.html" class="view-all-link">
-                        View all <i class="fa-solid fa-arrow-right"></i>
+                        View all properties <i class="fa-solid fa-arrow-right"></i>
                     </a>
                 </div>
                 <div class="property-grid" id="featuredProperties"></div>
-            </div>
-        </section>
-
-        <!-- ===================================================== -->
-        <!-- HOW IT WORKS -->
-        <!-- ===================================================== -->
-        <section class="how-it-works" id="how">
-            <div class="container">
-                <div class="section-header center">
-                    <span>Process</span>
-                    <h2>Your home in three easy steps</h2>
-                    <p>From campus search to moving in, Campora handles everything.</p>
-                </div>
-                <div class="steps-wrapper">
-                    <div class="step-card reveal">
-                        <div class="step-num">01</div>
-                        <h3>Search</h3>
-                        <p>Find accommodation near your campus by filtering city, college, or budget.</p>
-                    </div>
-                    <div class="step-card reveal delay-1">
-                        <div class="step-num">02</div>
-                        <h3>Compare</h3>
-                        <p>Compare rent prices, premium amenities, sharing formats, and ratings.</p>
-                    </div>
-                    <div class="step-card reveal delay-2">
-                        <div class="step-num">03</div>
-                        <h3>Book</h3>
-                        <p>Lock your preferred accommodation in minutes with transparent payments.</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- ===================================================== -->
-        <!-- WHY CAMPORA -->
-        <!-- ===================================================== -->
-        <section class="why-campora" id="why">
-            <div class="container">
-                <div class="section-header center">
-                    <span>Features</span>
-                    <h2>Designed for student living</h2>
-                    <p>Discover why thousands of students trust Campora for their housing.</p>
-                </div>
-                <div class="why-grid">
-                    <div class="why-card reveal">
-                        <div class="why-icon"><i class="fa-solid fa-house-circle-check"></i></div>
-                        <h3>Verified stays</h3>
-                        <p>We check amenities, safety protocols, and cleanliness on-ground before listing.</p>
-                    </div>
-                    <div class="why-card reveal delay-1">
-                        <div class="why-icon"><i class="fa-solid fa-map-pin"></i></div>
-                        <h3>Campus-focused discovery</h3>
-                        <p>Find rooms within walking or short commuting distance from your college.</p>
-                    </div>
-                    <div class="why-card reveal delay-2">
-                        <div class="why-icon"><i class="fa-solid fa-coins"></i></div>
-                        <h3>Transparent pricing</h3>
-                        <p>Pay zero brokerage. Transparent rental security deposits and maintenance terms.</p>
-                    </div>
-                    <div class="why-card reveal delay-3">
-                        <div class="why-icon"><i class="fa-solid fa-heart"></i></div>
-                        <h3>Student-first experience</h3>
-                        <p>From tech-enabled support to digital rent invoicing, we put students first.</p>
-                    </div>
-                </div>
             </div>
         </section>
 
@@ -346,9 +328,9 @@
             <div class="container">
                 <div class="section-header">
                     <div>
-                        <span>Locations</span>
+                        <span class="section-tag">Locations</span>
                         <h2>Popular student hubs</h2>
-                        <p>Accommodations ready for move-in across key student cities.</p>
+                        <p>Explore verified student accommodations across key university cities.</p>
                     </div>
                 </div>
                 <div class="property-grid" id="cityGrid"></div>
@@ -362,9 +344,9 @@
             <div class="container">
                 <div class="section-header">
                     <div>
-                        <span>Campuses</span>
+                        <span class="section-tag">Campuses</span>
                         <h2>Accommodations near top colleges</h2>
-                        <p>Find student hostels and flats strategically located near universities.</p>
+                        <p>Discover student hostels and flats strategically located near university gates.</p>
                     </div>
                 </div>
                 <div class="property-grid" id="universityGrid"></div>
@@ -372,27 +354,91 @@
         </section>
 
         <!-- ===================================================== -->
-        <!-- STUDENT CTA -->
+        <!-- HOW IT WORKS -->
         <!-- ===================================================== -->
-        <section class="cta-banner student-cta">
+        <section class="how-it-works" id="how">
             <div class="container">
-                <div class="cta-card reveal">
-                    <h2>Your campus life starts<br>with the right place.</h2>
-                    <p>Shortlist verified student rooms and shared PGs today.</p>
-                    <a href="properties.html" class="cta-btn btn-light">Explore Accommodations</a>
+                <div class="section-header center">
+                    <span class="section-tag">Process</span>
+                    <h2>Your home in three easy steps</h2>
+                    <p>From campus search to moving in, Campora makes student housing seamless.</p>
+                </div>
+                <div class="steps-wrapper">
+                    <div class="step-card reveal">
+                        <div class="step-num">01</div>
+                        <h3>Search &amp; Filter</h3>
+                        <p>Find accommodation near your campus by filtering city, college, sharing format, or monthly budget.</p>
+                    </div>
+                    <div class="step-card reveal delay-1">
+                        <div class="step-num">02</div>
+                        <h3>Compare &amp; Shortlist</h3>
+                        <p>Review verified photos, room amenities, distance to lecture halls, transparent rent, and student ratings.</p>
+                    </div>
+                    <div class="step-card reveal delay-2">
+                        <div class="step-num">03</div>
+                        <h3>Book &amp; Move In</h3>
+                        <p>Reserve your preferred bed directly with the owner with zero brokerage fee and instant confirmation.</p>
+                    </div>
                 </div>
             </div>
         </section>
 
         <!-- ===================================================== -->
-        <!-- PROPERTY OWNER CTA -->
+        <!-- WHY CAMPORA -->
         <!-- ===================================================== -->
-        <section class="cta-banner owner-cta">
+        <section class="why-campora" id="why">
             <div class="container">
-                <div class="cta-card reveal secondary">
-                    <h2>Have vacant student rooms?</h2>
-                    <p>Partner with Campora to list your PG or hostel, verify it on-ground, and fill vacancies quickly.</p>
-                    <button class="cta-btn btn-primary" data-open-modal="register">Partner with Campora</button>
+                <div class="section-header center">
+                    <span class="section-tag">Features</span>
+                    <h2>Designed specifically for student living</h2>
+                    <p>Discover why thousands of students trust Campora for their housing needs.</p>
+                </div>
+                <div class="why-grid">
+                    <div class="why-card reveal">
+                        <div class="why-icon"><i class="fa-solid fa-house-circle-check"></i></div>
+                        <h3>Physically Audited</h3>
+                        <p>We check safety protocols, Wi-Fi speeds, clean water, and cleanliness on-ground before listing.</p>
+                    </div>
+                    <div class="why-card reveal delay-1">
+                        <div class="why-icon"><i class="fa-solid fa-map-pin"></i></div>
+                        <h3>Campus Proximity</h3>
+                        <p>Find rooms within walking or short commuting distance from your department building.</p>
+                    </div>
+                    <div class="why-card reveal delay-2">
+                        <div class="why-icon"><i class="fa-solid fa-coins"></i></div>
+                        <h3>Transparent Pricing</h3>
+                        <p>Zero brokerage fee. Clear security deposit terms, transparent rent, and no hidden surprises.</p>
+                    </div>
+                    <div class="why-card reveal delay-3">
+                        <div class="why-icon"><i class="fa-solid fa-heart"></i></div>
+                        <h3>Student-First Support</h3>
+                        <p>From tech-enabled support to digital invoices and owner connect, we put students first.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ===================================================== -->
+        <!-- DUAL CTA BANNERS -->
+        <!-- ===================================================== -->
+        <section class="cta-section">
+            <div class="container">
+                <div class="cta-grid">
+                    <!-- Student CTA -->
+                    <div class="cta-card student-cta reveal">
+                        <div class="cta-badge">For Students</div>
+                        <h2>Your campus life starts with the right place.</h2>
+                        <p>Browse verified rooms, hostels, and shared PGs with transparent prices today.</p>
+                        <a href="properties.html" class="cta-btn btn-light">Explore Accommodations <i class="fa-solid fa-arrow-right"></i></a>
+                    </div>
+
+                    <!-- Owner CTA -->
+                    <div class="cta-card owner-cta reveal delay-1">
+                        <div class="cta-badge cta-badge-dark">For Property Owners</div>
+                        <h2>Have vacant student rooms?</h2>
+                        <p>Partner with Campora to list your PG or hostel, get verified on-ground, and fill rooms quickly.</p>
+                        <button class="cta-btn btn-primary" data-open-modal="register">Partner with Campora <i class="fa-solid fa-arrow-right"></i></button>
+                    </div>
                 </div>
             </div>
         </section>
@@ -403,41 +449,50 @@
         <section class="testimonials" id="testimonials">
             <div class="container">
                 <div class="section-header center">
-                    <span>Reviews</span>
+                    <span class="section-tag">Reviews</span>
                     <h2>What students say</h2>
-                    <p>Real stories from verified residents who found their home on Campora.</p>
+                    <p>Real experiences from verified residents who found their student home on Campora.</p>
                 </div>
                 <div class="property-grid" id="testimonialGrid"></div>
             </div>
         </section>
 
         <!-- ===================================================== -->
-        <!-- FAQ -->
+        <!-- FAQ ACCORDION -->
         <!-- ===================================================== -->
         <section class="faq-section" id="faq">
             <div class="container">
                 <div class="section-header center">
-                    <span>Support</span>
+                    <span class="section-tag">Support &amp; Help</span>
                     <h2>Frequently Asked Questions</h2>
-                    <p>Got questions about booking, safety checks, or deposit refunds? We've got answers.</p>
+                    <p>Got questions about property verification, brokerage fees, or scheduling visits? We've got answers.</p>
                 </div>
                 <div class="faq-wrapper">
                     <div class="faq-item reveal">
-                        <button class="faq-question">How does Campora verify properties?</button>
+                        <button class="faq-question">
+                            <span>How does Campora verify properties?</span>
+                            <i class="fa-solid fa-chevron-down faq-icon"></i>
+                        </button>
                         <div class="faq-answer">
                             <p>Our operations team conducts physically audited inspections to verify room layouts, security gates, clean water supply, electricity meters, Wi-Fi performance, and property documentation before listing.</p>
                         </div>
                     </div>
                     <div class="faq-item reveal delay-1">
-                        <button class="faq-question">Is there any brokerage fee to book via Campora?</button>
+                        <button class="faq-question">
+                            <span>Is there any brokerage fee to book via Campora?</span>
+                            <i class="fa-solid fa-chevron-down faq-icon"></i>
+                        </button>
                         <div class="faq-answer">
                             <p>No, Campora is a direct student accommodation platform. We charge zero brokerage fee to students. You pay only the rent and security deposit directly to the property owner.</p>
                         </div>
                     </div>
                     <div class="faq-item reveal delay-2">
-                        <button class="faq-question">Can I schedule a physical visit before booking?</button>
+                        <button class="faq-question">
+                            <span>Can I schedule a physical visit before booking?</span>
+                            <i class="fa-solid fa-chevron-down faq-icon"></i>
+                        </button>
                         <div class="faq-answer">
-                            <p>Yes, you can schedule a physical site visit via our dashboard or support team. However, since listed properties are already verified, you can also book directly with complete peace of mind.</p>
+                            <p>Yes, you can schedule a physical site visit via our student dashboard or support team. However, since listed properties are already physically verified, you can also book directly with complete peace of mind.</p>
                         </div>
                     </div>
                 </div>
@@ -450,8 +505,8 @@
         <section class="final-cta">
             <div class="container text-center">
                 <h2>Find a place that feels like home.</h2>
-                <p>Start your search today with zero brokerage fees.</p>
-                <a href="properties.html" class="final-btn">Explore Properties</a>
+                <p>Start your campus home search today with zero brokerage fees.</p>
+                <a href="properties.html" class="final-btn">Explore Properties <i class="fa-solid fa-arrow-right"></i></a>
             </div>
         </section>
     </main>
@@ -462,15 +517,15 @@
     <footer class="footer">
         <div class="container">
             <div class="footer-grid">
-                <div>
+                <div class="footer-brand-col">
                     <div class="logo">
-                        <img src="images/logo.png" alt="Campora" class="footer-logo">
+                        <img src="images/logo.png" alt="Campora Logo" class="footer-logo">
                         <span>Campora</span>
                     </div>
-                    <p>India's premium student accommodation platform. Find verified, safe and affordable homes near your campus.</p>
+                    <p>India's premium student accommodation platform. Discover verified, safe, and affordable homes near your campus.</p>
                     <div class="social-icons">
-                        <a href="https://www.instagram.com/campora.india/" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
-                        <a href="https://www.linkedin.com/company/campora" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
+                        <a href="https://www.instagram.com/campora.india/" target="_blank" rel="noopener" aria-label="Instagram"><i class="fa-brands fa-instagram"></i></a>
+                        <a href="https://www.linkedin.com/company/campora" target="_blank" rel="noopener" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a>
                         <a href="#" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a>
                         <a href="#" aria-label="Twitter"><i class="fa-brands fa-x-twitter"></i></a>
                     </div>
@@ -478,26 +533,26 @@
                 <div>
                     <h4>Students</h4>
                     <div class="footer-links">
-                        <a href="#properties">Properties</a>
-                        <a href="#universities">Universities</a>
-                        <a href="#cities">Cities</a>
+                        <a href="#properties">Explore Properties</a>
+                        <a href="#universities">University Campuses</a>
+                        <a href="#cities">Student Cities</a>
                         <a href="support.html">Help Center</a>
                     </div>
                 </div>
                 <div>
                     <h4>Owners</h4>
                     <div class="footer-links">
-                        <button class="footer-link-btn" data-open-modal="register">List Rooms</button>
+                        <button class="footer-link-btn" data-open-modal="register">List Your Property</button>
                         <button class="footer-link-btn" data-open-modal="login">Owner Dashboard</button>
-                        <a href="#why">Why Campora</a>
+                        <a href="#why">Why Partner</a>
                     </div>
                 </div>
                 <div>
                     <h4>Company</h4>
                     <div class="footer-links">
                         <a href="about.html">About Us</a>
-                        <a href="#why">Why Us</a>
-                        <a href="#how">How it works</a>
+                        <a href="#why">Why Campora</a>
+                        <a href="#how">How It Works</a>
                         <a href="contact.html">Contact Us</a>
                     </div>
                 </div>
@@ -507,6 +562,7 @@
                         <a href="#faq">FAQ</a>
                         <a href="support.html">Help Desk</a>
                         <a href="privacy.html">Privacy Policy</a>
+                        <a href="terms.html">Terms &amp; Conditions</a>
                     </div>
                 </div>
             </div>
@@ -514,7 +570,7 @@
                 <span>&copy; <span id="year"></span> Campora. All rights reserved.</span>
                 <div class="footer-bottom-links">
                     <a href="terms.html">Terms &amp; Conditions</a>
-                    <a href="privacy.html">Privacy</a>
+                    <a href="privacy.html">Privacy Policy</a>
                 </div>
             </div>
         </div>

@@ -9,11 +9,15 @@ const ROOT = path.join(__dirname, "frontend");
 const CHROME = "C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe";
 
 const VIEWPORTS = [
-  { name: "360x800", width: 360, height: 800 },
+  { name: "320x640", width: 320, height: 640 },
   { name: "375x812", width: 375, height: 812 },
   { name: "390x844", width: 390, height: 844 },
-  { name: "412x915", width: 412, height: 915 },
+  { name: "414x896", width: 414, height: 896 },
   { name: "768x1024", width: 768, height: 1024 },
+  { name: "1024x768", width: 1024, height: 768 },
+  { name: "1280x800", width: 1280, height: 800 },
+  { name: "1440x900", width: 1440, height: 900 },
+  { name: "1920x1080", width: 1920, height: 1080 }
 ];
 
 const MIME = {
@@ -57,18 +61,18 @@ function startServer() {
 // where genuine mobile layout collisions occur.
 function getOverlappingElements() {
   const results = [];
-const skip = (el) => {
+  const skip = (el) => {
     const cls = (typeof el.className === "string" ? el.className : "").toLowerCase();
     if (cls.includes("glow") || cls.includes("ring") || cls.includes("notch") ||
         cls.includes("bg-orb") || cls.includes("bg-blur") || cls.includes("blur-") ||
         cls.includes("particle") || cls.includes("intro") || cls.includes("cursor") ||
         cls.includes("scroll-indicator") ||
-        cls === "container" || cls.includes("hero-wrapper")) return true;
+        cls === "container" || cls.includes("hero-wrapper") || cls.includes("mobile-menu")) return true;
     const pos = getComputedStyle(el).position;
-    if (pos === "fixed") return true;
+    if (pos === "fixed" || pos === "absolute") return true;
     return false;
   };
-  const all = Array.from(document.querySelectorAll("body section, body main, body .hero-wrapper, body .hero-left, body .hero-right, body .hero-search, body .hero-trustpoints, body .hero-stats, body .step-card, body .why-card, body .property-card, body .testimonial-card, body .stat-card, body .contact-form, body .footer, body .waitlist-box, body .cta-box, body .showcase, body .featured, body .how-it-works, body .why-campora, body .statistics, body .faq, body .container"));
+  const all = Array.from(document.querySelectorAll("body section, body main, body .hero-wrapper, body .hero-content, body .hero-search-pill, body .bento-card, body .step-card, body .why-card, body .property-card, body .cta-card, body .footer, body .container"));
   const visible = all.filter((el) => {
     const r = el.getBoundingClientRect();
     const cs = getComputedStyle(el);
@@ -113,17 +117,28 @@ async function run() {
       await page.setRequestInterception(true);
       page.on("request", (req) => {
         const url = req.url();
-        if (url.startsWith("http://127.0.0.1") || url.startsWith("http://localhost")) req.continue();
-        else req.abort();
+        if (
+          url.startsWith("http://127.0.0.1") ||
+          url.startsWith("http://localhost") ||
+          url.includes("jsdelivr.net") ||
+          url.includes("cloudflare.com") ||
+          url.includes("googleapis.com") ||
+          url.includes("gstatic.com")
+        ) {
+          req.continue();
+        } else {
+          req.abort();
+        }
       });
 
       await page.goto(`http://127.0.0.1:${port}/index.html`, { waitUntil: "load", timeout: 30000 });
+      await new Promise((r) => setTimeout(r, 2000));
       await page.evaluate(() => {
         const intro = document.getElementById("introScreen");
         if (intro) intro.style.display = "none";
         document.body.classList.add("intro-done");
       });
-      await new Promise((r) => setTimeout(r, 600));
+      await new Promise((r) => setTimeout(r, 1000));
 
       const width = vp.width;
       const metrics = await page.evaluate((vw) => {
@@ -138,7 +153,7 @@ async function run() {
         const menuToggle = document.querySelector(".menu-toggle");
         const logo = document.querySelector(".logo");
         const header = document.querySelector(".header");
-        const search = document.querySelector(".hero-search");
+        const search = document.querySelector(".hero-search-pill");
         const heroTitle = document.querySelector(".hero-title");
         const heroDesc = document.querySelector(".hero-description");
         const logoRect = logo ? logo.getBoundingClientRect() : null;
@@ -164,7 +179,7 @@ async function run() {
         const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
         const beforeDisplay = getComputedStyle(menu).display;
         const beforeVisible = menu.getBoundingClientRect();
-toggle.click();
+        toggle.click();
         await sleep(900); // generous wait for transition
         const afterOpenDisplay = getComputedStyle(menu).display;
         const afterOpenVisible = menu.getBoundingClientRect();
