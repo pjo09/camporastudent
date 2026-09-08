@@ -3,7 +3,7 @@
 // Central API helper, toast, session, sidebar, topbar
 // =====================================================
 
-import { getToken, getUser, protectPageByRole, logout as sessionLogout, getLoginUrl } from "./session.js";
+import { getToken, getUser, getRestoredSupabaseSession, protectPageByRole, logout as sessionLogout, getLoginUrl } from "./session.js";
 import { API } from "./config.js";
 import { getImageUrl } from "./image-utils.js";
 import { supabaseAPI } from "./supabase-api.js";
@@ -18,36 +18,54 @@ const API_BASE = API;
 
 export async function verifyLiveStudentAuth() {
   try {
-    const { data: sessionData } = await supabase.auth.getSession();
-    const session = sessionData?.session;
+    const session = await getRestoredSupabaseSession(2500);
     if (!session || !session.user) {
       const localUser = getUser();
       const localToken = getToken();
-      if (localUser && localToken && localUser.role === "student") {
+      if (localUser && localToken && (localUser.role === "student" || !localUser.role)) {
+        if (localUser.accountStatus === "BANNED" || localUser.accountStatus === "DELETED" || localUser.accountStatus === "REJECTED") {
+          sessionLogout();
+          return null;
+        }
         return localUser;
       }
       return null;
     }
 
     let profile = null;
-    const { data: pById } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", session.user.id)
-      .maybeSingle();
-
-    if (pById) {
-      profile = pById;
-    } else if (session.user.email) {
-      const { data: pByEmail } = await supabase
+    try {
+      const { data: pById, error: errById } = await supabase
         .from("profiles")
         .select("*")
-        .eq("email", session.user.email)
+        .eq("id", session.user.id)
         .maybeSingle();
-      if (pByEmail) profile = pByEmail;
+
+      if (pById) {
+        profile = pById;
+      } else if (session.user.email) {
+        const { data: pByEmail } = await supabase
+          .from("profiles")
+          .select("*")
+          .eq("email", session.user.email)
+          .maybeSingle();
+        if (pByEmail) profile = pByEmail;
+      }
+
+      if (!profile) {
+        profile = await supabaseAPI.ensureUserProfile(session.user, "student").catch(() => null);
+      }
+    } catch (profErr) {
+      console.warn("⚠️ [Student Utils] Profile lookup warning:", profErr?.message || profErr);
     }
 
-    if (!profile || profile.account_status === "DELETED" || profile.status === "inactive") {
+    // Fallback to local cached user if profile fetch failed transiently
+    if (!profile) {
+      const localUser = getUser();
+      if (localUser && (localUser.role === "student" || !localUser.role)) return localUser;
+      return null;
+    }
+
+    if (profile.account_status === "BANNED" || profile.account_status === "DELETED" || profile.status === "inactive" || profile.account_status === "REJECTED") {
       sessionLogout();
       return null;
     }
@@ -69,6 +87,9 @@ export async function verifyLiveStudentAuth() {
 
     return profile;
   } catch (e) {
+    console.warn("⚠️ [Student Utils] Authentication notice:", e?.message || e);
+    const localUser = getUser();
+    if (localUser && (localUser.role === "student" || !localUser.role)) return localUser;
     return null;
   }
 }
@@ -96,13 +117,13 @@ export function gateStudent() {
   }
 
   const roleUser = protectPageByRole(["student"]);
-  if (!roleUser || !token) {
+  if (!roleUser && !token) {
     const currentUrl = window.location.pathname + window.location.search;
     window.location.href = getLoginUrl() + "?redirectTo=" + encodeURIComponent(currentUrl);
     return null;
   }
   verifyLiveStudentAuth();
-  return roleUser;
+  return roleUser || user;
 }
 
 export const currentUser = gateStudent();

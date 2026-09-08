@@ -3,7 +3,7 @@
 // All owner V3 pages import this module.
 // =====================================================
 
-import { getToken, getUser, protectPageByRole, logout as sessionLogout, getLoginUrl } from "./session.js";
+import { getToken, getUser, getRestoredSupabaseSession, logout as sessionLogout, getLoginUrl } from "./session.js";
 import { API } from "./config.js";
 import { getImageUrl } from "./image-utils.js";
 import { supabase } from "./supabaseClient.js";
@@ -13,16 +13,29 @@ import { getTheme, setTheme, toggleTheme, applyTheme, initTheme } from "./theme.
 // AUTH GUARD & LIVE DB VERIFICATION
 // =====================================================
 
-const user = protectPageByRole(["owner"]);
-const token = getToken();
-if (!user || !token) {
-  window.location.href = getLoginUrl();
+async function retryGetProfile(user, retries = 3) {
+  const { supabaseAPI } = await import("./supabase-api.js");
+  let lastErr = null;
+  for (let i = 0; i < retries; i++) {
+    try {
+      const profile = await supabaseAPI.ensureUserProfile(user, "owner");
+      if (profile) return profile;
+    } catch (err) {
+      lastErr = err;
+      const status = err?.status || err?.statusCode || err?.code;
+      if (status === 401 || status === 403) throw err; // Don't retry auth rejections
+      if (i < retries - 1) {
+        await new Promise((res) => setTimeout(res, 500 * (i + 1)));
+      }
+    }
+  }
+  throw lastErr;
 }
 
 export async function verifyLiveOwnerAuth() {
   try {
-    const { data: sessionData } = await supabase.auth.getSession();
-    const session = sessionData?.session;
+    const session = await getRestoredSupabaseSession(2500);
+
     if (!session || !session.user) {
       const localUser = getUser();
       const localToken = getToken();
@@ -33,15 +46,27 @@ export async function verifyLiveOwnerAuth() {
         }
         return localUser;
       }
-      sessionLogout();
+      // Confirmed unauthenticated: redirect to login
+      const currentUrl = window.location.pathname + window.location.search;
+      window.location.href = `${getLoginUrl()}?redirectTo=${encodeURIComponent(currentUrl)}`;
       return null;
     }
 
-    const { supabaseAPI } = await import("./supabase-api.js");
-    const profile = await supabaseAPI.ensureUserProfile(session.user, "owner");
+    let profile = null;
+    try {
+      profile = await retryGetProfile(session.user, 3);
+    } catch (profError) {
+      console.warn("⚠️ [Owner Shell] Profile lookup warning:", profError?.message || profError);
+      // Fallback to local session user if transient error, do NOT logout!
+      const localUser = getUser();
+      if (localUser && (localUser.role === "owner" || !localUser.role)) {
+        return localUser;
+      }
+    }
 
     if (!profile) {
-      sessionLogout();
+      const localUser = getUser();
+      if (localUser && localUser.role === "owner") return localUser;
       return null;
     }
 
@@ -51,7 +76,7 @@ export async function verifyLiveOwnerAuth() {
       } else if (profile.role === "admin") {
         window.location.href = "/pages/admin/dashboard.html";
       } else {
-        sessionLogout();
+        window.location.href = getLoginUrl();
       }
       return null;
     }
@@ -63,7 +88,9 @@ export async function verifyLiveOwnerAuth() {
 
     return profile;
   } catch (e) {
-    sessionLogout();
+    console.warn("⚠️ [Owner Shell] Authentication guard notice:", e?.message || e);
+    const localUser = getUser();
+    if (localUser && localUser.role === "owner") return localUser;
     return null;
   }
 }

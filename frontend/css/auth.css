@@ -267,23 +267,30 @@ body.auth-page main.container {
 
 .google-custom-btn {
     display: flex;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
     gap: 12px;
     width: 100%;
-    max-width: 400px;
-    height: 44px;
+    max-width: 100%;
+    min-height: 52px;
+    height: 52px;
+    padding: 0 16px;
     background: #ffffff;
     color: #3c4043;
     border: 1px solid #dadce0;
-    border-radius: 24px;
+    border-radius: 12px;
     font-family: 'Inter', sans-serif;
     font-size: 14px;
-    font-weight: 500;
+    font-weight: 600;
     cursor: pointer;
     transition: background-color 0.2s, border-color 0.2s, box-shadow 0.2s;
     outline: none;
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+    box-sizing: border-box;
+    position: relative;
+    overflow: hidden;
+    white-space: nowrap;
 }
 .google-custom-btn:hover {
     background-color: #f8f9fa;
@@ -294,9 +301,28 @@ body.auth-page main.container {
     background-color: #f8f9fa;
     border-color: #1a73e8;
 }
-.google-custom-btn .google-icon {
+.google-custom-btn .google-icon,
+.google-custom-btn svg,
+.google-custom-btn img {
     width: 20px;
     height: 20px;
+    min-width: 20px;
+    min-height: 20px;
+    max-width: 20px;
+    max-height: 20px;
+    object-fit: contain;
+    flex: 0 0 20px;
+    display: block;
+    margin: 0;
+    padding: 0;
+}
+.google-custom-btn span {
+    font-size: 14px;
+    font-weight: 600;
+    color: #3c4043;
+    white-space: nowrap;
+    display: inline-block;
+    line-height: 1;
 }
 
 /* Divider Styling */

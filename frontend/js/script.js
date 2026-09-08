@@ -354,7 +354,7 @@ const AuthModal = (() => {
             } catch (e) {}
 
             const activeProf = prof || user;
-            const isComplete = Boolean(activeProf.name && activeProf.phone && activeProf.city);
+            const isComplete = Boolean(activeProf.name && String(activeProf.name).trim().length > 0);
 
             if (!isComplete) {
                 switchView("profile");
@@ -1244,4 +1244,8 @@ export { apiClient };
 // BOOTSTRAP
 // =====================================================
 
-document.addEventListener("DOMContentLoaded", App.init);
+if (document.readyState === "loading") {
+    document.addEventListener("DOMContentLoaded", App.init);
+} else {
+    App.init();
+}

@@ -51,13 +51,6 @@ export const supabaseAPI = {
         if (filters.propertyType) query = query.eq("property_type", filters.propertyType);
 
         let { data, error } = await query;
-        if (error && isJwtError(error)) {
-            console.warn("⚠️ Stale or invalid JWT token detected. Clearing session and retrying query...");
-            await clearInvalidSession();
-            const retry = await query;
-            data = retry.data;
-            error = retry.error;
-        }
         if (error) throw error;
         return (data || []).map(p => {
             const relImgs = (p.property_images || []).sort((a, b) => (a.sort_order || 0) - (b.sort_order || 0)).map(i => i.image_url);
@@ -72,18 +65,6 @@ export const supabaseAPI = {
             .select("*, property_images(image_url, sort_order), profiles!owner_id(*)")
             .eq("id", id)
             .single();
-
-        if (error && isJwtError(error)) {
-            console.warn("⚠️ Stale or invalid JWT token detected. Clearing session and retrying query...");
-            await clearInvalidSession();
-            const retry = await supabase
-                .from("properties")
-                .select("*, property_images(image_url, sort_order), profiles!owner_id(*)")
-                .eq("id", id)
-                .single();
-            data = retry.data;
-            error = retry.error;
-        }
 
         if (error) throw error;
         if (data) {
@@ -427,10 +408,6 @@ export const supabaseAPI = {
                 supabase.from("profiles").select("id", { count: "exact", head: true })
             ]);
 
-            if (propsRes.error && isJwtError(propsRes.error)) {
-                await clearInvalidSession();
-            }
-
             return {
                 totalProperties: propsRes.count || 0,
                 totalCities: citiesRes.count || 0,
@@ -438,9 +415,6 @@ export const supabaseAPI = {
                 totalUsers: usersRes.count || 0
             };
         } catch (e) {
-            if (isJwtError(e)) {
-                await clearInvalidSession();
-            }
             return { totalProperties: 0, totalCities: 0, totalColleges: 0, totalUsers: 0 };
         }
     },

@@ -79,6 +79,73 @@ function migrateToSession() {
 migrateToSession();
 
 // ===========================================
+// RESTORE SUPABASE AUTH SESSION (ASYNC SOURCE OF TRUTH)
+// ===========================================
+export async function getRestoredSupabaseSession(maxWaitMs = 2500) {
+    try {
+        const { data: initialData } = await supabase.auth.getSession();
+        if (initialData?.session?.user) {
+            return initialData.session;
+        }
+    } catch (e) {}
+
+    return new Promise((resolve) => {
+        let resolved = false;
+        let sub = null;
+
+        const timer = setTimeout(async () => {
+            if (!resolved) {
+                resolved = true;
+                if (sub) sub.unsubscribe();
+                try {
+                    const { data: retryData } = await supabase.auth.getSession();
+                    resolve(retryData?.session || null);
+                } catch (e) {
+                    resolve(null);
+                }
+            }
+        }, maxWaitMs);
+
+        try {
+            const { data } = supabase.auth.onAuthStateChange((event, session) => {
+                if (!resolved && session?.user) {
+                    resolved = true;
+                    clearTimeout(timer);
+                    if (data?.subscription) data.subscription.unsubscribe();
+                    resolve(session);
+                }
+            });
+            sub = data?.subscription;
+        } catch (e) {}
+    });
+}
+
+// Sync compatibility keys with native Supabase Auth events
+try {
+    supabase.auth.onAuthStateChange((event, session) => {
+        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+            if (session?.access_token) {
+                const storage = localStorage.getItem(REMEMBER_KEY) === "true" ? localStorage : sessionStorage;
+                storage.setItem(TOKEN_KEY, session.access_token);
+                if (session.user) {
+                    const existingUser = getUser() || {};
+                    const updatedUser = {
+                        id: session.user.id,
+                        email: session.user.email,
+                        name: existingUser.name || session.user.user_metadata?.name || session.user.email?.split("@")[0] || "User",
+                        role: existingUser.role || session.user.user_metadata?.role || "student",
+                        accountStatus: existingUser.accountStatus || "ACTIVE",
+                        ...existingUser
+                    };
+                    storage.setItem(USER_KEY, JSON.stringify(updatedUser));
+                    storage.setItem(ROLE_KEY, updatedUser.role);
+                }
+            }
+        }
+    });
+} catch (e) {}
+
+// ===========================================
 // READ SESSION
 // ===========================================
 
