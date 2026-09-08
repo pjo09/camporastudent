@@ -77,10 +77,10 @@
 
 /* Background glow */
 .v3-bg {
-    position: fixed; inset: 0; overflow: hidden; z-index: -1;
+    position: fixed; inset: 0; overflow: hidden; max-width: 100vw; z-index: -1; pointer-events: none;
 }
 .v3-bg .blob {
-    position: absolute; border-radius: 50%; filter: blur(120px); opacity: .35;
+    position: absolute; border-radius: 50%; filter: blur(120px); opacity: .35; pointer-events: none; max-width: 100vw;
 }
 [data-theme="light"] .v3-bg .blob { opacity: .15; }
 .v3-bg .b1 { width: 500px; height: 500px; background: #2563eb; left: -150px; top: -120px; }
@@ -738,10 +738,15 @@
 }
 
 @media (max-width: 480px) {
-    .v3-content, .owner-content { padding: 16px 14px 32px; }
+    .v3-content, .owner-content { padding: 16px 12px 32px; max-width: 100%; box-sizing: border-box; overflow-x: hidden; }
+    .v3-card { padding: 14px; max-width: 100%; box-sizing: border-box; }
+    .od-hero-card { min-width: 100%; max-width: 100%; box-sizing: border-box; padding: 16px; }
+    .od-hero { padding: 20px 14px; }
     .v3-profile p { display: none; }
-    .v3-stat-value { font-size: 30px; }
-    .od-hero-card { min-width: 100%; }
+    .v3-stat-value { font-size: 26px; }
     .od-booking-summary-grid { grid-template-columns: 1fr; }
-    .od-fast-grid { grid-template-columns: 1fr; }
+    .od-fast-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    .v3-hero-actions { flex-direction: column; width: 100%; }
+    .v3-hero-actions .v3-btn { width: 100%; justify-content: center; }
+    .v3-table-wrap { overflow-x: auto; max-width: 100%; width: 100%; -webkit-overflow-scrolling: touch; }
 }
