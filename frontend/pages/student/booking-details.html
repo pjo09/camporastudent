@@ -3,14 +3,15 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Campora • Book Property</title>
+<title>Campora • Review & Submit Booking Request</title>
 <meta name="description" content="Book verified student accommodation.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../css/student-v3.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
-    <script src="/js/env.js"></script>
+<script src="/js/env.js"></script>
+<meta name="robots" content="noindex, nofollow">
 </head>
 <body class="sv3-body">
 <a class="sv3-skip-link" href="#sv3Main">Skip to content</a>
@@ -20,7 +21,7 @@
 <aside class="sv3-sidebar" id="sidebar" aria-label="Student navigation">
   <div class="sv3-sidebar-header">
     <img class="sv3-logo" src="../../images/logo.png" alt="Campora logo">
-    <div class="sv3-logo-text"><h3>Campora</h3><p>Student Dashboard</p></div>
+    <div class="sv3-logo-text"><strong class="sv3-logo-name">Campora</strong><p>Student Dashboard</p></div>
   </div>
   <nav class="sv3-nav">
     <a href="dashboard.html" class="sv3-nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
@@ -46,7 +47,7 @@
   <header class="sv3-topbar">
     <div class="sv3-topbar-left">
       <button class="sv3-menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
-      <div class="sv3-topbar-title"><h1>Book Property</h1><p>Complete your booking request</p></div>
+      <div class="sv3-topbar-title"><h1>Booking Request</h1><p>Select room, stay details, and review your request.</p></div>
     </div>
     <div class="sv3-topbar-right">
       <button class="sv3-icon-btn" id="notificationBell" aria-label="Notifications"><i class="fa-solid fa-bell"></i></button>
@@ -67,35 +68,43 @@
   <div class="sv3-stats-grid" style="grid-template-columns:1.2fr 1fr;align-items:start">
     <!-- FORM -->
     <div class="sv3-card" id="bookingCard">
-      <div class="sv3-section-header" style="margin-bottom:20px"><h2>Booking Details</h2></div>
+      <div class="sv3-section-header" style="margin-bottom:20px"><h2>Request Details</h2></div>
       <div id="loadingProperty" style="text-align:center;padding:40px">
         <i class="fa-solid fa-spinner fa-spin" style="font-size:24px;color:#60a5fa"></i>
-        <p style="margin-top:10px;color:var(--sv3-muted)">Loading property...</p>
+        <p style="margin-top:10px;color:var(--sv3-muted)">Loading property information...</p>
       </div>
       <form id="bookingForm" style="display:none">
         <div class="sv3-form-group">
-          <label for="moveInDate">Move-in Date</label>
-          <input type="date" class="sv3-input" id="moveInDate" required>
-        </div>
-        <div class="sv3-form-group">
-          <label for="duration">Duration</label>
-          <select class="sv3-select" id="duration" required>
-            <option value="">Select duration</option>
-            <option value="1">1 Month</option>
-            <option value="3">3 Months</option>
-            <option value="6">6 Months</option>
-            <option value="12">12 Months</option>
+          <label for="roomType">Select Room Type *</label>
+          <select class="sv3-select" id="roomType" required>
+            <option value="Single Room">Single Room</option>
+            <option value="Double Sharing">Double Sharing</option>
+            <option value="Triple Sharing">Triple Sharing</option>
+            <option value="Four Sharing">Four Sharing</option>
           </select>
         </div>
         <div class="sv3-form-group">
-          <label for="specialRequest">Special Request (optional)</label>
-          <textarea class="sv3-textarea" id="specialRequest" maxlength="500" placeholder="Any special requests for the owner..."></textarea>
+          <label for="moveInDate">Move-in Date *</label>
+          <input type="date" class="sv3-input" id="moveInDate" required>
         </div>
-        <button type="submit" class="sv3-btn sv3-btn-primary" id="submitBtn" style="width:100%"><i class="fa-solid fa-calendar-check"></i> Create Booking Request</button>
+        <div class="sv3-form-group">
+          <label for="duration">Stay Duration *</label>
+          <select class="sv3-select" id="duration" required>
+            <option value="3 months">3 Months</option>
+            <option value="6 months">6 Months</option>
+            <option value="12 months" selected>12 Months (1 Year)</option>
+            <option value="24 months">24 Months (2 Years)</option>
+          </select>
+        </div>
+        <div class="sv3-form-group">
+          <label for="specialRequest">Notes for Property Owner (optional)</label>
+          <textarea class="sv3-textarea" id="specialRequest" maxlength="500" placeholder="Any special requests or inquiries for the property owner..."></textarea>
+        </div>
+        <button type="button" class="sv3-btn sv3-btn-primary" id="reviewBtn" style="width:100%"><i class="fa-solid fa-eye"></i> Review Request</button>
       </form>
     </div>
 
-    <!-- SUMMARY -->
+    <!-- PROPERTY & FINANCIAL SUMMARY -->
     <div class="sv3-card" id="summaryCard">
       <div class="sv3-section-header" style="margin-bottom:20px"><h2>Property Summary</h2></div>
       <div id="summaryContent">
@@ -104,6 +113,25 @@
     </div>
   </div>
 </main>
+
+<!-- FINAL REVIEW MODAL -->
+<div id="reviewModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.8);z-index:9999;align-items:center;justify-content:center;padding:20px">
+  <div style="background:#0f172a;border:1px solid var(--sv3-border);border-radius:20px;max-width:540px;width:100%;padding:28px;position:relative">
+    <button id="closeReviewModal" style="position:absolute;top:16px;right:16px;background:none;border:none;color:var(--sv3-muted);font-size:18px;cursor:pointer"><i class="fa-solid fa-xmark"></i></button>
+    <div style="text-align:center;margin-bottom:20px">
+      <h2 style="font-size:22px;font-weight:800;color:#fff">BOOKING REQUEST</h2>
+      <p style="font-size:13px;color:var(--sv3-muted);margin-top:4px">Review details before sending to property owner</p>
+    </div>
+    <div id="reviewModalBody"></div>
+    <p style="font-size:12px;color:var(--sv3-muted);margin-top:16px;text-align:center">
+      <i class="fa-solid fa-lock"></i> Your request will be reviewed by the property owner. You will only be charged when payment is required after acceptance.
+    </p>
+    <div style="display:flex;gap:12px;margin-top:20px">
+      <button class="sv3-btn sv3-btn-secondary" id="cancelSubmitBtn" style="flex:1">Modify Request</button>
+      <button class="sv3-btn sv3-btn-primary" id="confirmSubmitBtn" style="flex:1.2"><i class="fa-solid fa-paper-plane"></i> Send Booking Request</button>
+    </div>
+  </div>
+</div>
 
 <div class="sv3-toast-container" id="toastContainer"></div>
 <script type="module" src="../../js/student-booking.js"></script>

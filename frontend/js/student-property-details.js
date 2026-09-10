@@ -43,14 +43,37 @@ function setupEvents() {
         });
       });
     } else {
-      bookBtn.addEventListener("click", () => {
-        const token = localStorage.getItem("camporaToken") || sessionStorage.getItem("camporaToken");
-        if (!token) {
-          const currentUrl = window.location.pathname + window.location.search;
+      bookBtn.addEventListener("click", async () => {
+        const { verifyLiveStudentAuth } = await import("./student-utils.js");
+        const { supabaseAPI } = await import("./supabase-api.js");
+        
+        const user = await verifyLiveStudentAuth();
+        const currentUrl = window.location.pathname + window.location.search;
+
+        if (!user) {
           window.location.href = `/login.html?redirectTo=${encodeURIComponent(currentUrl)}`;
           return;
         }
-        window.location.href = `/pages/student/booking-details.html?id=${propertyId}`;
+
+        const targetBookingUrl = `/pages/student/booking-details.html?id=${propertyId}`;
+
+        try {
+          bookBtn.disabled = true;
+          bookBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Checking Profile...';
+          const profStatus = await supabaseAPI.getProfileStatus();
+
+          if (!profStatus.isComplete) {
+            const profileUrl = `/profile.html?returnTo=${encodeURIComponent(targetBookingUrl)}`;
+            window.location.href = profileUrl;
+          } else {
+            window.location.href = targetBookingUrl;
+          }
+        } catch (err) {
+          window.location.href = targetBookingUrl;
+        } finally {
+          bookBtn.disabled = false;
+          bookBtn.innerHTML = '<i class="fa-solid fa-calendar-check"></i> Book Now';
+        }
       });
     }
   }
@@ -147,6 +170,48 @@ function renderProperty(p, currentResidentsCount, verifiedStaysCount) {
   if ($("propertyDescription")) $("propertyDescription").textContent = p.description || "No description available.";
   const imgEl = $("propertyImage");
   if (imgEl) { imgEl.src = img; imgEl.onerror = () => { imgEl.onerror = null; imgEl.src = "/assets/images/property-placeholder.jpg"; }; }
+
+  // Dynamic SEO Metadata & Schema
+  const isApproved = (p.status === "approved" || p.status === "published") && p.published !== false;
+  const pageTitle = `${name} | Verified Student Accommodation in ${p.city || "India"} | Campora`;
+  const pageDesc = `Verified ${p.propertyType || "student accommodation"} in ${p.city || "India"} at ${name}. Rent ${inr(rent)}/month. Compare rooms, amenities, and campus locations.`;
+  const canonicalUrl = `https://camporastudent.vercel.app/property-details?id=${encodeURIComponent(propertyId)}`;
+
+  document.title = pageTitle;
+  let descMeta = document.querySelector('meta[name="description"]');
+  if (descMeta) descMeta.content = pageDesc;
+  let canonicalEl = document.querySelector('link[rel="canonical"]');
+  if (canonicalEl) canonicalEl.href = canonicalUrl;
+  let robotsMeta = document.querySelector('meta[name="robots"]');
+  if (robotsMeta) robotsMeta.content = isApproved ? "index, follow" : "noindex, nofollow";
+
+  let schemaScript = document.getElementById("propertySchema");
+  if (!schemaScript) {
+    schemaScript = document.createElement("script");
+    schemaScript.id = "propertySchema";
+    schemaScript.type = "application/ld+json";
+    document.head.appendChild(schemaScript);
+  }
+  schemaScript.textContent = JSON.stringify({
+    "@context": "https://schema.org",
+    "@type": "Accommodation",
+    "name": name,
+    "description": p.description || pageDesc,
+    "url": canonicalUrl,
+    "image": img,
+    "address": {
+      "@type": "PostalAddress",
+      "addressLocality": p.city || "",
+      "addressRegion": p.state || "",
+      "streetAddress": p.address || ""
+    },
+    "offers": {
+      "@type": "Offer",
+      "price": rent,
+      "priceCurrency": "INR",
+      "availability": "https://schema.org/InStock"
+    }
+  });
 
   // Trust elements
   const verifiedProp = $("verifiedPropertyBadge");

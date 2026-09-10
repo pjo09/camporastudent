@@ -1,109 +1,75 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-
 <meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width,initial-scale=1.0">
-
-<title>Campora | Payments</title>
-
-    <link rel="stylesheet"
-href="./css/theme.css">
-    <link rel="stylesheet"
-href="./css/payment.css">
-
-<link rel="preconnect"
-href="https://fonts.googleapis.com">
-
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
-rel="stylesheet">
-
-<link rel="stylesheet"
-href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
-
-    <script src="/js/env.js"></script>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Campora • Secure Payment</title>
+<meta name="description" content="Complete payment for your confirmed accommodation booking.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="./css/student-v3.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css">
+<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+<script src="/js/env.js"></script>
+<meta name="robots" content="noindex, nofollow">
 </head>
+<body class="sv3-body">
+<div class="sv3-bg-glow sv3-gl1"></div>
+<div class="sv3-bg-glow sv3-gl2"></div>
 
-<body>
+<main class="sv3-main" style="max-width:640px;margin:40px auto;padding:0 20px">
+  <div style="margin-bottom:24px;display:flex;align-items:center;justify-content:space-between">
+    <a href="bookings.html" class="sv3-btn sv3-btn-secondary" style="font-size:13px"><i class="fa-solid fa-arrow-left"></i> Back to My Bookings</a>
+    <span class="sv3-badge" style="background:rgba(59,130,246,0.15);color:#60a5fa;border:1px solid rgba(59,130,246,0.3);padding:6px 12px;border-radius:20px;font-size:12px">
+      <i class="fa-solid fa-lock"></i> 256-Bit Razorpay Test Mode
+    </span>
+  </div>
 
-<!-- ====================================== -->
-<!-- NAVBAR -->
-<!-- ====================================== -->
+  <div class="sv3-card" style="padding:28px">
+    <div style="text-align:center;margin-bottom:24px">
+      <div style="width:60px;height:60px;border-radius:50%;background:rgba(59,130,246,0.15);color:#60a5fa;display:flex;align-items:center;justify-content:center;margin:0 auto 12px;font-size:28px">
+        <i class="fa-solid fa-shield-halved"></i>
+      </div>
+      <h2 style="font-size:22px;font-weight:800;color:#fff" id="propertyTitle">Campora Residency</h2>
+      <p style="font-size:13px;color:var(--sv3-muted);margin-top:2px" id="propertyLocation">Location</p>
+    </div>
 
-<header class="payment-navbar">
+    <!-- Breakdown -->
+    <div style="background:rgba(255,255,255,0.03);border:1px solid var(--sv3-border);border-radius:14px;padding:16px;margin-bottom:24px">
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--sv3-border);font-size:14px">
+        <span style="color:var(--sv3-muted)">First Month Rent</span>
+        <strong id="amount">₹0</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--sv3-border);font-size:14px">
+        <span style="color:var(--sv3-muted)">Security Deposit</span>
+        <strong id="deposit">₹0</strong>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--sv3-border);font-size:14px">
+        <span style="color:var(--sv3-muted)">Platform Booking Fee</span>
+        <span>₹1,000</span>
+      </div>
+      <div style="display:flex;justify-content:space-between;padding:14px 0 4px;font-size:18px">
+        <span style="font-weight:800;color:#fff">Total Payable</span>
+        <strong id="total" style="color:#60a5fa">₹0</strong>
+      </div>
+    </div>
 
-<div class="logo">
+    <form id="paymentForm">
+      <button type="submit" class="sv3-btn sv3-btn-primary pay-btn" style="width:100%;padding:14px;font-size:16px;font-weight:700">
+        <i class="fa-solid fa-credit-card"></i> Pay Securely with Razorpay
+      </button>
+    </form>
 
-<a href="dashboard.html">
-
-<img
-src="/images/logo.png"
-class="logo-img"
-alt="Campora">
-
-</a>
-
-<div>
-
-<h2>Campora</h2>
-
-<p>Student Dashboard</p>
-
-</div>
-
-</div>
-
-<a
-href="bookings.html"
-class="back-btn">
-
-<i class="fa-solid fa-arrow-left"></i>
-
-Back to Bookings
-
-</a>
-
-</header>
-
-<!-- ====================================== -->
-<!-- MAIN -->
-<!-- ====================================== -->
-
-<main class="payment-container" style="display:flex;align-items:center;justify-content:center;min-height:60vh">
-
-<section class="payment-card glass" style="text-align:center;max-width:500px;padding:48px 32px">
-
-<i class="fa-solid fa-credit-card" style="font-size:48px;color:#94a3b8;margin-bottom:16px"></i>
-
-<h1 style="font-size:22px;margin-bottom:12px">
-Online Payments Currently Unavailable
-</h1>
-
-<p style="color:#64748b;margin-bottom:24px">
-Online payment functionality will be introduced in a future Campora release.
-</p>
-
-<a href="bookings.html" class="pay-btn" style="display:inline-block;text-decoration:none;text-align:center">
-<i class="fa-solid fa-calendar-check"></i> View My Bookings
-</a>
-
-</section>
-
+    <div style="display:flex;justify-content:center;gap:16px;margin-top:20px;color:var(--sv3-muted);font-size:12px">
+      <span><i class="fa-solid fa-check"></i> UPI</span>
+      <span><i class="fa-solid fa-check"></i> Credit / Debit Cards</span>
+      <span><i class="fa-solid fa-check"></i> Netbanking</span>
+    </div>
+  </div>
 </main>
 
-<!-- ====================================== -->
-<!-- TOAST CONTAINER -->
-<!-- ====================================== -->
-
-<div id="toastContainer" class="toast-container"></div>
-
-<!-- Payment integration disabled for current production phase.
-     Razorpay SDK and payment.js are NOT loaded on this page.
-     Retained for future integration. -->
-
+<div class="sv3-toast-container" id="toastContainer"></div>
+<script type="module" src="./js/payment.js"></script>
 </body>
-
 </html>

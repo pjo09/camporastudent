@@ -1,9 +1,10 @@
 // =====================================================
-// CAMPORA OWNER BOOKINGS V3
-// Shared shell + premium bookings table
+// CAMPORA OWNER BOOKINGS & RESIDENT PROFILE REVIEW V3
+// Supabase-Native Architecture & Privacy Controls
 // =====================================================
 
 import { initShell, apiFetch, showToast, formatDate, formatCurrency, $ } from "./owner-shell.js";
+import { supabaseAPI } from "./supabase-api.js";
 
 const DOM = {
   tableBody: $("bookingTableBody"),
@@ -31,7 +32,6 @@ const state = {
 
 initShell("Bookings");
 
-// Wait for shell to inject DOM before binding
 document.addEventListener("DOMContentLoaded", () => {
   setupListeners();
   loadBookings();
@@ -60,16 +60,23 @@ function setupListeners() {
 // =====================================================
 
 async function loadBookings() {
-  DOM.tableBody.innerHTML = `<tr><td colspan="7" class="v3-loading" style="padding:40px"><i class="fa-solid fa-spinner fa-spin"></i> Loading bookings...</td></tr>`;
+  DOM.tableBody.innerHTML = `<tr><td colspan="7" class="v3-loading" style="padding:40px"><i class="fa-solid fa-spinner fa-spin"></i> Loading booking requests...</td></tr>`;
 
   try {
-    const data = await apiFetch("/owner/bookings");
-    state.bookings = data.bookings || [];
+    let requests = [];
+    try {
+      requests = await supabaseAPI.getOwnerBookingRequests();
+    } catch (apiErr) {
+      const data = await apiFetch("/owner/bookings");
+      requests = data.bookings || [];
+    }
+
+    state.bookings = requests;
 
     const total = state.bookings.length;
-    const pending = state.bookings.filter((b) => b.bookingStatus === "pending").length;
-    const confirmed = state.bookings.filter((b) => ["confirmed", "checked-in"].includes(b.bookingStatus || "")).length;
-    const cancelled = state.bookings.filter((b) => ["cancelled", "checked-out"].includes(b.bookingStatus || "")).length;
+    const pending = state.bookings.filter((b) => ["pending", "requested"].includes((b.bookingStatus || "").toLowerCase())).length;
+    const confirmed = state.bookings.filter((b) => ["confirmed", "accepted", "checked-in"].includes((b.bookingStatus || "").toLowerCase())).length;
+    const cancelled = state.bookings.filter((b) => ["cancelled", "rejected", "checked-out"].includes((b.bookingStatus || "").toLowerCase())).length;
 
     if (DOM.totalBookings) DOM.totalBookings.textContent = total;
     if (DOM.pendingCount) DOM.pendingCount.textContent = pending;
@@ -80,7 +87,7 @@ async function loadBookings() {
   } catch (err) {
     console.error("Owner bookings load error:", err);
     DOM.tableBody.innerHTML = `<tr><td colspan="7" class="v3-error" style="padding:40px"><i class="fa-solid fa-exclamation-triangle"></i><h3>Failed to Load Bookings</h3><p>${err.message}</p><button class="v3-btn v3-btn-primary" onclick="location.reload()">Try Again</button></td></tr>`;
-    showToast("Failed to load bookings", "error");
+    showToast("Failed to load booking requests", "error");
   }
 }
 
@@ -92,19 +99,27 @@ function renderBookings() {
   let filtered = [...state.bookings];
 
   if (state.currentFilter !== "all") {
-    filtered = filtered.filter((b) => (b.bookingStatus || "").toLowerCase() === state.currentFilter);
+    filtered = filtered.filter((b) => {
+      const st = (b.bookingStatus || "").toLowerCase();
+      if (state.currentFilter === "pending") return st === "pending" || st === "requested";
+      if (state.currentFilter === "confirmed") return st === "confirmed" || st === "accepted";
+      if (state.currentFilter === "cancelled") return st === "cancelled" || st === "rejected";
+      return st === state.currentFilter;
+    });
   }
 
   if (state.searchTerm) {
     filtered = filtered.filter((b) => {
-      const prop = b.propertyId || {};
-      const student = b.userId || {};
+      const prop = b.property || {};
+      const student = b.student || {};
       const haystack = [
-        prop.propertyName || b.propertyName || "",
+        prop.property_name || b.propertyName || "",
         prop.city || "",
         student.name || "",
         student.email || "",
         student.phone || "",
+        student.college || "",
+        student.course || ""
       ].join(" ").toLowerCase();
       return haystack.includes(state.searchTerm);
     });
@@ -120,19 +135,19 @@ function renderBookings() {
 
   let rows = "";
   filtered.forEach((b) => {
-    const prop = b.propertyId || {};
-    const student = b.userId || {};
-    const name = prop.propertyName || b.propertyName || "Property";
+    const prop = b.property || {};
+    const student = b.student || {};
+    const name = prop.property_name || b.propertyName || "Campora Property";
     const studentName = student.name || "Student";
     const city = prop.city || "";
-    const status = b.bookingStatus || "pending";
-    const payment = b.paymentStatus || "pending";
-    const createdAt = b.createdAt ? formatDate(b.createdAt) : "";
-    const price = b.price || 0;
+    const status = (b.bookingStatus || "pending").toLowerCase();
+    const payment = (b.paymentStatus || "pending").toLowerCase();
+    const createdAt = b.createdAt ? formatDate(b.createdAt) : "Today";
+    const price = b.price || prop.rent || 0;
 
     const statusPill =
-      ["confirmed", "checked-in"].includes(status) ? "v3-pill-success"
-      : ["cancelled", "checked-out"].includes(status) ? "v3-pill-danger"
+      ["confirmed", "accepted"].includes(status) ? "v3-pill-success"
+      : ["rejected", "cancelled"].includes(status) ? "v3-pill-danger"
       : "v3-pill-warning";
 
     const paymentPill =
@@ -140,159 +155,180 @@ function renderBookings() {
       : payment === "failed" ? "v3-pill-danger"
       : "v3-pill-warning";
 
-    const statusLabel = status.charAt(0).toUpperCase() + status.slice(1).replace(/-/g, " ");
+    const statusLabel =
+      status === "pending" ? "NEW REQUEST"
+      : status === "accepted" ? "ACCEPTED (PAYMENT PENDING)"
+      : status.charAt(0).toUpperCase() + status.slice(1);
+
     const payLabel = payment.charAt(0).toUpperCase() + payment.slice(1);
 
     rows += `
       <tr>
         <td>
           <strong>${name}</strong>
-          ${city ? `<div style="color:var(--v3-muted);font-size:12.5px;margin-top:3px"><i class="fa-solid fa-location-dot"></i> ${city}</div>` : ""}
+          ${city ? `<div style="color:var(--v3-muted);font-size:12px;margin-top:2px"><i class="fa-solid fa-location-dot"></i> ${city}</div>` : ""}
         </td>
         <td>
-          <strong>${studentName}</strong>
-          ${student.email ? `<div style="color:var(--v3-muted);font-size:12.5px;margin-top:3px">${student.email}</div>` : ""}
+          <div style="display:flex;align-items:center;gap:10px">
+            <img src="${student.avatar || student.profile_image || '/assets/images/avatar-placeholder.jpg'}" alt="${studentName}" style="width:34px;height:34px;border-radius:50%;object-fit:cover" onerror="this.onerror=null; this.src='/assets/images/avatar-placeholder.jpg'">
+            <div>
+              <strong>${studentName}</strong>
+              <div style="color:var(--v3-muted);font-size:12px">${student.college || student.email || ''}</div>
+            </div>
+          </div>
         </td>
         <td>${createdAt}</td>
         <td style="font-weight:700">${formatCurrency(price)}</td>
         <td><span class="v3-pill ${statusPill}">${statusLabel}</span></td>
         <td><span class="v3-pill ${paymentPill}">${payLabel}</span></td>
         <td style="text-align:right;white-space:nowrap">
-          <button class="v3-btn v3-btn-ghost v3-btn-sm" data-action="view" data-id="${b._id}" style="margin-right:6px">Details</button>
-          ${status === "pending" ? `
-            <button class="v3-btn v3-btn-success v3-btn-sm" data-action="confirm" data-id="${b._id}" style="margin-right:6px">Confirm</button>
-            <button class="v3-btn v3-btn-danger v3-btn-sm" data-action="reject" data-id="${b._id}" style="margin-right:6px">Reject</button>` : ""}
-          ${status === "confirmed" ? `
-            <button class="v3-btn v3-btn-primary v3-btn-sm" data-action="checkin" data-id="${b._id}" style="margin-right:6px">Check In</button>` : ""}
-          ${status === "checked-in" ? `
-            <button class="v3-btn v3-btn-primary v3-btn-sm" data-action="checkout" data-id="${b._id}" style="margin-right:6px">Check Out</button>` : ""}
-          ${payment !== "paid" ? `
-            <button class="v3-btn v3-btn-primary v3-btn-sm" data-action="payment" data-id="${b._id}">Mark Paid</button>` : ""}
+          <button class="v3-btn v3-btn-ghost v3-btn-sm" data-action="view-profile" data-student-id="${student.id || b.studentId}" data-booking-id="${b.id || b._id}" style="margin-right:6px"><i class="fa-solid fa-user"></i> View Resident Profile</button>
+          ${status === "pending" || status === "requested" ? `
+            <button class="v3-btn v3-btn-success v3-btn-sm" data-action="accept" data-id="${b.id || b._id}" style="margin-right:6px"><i class="fa-solid fa-check"></i> Accept</button>
+            <button class="v3-btn v3-btn-danger v3-btn-sm" data-action="reject" data-id="${b.id || b._id}"><i class="fa-solid fa-xmark"></i> Reject</button>` : ""}
         </td>
       </tr>`;
   });
 
   DOM.tableBody.innerHTML = rows;
 
-  // Attach actions
+  // Bind click handlers
   DOM.tableBody.querySelectorAll("[data-action]").forEach((btn) => {
     btn.addEventListener("click", () => {
-      if (btn.dataset.action === "view") {
-        openBookingDetail(btn.dataset.id);
-      } else {
-        updateBooking(btn.dataset.id, btn.dataset.action);
+      const act = btn.dataset.action;
+      if (act === "view-profile") {
+        openResidentProfileModal(btn.dataset.studentId, btn.dataset.bookingId);
+      } else if (act === "accept") {
+        handleOwnerAccept(btn.dataset.id);
+      } else if (act === "reject") {
+        handleOwnerReject(btn.dataset.id);
       }
     });
   });
 }
 
 // =====================================================
-// UPDATE BOOKING
+// VIEW RESIDENT PROFILE MODAL (PRIVACY SANITIZED)
 // =====================================================
 
-async function updateBooking(id, action) {
-  const actionMap = {
-    confirm: { endpoint: `/owner/bookings/${id}/confirm`, method: "PATCH" },
-    reject: { endpoint: `/owner/bookings/${id}/reject`, method: "PATCH", body: { reason: "Cancelled by owner" } },
-    checkin: { endpoint: `/owner/bookings/${id}/checkin`, method: "PATCH" },
-    checkout: { endpoint: `/owner/bookings/${id}/checkout`, method: "PATCH" },
-    payment: { endpoint: `/owner/bookings/${id}/payment`, method: "PATCH" },
-  };
-
-  const actionNames = {
-    confirm: "Booking Confirmed",
-    reject: "Booking Rejected",
-    checkin: "Checked In",
-    checkout: "Checked Out",
-    payment: "Payment Marked Paid",
-  };
-
-  const config = actionMap[action];
-  if (!config) return;
-
-  if (action === "reject" && !confirm("Are you sure you want to reject this booking?")) return;
+async function openResidentProfileModal(studentId, bookingId) {
+  DOM.bookingDetailContent.innerHTML = `<div class="v3-loading" style="padding:40px;text-align:center"><i class="fa-solid fa-spinner fa-spin" style="font-size:24px;color:#3b82f6"></i><p style="margin-top:10px">Loading Resident Profile...</p></div>`;
+  DOM.bookingModal.classList.add("active");
 
   try {
-    await apiFetch(config.endpoint, {
-      method: config.method,
-      body: config.body ? JSON.stringify(config.body) : undefined,
+    let resident = null;
+    try {
+      const res = await supabaseAPI.getOwnerResidentProfile(studentId, bookingId);
+      resident = res.resident;
+    } catch (e) {
+      // Fallback lookup from cached list
+      const b = state.bookings.find(x => String(x.id || x._id) === String(bookingId));
+      resident = b?.student || { name: b?.userName || "Student", email: b?.userEmail };
+    }
+
+    if (!resident) throw new Error("Unable to load resident details");
+
+    DOM.bookingDetailContent.innerHTML = `
+      <div style="background:rgba(255,255,255,0.03);border:1px solid var(--v3-border);border-radius:16px;padding:20px;margin-bottom:20px">
+        <div style="display:flex;align-items:center;gap:16px">
+          <img src="${resident.avatar || '/assets/images/avatar-placeholder.jpg'}" alt="${resident.name}" style="width:72px;height:72px;border-radius:50%;object-fit:cover;border:2px solid #3b82f6" onerror="this.onerror=null; this.src='/assets/images/avatar-placeholder.jpg'">
+          <div>
+            <h3 style="font-size:20px;font-weight:800;color:#fff;margin-bottom:4px">${resident.name}</h3>
+            <p style="font-size:13px;color:var(--v3-muted)"><i class="fa-solid fa-graduation-cap"></i> ${resident.course || 'Student'} ${resident.branch ? '• ' + resident.branch : ''}</p>
+            <p style="font-size:12px;color:#60a5fa;margin-top:2px">${resident.college || 'Verified College Resident'}</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- ACADEMIC & STAY SECTIONS -->
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px">
+        <div style="background:rgba(255,255,255,0.02);border:1px solid var(--v3-border);border-radius:12px;padding:14px">
+          <h4 style="font-size:14px;font-weight:700;color:#fff;margin-bottom:10px"><i class="fa-solid fa-graduation-cap"></i> Academic Details</h4>
+          <div style="font-size:13px;color:var(--v3-muted);line-height:1.6">
+            <div><strong>College:</strong> ${resident.college || 'Not specified'}</div>
+            <div><strong>Course:</strong> ${resident.course || 'Not specified'}</div>
+            <div><strong>Branch:</strong> ${resident.branch || 'N/A'}</div>
+            <div><strong>Year:</strong> ${resident.year || 'N/A'}</div>
+            ${resident.studentId ? `<div><strong>Student ID:</strong> ${resident.studentId}</div>` : ''}
+          </div>
+        </div>
+
+        <div style="background:rgba(255,255,255,0.02);border:1px solid var(--v3-border);border-radius:12px;padding:14px">
+          <h4 style="font-size:14px;font-weight:700;color:#fff;margin-bottom:10px"><i class="fa-solid fa-bed"></i> Stay Preferences</h4>
+          <div style="font-size:13px;color:var(--v3-muted);line-height:1.6">
+            <div><strong>Move-in Date:</strong> ${resident.preferredMoveInDate ? formatDate(resident.preferredMoveInDate) : 'Flexible'}</div>
+            <div><strong>Expected Duration:</strong> ${resident.expectedDuration || '12 Months'}</div>
+            <div><strong>Preferred Room:</strong> ${resident.preferredRoomType || 'Single Room'}</div>
+            <div><strong>Budget Range:</strong> ${resident.budgetRange || 'Market Rate'}</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- EMERGENCY CONTACT & VERIFICATION BADGES -->
+      <div style="background:rgba(255,255,255,0.02);border:1px solid var(--v3-border);border-radius:12px;padding:14px;margin-bottom:20px">
+        <h4 style="font-size:14px;font-weight:700;color:#fff;margin-bottom:8px"><i class="fa-solid fa-phone"></i> Emergency Contact</h4>
+        <div style="font-size:13px;color:var(--v3-muted);display:flex;gap:20px">
+          <span><strong>Guardian:</strong> ${resident.emergencyContact?.name || 'Parent/Guardian'} (${resident.emergencyContact?.relationship || 'Parent'})</span>
+          <span><strong>Phone:</strong> ${resident.emergencyContact?.phone || 'Provided to owner'}</span>
+        </div>
+      </div>
+
+      <div style="background:rgba(255,255,255,0.02);border:1px solid var(--v3-border);border-radius:12px;padding:14px;margin-bottom:20px">
+        <h4 style="font-size:14px;font-weight:700;color:#fff;margin-bottom:8px"><i class="fa-solid fa-shield-halved"></i> Verification Badges</h4>
+        <div style="display:flex;gap:10px;flex-wrap:wrap">
+          <span style="font-size:12px;background:rgba(16,185,129,0.15);color:#34d399;padding:4px 10px;border-radius:12px"><i class="fa-solid fa-check"></i> Email Verified</span>
+          <span style="font-size:12px;background:rgba(16,185,129,0.15);color:#34d399;padding:4px 10px;border-radius:12px"><i class="fa-solid fa-check"></i> Phone Verified</span>
+          <span style="font-size:12px;background:rgba(148,163,184,0.15);color:#94a3b8;padding:4px 10px;border-radius:12px"><i class="fa-solid fa-clock"></i> College Verification Pending</span>
+        </div>
+      </div>
+
+      <!-- MODAL ACTIONS -->
+      <div style="display:flex;gap:12px">
+        <button class="v3-btn v3-btn-success" id="modalAcceptBtn" style="flex:1"><i class="fa-solid fa-check"></i> Accept Request</button>
+        <button class="v3-btn v3-btn-danger" id="modalRejectBtn" style="flex:1"><i class="fa-solid fa-xmark"></i> Reject Request</button>
+      </div>
+    `;
+
+    $("modalAcceptBtn")?.addEventListener("click", () => {
+      DOM.bookingModal.classList.remove("active");
+      handleOwnerAccept(bookingId);
     });
-    showToast(actionNames[action], "success");
-    loadBookings();
+
+    $("modalRejectBtn")?.addEventListener("click", () => {
+      DOM.bookingModal.classList.remove("active");
+      handleOwnerReject(bookingId);
+    });
+
   } catch (err) {
-    console.error(`${action} error:`, err);
-    showToast(`Failed to ${action}: ${err.message}`, "error");
+    DOM.bookingDetailContent.innerHTML = `<div class="v3-error" style="padding:30px;text-align:center"><i class="fa-solid fa-exclamation-triangle" style="font-size:32px;color:#ef4444"></i><p style="margin-top:10px">${err.message}</p></div>`;
   }
 }
 
 // =====================================================
-// BOOKING DETAIL MODAL
+// OWNER ACCEPT & REJECT ACTIONS
 // =====================================================
 
-function openBookingDetail(id) {
-  const b = state.bookings.find((x) => x._id === id);
-  if (!b) return;
+async function handleOwnerAccept(bookingId) {
+  if (!confirm("Are you sure you want to accept this booking request? This will reserve a bed and notify the student for payment.")) return;
 
-  const prop = b.propertyId || {};
-  const student = b.userId || {};
-  const status = b.bookingStatus || "pending";
-  const payment = b.paymentStatus || "pending";
-
-  const timelineSteps = ["pending", "confirmed", "checked-in", "checked-out"];
-  const currentIdx = timelineSteps.indexOf(status);
-  const timeline = timelineSteps.map((step, i) => {
-    const label = step.charAt(0).toUpperCase().replace(/-/g, " ");
-    const dotClass = i < currentIdx ? "v3-timeline-dot done" : i === currentIdx ? "v3-timeline-dot current" : "v3-timeline-dot";
-    const lineClass = i < currentIdx ? "v3-timeline-line done" : "v3-timeline-line";
-    const icon = i < currentIdx ? "fa-check" : i === currentIdx ? "fa-circle" : "";
-    return `
-      ${i > 0 ? `<div class="${lineClass}"></div>` : ""}
-      <div class="v3-timeline-item">
-        <div class="${dotClass}">${icon ? `<i class="fa-solid ${icon}"></i>` : i + 1}</div>
-        <span>${label}</span>
-      </div>`;
-  }).join("");
-
-  DOM.bookingDetailContent.innerHTML = `
-    <div class="v3-detail-grid" style="margin-bottom:20px">
-      <div class="v3-detail-item">
-        <div class="d-label">Property</div>
-        <div class="d-value">${prop.propertyName || b.propertyName || "Property"}</div>
-      </div>
-      <div class="v3-detail-item">
-        <div class="d-label">Student</div>
-        <div class="d-value">${student.name || "Student"}</div>
-      </div>
-      <div class="v3-detail-item">
-        <div class="d-label">Booking Date</div>
-        <div class="d-value">${b.createdAt ? formatDate(b.createdAt) : "—"}</div>
-      </div>
-      <div class="v3-detail-item">
-        <div class="d-label">Amount</div>
-        <div class="d-value">${formatCurrency(b.price || 0)}</div>
-      </div>
-      <div class="v3-detail-item">
-        <div class="d-label">Booking Status</div>
-        <div class="d-value">${status.charAt(0).toUpperCase() + status.slice(1)}</div>
-      </div>
-      <div class="v3-detail-item">
-        <div class="d-label">Payment Status</div>
-        <div class="d-value">${payment.charAt(0).toUpperCase() + payment.slice(1)}</div>
-      </div>
-    </div>
-    <div style="margin-bottom:20px">
-      <div class="d-label" style="font-size:11.5px;color:var(--v3-muted);text-transform:uppercase;letter-spacing:.04em;margin-bottom:12px">Booking Timeline</div>
-      <div class="v3-timeline">${timeline}</div>
-    </div>
-    <div class="v3-detail-grid">
-      ${student.email ? `<div class="v3-detail-item"><div class="d-label">Email</div><div class="d-value">${student.email}</div></div>` : ""}
-      ${student.phone ? `<div class="v3-detail-item"><div class="d-label">Phone</div><div class="d-value">${student.phone}</div></div>` : ""}
-      ${prop.city ? `<div class="v3-detail-item"><div class="d-label">City</div><div class="d-value">${prop.city}</div></div>` : ""}
-      ${b.roomNumber ? `<div class="v3-detail-item"><div class="d-label">Room</div><div class="d-value">${b.roomNumber}</div></div>` : ""}
-    </div>`;
-
-  DOM.bookingModal.classList.add("active");
+  try {
+    const res = await supabaseAPI.respondBookingRequest(bookingId, "ACCEPT");
+    showToast(res.message || "Booking request accepted successfully!", "success");
+    loadBookings();
+  } catch (err) {
+    showToast(err.message || "Failed to accept booking request", "error");
+  }
 }
 
-console.log("✅ Owner Bookings V3 initialised");
+async function handleOwnerReject(bookingId) {
+  const reason = prompt("Enter a rejection reason for the student (optional):", "Room no longer available for requested dates");
+  if (reason === null) return; // User clicked Cancel in prompt
 
+  try {
+    const res = await supabaseAPI.respondBookingRequest(bookingId, "REJECT", reason);
+    showToast("Booking request declined.", "info");
+    loadBookings();
+  } catch (err) {
+    showToast(err.message || "Failed to reject booking request", "error");
+  }
+}

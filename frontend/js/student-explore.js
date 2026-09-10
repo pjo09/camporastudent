@@ -112,6 +112,8 @@ async function loadProperties() {
     const properties = data.properties || [];
     state.totalPages = data.totalPages || 1;
 
+    updatePageSeo(properties.length);
+
     if (properties.length === 0) {
       grid.innerHTML = `
         <div class="sv3-empty" style="grid-column:1/-1;text-align:center;padding:48px 24px;background:var(--sv3-surface,#1e293b);border-radius:16px;border:1px solid rgba(255,255,255,0.08);margin:20px 0">
@@ -209,3 +211,51 @@ window.toggleSave = async function (propertyId, btn) {
     // silent
   }
 };
+
+function updatePageSeo(propertiesCount) {
+  const city = state.city ? state.city.trim() : "";
+  const cityName = city ? (city.charAt(0).toUpperCase() + city.slice(1)) : "";
+  const titleEl = document.querySelector("title");
+  let descMeta = document.querySelector('meta[name="description"]');
+  let canonicalEl = document.querySelector('link[rel="canonical"]');
+  let robotsMeta = document.querySelector('meta[name="robots"]');
+  const h1El = document.querySelector(".sv3-topbar-title h1");
+
+  if (!descMeta) {
+    descMeta = document.createElement("meta");
+    descMeta.name = "description";
+    document.head.appendChild(descMeta);
+  }
+  if (!canonicalEl) {
+    canonicalEl = document.createElement("link");
+    canonicalEl.rel = "canonical";
+    document.head.appendChild(canonicalEl);
+  }
+  if (!robotsMeta) {
+    robotsMeta = document.createElement("meta");
+    robotsMeta.name = "robots";
+    document.head.appendChild(robotsMeta);
+  }
+
+  const isPlainCityPage = Boolean(city && propertiesCount > 0 && !state.college && !state.maxRent && !state.sharing && state.filter === "all" && state.sort === "latest" && state.page === 1);
+
+  if (isPlainCityPage) {
+    if (titleEl) titleEl.textContent = `PG & Student Accommodation in ${cityName} | Campora`;
+    descMeta.content = `Find verified PGs and student accommodation in ${cityName} with Campora. Compare real properties, room options, rent and locations near your university.`;
+    canonicalEl.href = `https://camporastudent.vercel.app/properties?city=${encodeURIComponent(city)}`;
+    robotsMeta.content = "index, follow";
+    if (h1El) h1El.textContent = `PG & Student Accommodation in ${cityName}`;
+  } else {
+    if (titleEl) titleEl.textContent = city ? `Explore Properties in ${cityName} | Campora` : "Explore Student Accommodations & PGs | Campora";
+    descMeta.content = "Explore verified student accommodation across India with Campora. Compare real PGs, hostels, and shared flats near major university campuses with zero brokerage.";
+    canonicalEl.href = "https://camporastudent.vercel.app/properties";
+    if (city && propertiesCount === 0) {
+      robotsMeta.content = "noindex, follow";
+    } else if (state.college || state.maxRent || state.sharing || state.filter !== "all" || state.sort !== "latest" || state.page > 1) {
+      robotsMeta.content = "noindex, follow";
+    } else {
+      robotsMeta.content = "index, follow";
+    }
+    if (h1El) h1El.textContent = "Explore Properties";
+  }
+}

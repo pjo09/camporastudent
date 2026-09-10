@@ -10,7 +10,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="../../css/student-v3.css">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
-    <script src="/js/env.js"></script>
+<script src="/js/env.js"></script>
+<meta name="robots" content="noindex, nofollow">
 </head>
 <body class="sv3-body">
 <a class="sv3-skip-link" href="#sv3Main">Skip to content</a>
@@ -20,7 +21,7 @@
 <aside class="sv3-sidebar" id="sidebar" aria-label="Student navigation">
   <div class="sv3-sidebar-header">
     <img class="sv3-logo" src="../../images/logo.png" alt="Campora logo">
-    <div class="sv3-logo-text"><h3>Campora</h3><p>Student Dashboard</p></div>
+    <div class="sv3-logo-text"><strong class="sv3-logo-name">Campora</strong><p>Student Dashboard</p></div>
   </div>
   <nav class="sv3-nav">
     <a href="dashboard.html" class="sv3-nav-item"><i class="fa-solid fa-house"></i> Dashboard</a>
@@ -47,7 +48,7 @@
   <header class="sv3-topbar">
     <div class="sv3-topbar-left">
       <button class="sv3-menu-btn" id="menuBtn" aria-label="Open menu" aria-expanded="false"><i class="fa-solid fa-bars"></i></button>
-      <div class="sv3-topbar-title"><h1>My Bookings</h1><p>Track your accommodation requests</p></div>
+      <div class="sv3-topbar-title"><h1>My Bookings</h1><p>Track your accommodation requests &amp; confirmed stays</p></div>
     </div>
     <div class="sv3-topbar-right">
       <button class="sv3-icon-btn" id="notificationBell" aria-label="Notifications"><i class="fa-solid fa-bell"></i></button>
@@ -68,8 +69,9 @@
   <div class="sv3-tabs" id="bookingTabs">
     <button class="sv3-tab active" data-filter="all">All</button>
     <button class="sv3-tab" data-filter="pending">Pending</button>
+    <button class="sv3-tab" data-filter="accepted">Accepted</button>
     <button class="sv3-tab" data-filter="confirmed">Confirmed</button>
-    <button class="sv3-tab" data-filter="cancelled">Cancelled</button>
+    <button class="sv3-tab" data-filter="rejected">Declined</button>
   </div>
 
   <div class="sv3-list" id="bookingList">

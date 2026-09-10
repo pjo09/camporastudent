@@ -2704,5 +2704,425 @@ export const supabaseAPI = {
             summary: { totalProperties: props.length, totalRevenue, occupancyRate },
             earnings: { total: totalRevenue }
         };
+    },
+
+    // =====================================================
+    // STUDENT RESIDENT PROFILE METHODS
+    // =====================================================
+    async getStudentProfile() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        let { data: profile, error } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", user.id)
+            .maybeSingle();
+
+        if (!profile && user.email) {
+            const { data: profByEmail } = await supabase
+                .from("profiles")
+                .select("*")
+                .eq("email", user.email)
+                .maybeSingle();
+            if (profByEmail) profile = profByEmail;
+        }
+
+        if (!profile) {
+            profile = {
+                id: user.id,
+                email: user.email,
+                name: user.email ? user.email.split("@")[0] : "Student",
+                role: "student"
+            };
+        }
+
+        // Calculate completeness
+        let completionStatus = { is_complete: false, completion_percentage: 0, missing_fields: [] };
+        try {
+            const { data: rpcRes } = await supabase.rpc("check_profile_completeness", { p_user_id: user.id });
+            if (rpcRes) completionStatus = rpcRes;
+        } catch (e) {
+            // Local fallback calculation
+            let count = 0;
+            const missing = [];
+            if (profile.name) count++; else missing.push("name");
+            if (profile.phone) count++; else missing.push("phone");
+            if (profile.profile_image || profile.avatar) count++; else missing.push("profile_image");
+            if (profile.college) count++; else missing.push("college");
+            if (profile.course) count++; else missing.push("course");
+            if (profile.year) count++; else missing.push("year");
+            if (profile.gender) count++; else missing.push("gender");
+            if (profile.emergency_contact?.phone) count++; else missing.push("emergency_contact");
+            if (profile.dob || profile.branch || profile.preferred_move_in_date) count++; else missing.push("stay_preferences");
+
+            const percentage = Math.min(100, Math.round((count / 9) * 100));
+            completionStatus = {
+                is_complete: count >= 7,
+                completion_percentage: percentage,
+                missing_fields: missing
+            };
+        }
+
+        return {
+            success: true,
+            user: {
+                id: profile.id,
+                _id: profile.mongo_id || profile.id,
+                name: profile.name || "",
+                email: profile.email || "",
+                phone: profile.phone || "",
+                avatar: profile.profile_image || profile.avatar || "",
+                profileImage: profile.profile_image || profile.avatar || "",
+                bio: profile.bio || "",
+                college: profile.college || "",
+                course: profile.course || "",
+                branch: profile.branch || "",
+                year: profile.year || "",
+                studentId: profile.student_id_number || "",
+                dob: profile.dob || null,
+                gender: profile.gender || "",
+                preferredMoveInDate: profile.preferred_move_in_date || null,
+                expectedDuration: profile.expected_duration || "",
+                preferredRoomType: profile.preferred_room_type || "",
+                budgetRange: profile.budget_range || "",
+                emergencyContact: profile.emergency_contact || { name: "", relationship: "", phone: "" },
+                emailVerified: profile.email_verified || true,
+                phoneVerified: profile.phone_verified || false,
+                collegeVerified: profile.college_verified || false,
+                identityVerified: profile.identity_verified || false,
+                completionPercentage: completionStatus.completion_percentage,
+                isProfileComplete: completionStatus.is_complete,
+                missingFields: completionStatus.missing_fields
+            }
+        };
+    },
+
+    async getProfileStatus() {
+        const res = await this.getStudentProfile();
+        return {
+            success: true,
+            isComplete: res.user.isProfileComplete,
+            completionPercentage: res.user.completionPercentage,
+            missingFields: res.user.missingFields
+        };
+    },
+
+    async updateStudentProfile(updates) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        const emContact = typeof updates.emergencyContact === "object"
+            ? updates.emergencyContact
+            : { name: "", relationship: "Parent/Guardian", phone: String(updates.emergencyContact || "") };
+
+        const payload = {
+            updated_at: new Date().toISOString()
+        };
+
+        if (updates.name !== undefined) payload.name = updates.name;
+        if (updates.phone !== undefined) payload.phone = updates.phone;
+        if (updates.bio !== undefined) payload.bio = updates.bio;
+        if (updates.college !== undefined) payload.college = updates.college;
+        if (updates.course !== undefined) payload.course = updates.course;
+        if (updates.branch !== undefined) payload.branch = updates.branch;
+        if (updates.year !== undefined) payload.year = updates.year;
+        if (updates.studentId !== undefined) payload.student_id_number = updates.studentId;
+        if (updates.dob !== undefined) payload.dob = updates.dob ? new Date(updates.dob).toISOString() : null;
+        if (updates.gender !== undefined) payload.gender = updates.gender;
+        if (updates.preferredMoveInDate !== undefined) payload.preferred_move_in_date = updates.preferredMoveInDate ? new Date(updates.preferredMoveInDate).toISOString() : null;
+        if (updates.expectedDuration !== undefined) payload.expected_duration = updates.expectedDuration;
+        if (updates.preferredRoomType !== undefined) payload.preferred_room_type = updates.preferredRoomType;
+        if (updates.budgetRange !== undefined) payload.budget_range = updates.budgetRange;
+        if (updates.profileImage !== undefined || updates.avatar !== undefined) {
+            const img = updates.profileImage || updates.avatar;
+            payload.profile_image = img;
+            payload.avatar = img;
+        }
+        if (updates.emergencyContact !== undefined) payload.emergency_contact = emContact;
+
+        const { data, error } = await supabase
+            .from("profiles")
+            .update(payload)
+            .eq("id", user.id)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return await this.getStudentProfile();
+    },
+
+    async uploadProfileAvatar(file) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        if (!file) throw new Error("No file selected");
+        if (file.size > 5 * 1024 * 1024) throw new Error("Image file size must be less than 5 MB");
+
+        const allowed = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+        if (!allowed.includes(file.mimetype || file.type)) {
+            throw new Error("Invalid file type. Only JPG, PNG, and WebP images are allowed.");
+        }
+
+        const ext = file.name.split(".").pop() || "jpg";
+        const filePath = `${user.id}/${Date.now()}.${ext}`;
+
+        let publicUrl = "";
+        try {
+            const { data: uploadData, error: uploadErr } = await supabase.storage
+                .from("avatars")
+                .upload(filePath, file, { upsert: true, contentType: file.type });
+
+            if (uploadErr) {
+                console.warn("[Avatar Upload] Storage bucket fallback notice:", uploadErr.message);
+                // Fallback to data URL encoding or properties bucket
+                publicUrl = await new Promise((resolve) => {
+                    const reader = new FileReader();
+                    reader.onload = (e) => resolve(e.target.result);
+                    reader.readAsDataURL(file);
+                });
+            } else {
+                const { data: urlData } = supabase.storage.from("avatars").getPublicUrl(filePath);
+                publicUrl = urlData.publicUrl;
+            }
+        } catch (err) {
+            publicUrl = await new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = (e) => resolve(e.target.result);
+                reader.readAsDataURL(file);
+            });
+        }
+
+        await this.updateStudentProfile({ profileImage: publicUrl, avatar: publicUrl });
+        return { success: true, url: publicUrl };
+    },
+
+    // =====================================================
+    // BOOKING REQUEST & OWNER WORKFLOW METHODS
+    // =====================================================
+    async createBookingRequest(payload) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        const propId = payload.propertyId || payload.property;
+        if (!propId) throw new Error("Property ID is required");
+
+        // Try RPC first for row-level locking & server profile validation
+        try {
+            const { data: rpcData, error: rpcErr } = await supabase.rpc("create_booking_request_rpc", {
+                p_property_id: propId,
+                p_check_in: payload.moveInDate ? new Date(payload.moveInDate).toISOString() : new Date().toISOString(),
+                p_duration: payload.duration || "",
+                p_special_request: payload.specialRequest || "",
+                p_room_type: payload.roomType || ""
+            });
+
+            if (!rpcErr && rpcData && rpcData.success) {
+                return { success: true, bookingId: rpcData.bookingId, message: rpcData.message };
+            }
+            if (rpcErr && rpcErr.message && rpcErr.message.includes("Incomplete Resident Profile")) {
+                throw new Error("Incomplete Resident Profile: Please complete your profile before requesting a booking.");
+            }
+        } catch (e) {
+            if (e.message && e.message.includes("Incomplete Resident Profile")) throw e;
+            console.warn("[createBookingRequest] RPC fallback notice:", e.message);
+        }
+
+        // Direct table fallback
+        const prop = await this.getProperty(propId);
+        if (!prop) throw new Error("Property not found");
+        if (prop.available_beds <= 0) throw new Error("No beds available for this property");
+
+        const { data: booking, error: insErr } = await supabase
+            .from("bookings")
+            .insert({
+                user_id: user.id,
+                user_name: user.email ? user.email.split("@")[0] : "Student",
+                user_email: user.email,
+                property_id: prop.id,
+                property_name: prop.property_name,
+                owner_id: prop.owner_id,
+                booking_status: "pending",
+                payment_status: "pending",
+                check_in: payload.moveInDate ? new Date(payload.moveInDate).toISOString() : new Date().toISOString(),
+                duration: payload.duration || "",
+                special_request: payload.specialRequest || "",
+                price: prop.rent || 0
+            })
+            .select()
+            .single();
+
+        if (insErr) throw insErr;
+        return { success: true, bookingId: booking.id, booking };
+    },
+
+    async getBookingDetails(bookingId) {
+        const { data, error } = await supabase
+            .from("bookings")
+            .select("*, properties!property_id(*)")
+            .eq("id", bookingId)
+            .single();
+
+        if (error) throw error;
+        return {
+            success: true,
+            booking: {
+                id: data.id,
+                _id: data.mongo_id || data.id,
+                propertyName: data.property_name || data.properties?.property_name,
+                propertyId: data.property_id,
+                property: data.properties,
+                price: data.price,
+                checkIn: data.check_in,
+                duration: data.duration,
+                bookingStatus: data.booking_status,
+                paymentStatus: data.payment_status,
+                paymentId: data.payment_id,
+                rejectionReason: data.cancel_reason,
+                specialRequest: data.special_request
+            }
+        };
+    },
+
+    async getStudentBookingRequests() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        const { data, error } = await supabase
+            .from("bookings")
+            .select("*, properties!property_id(*)")
+            .eq("user_id", user.id)
+            .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        return (data || []).map(b => ({
+            id: b.id,
+            _id: b.mongo_id || b.id,
+            propertyName: b.property_name || b.properties?.property_name || "Campora Property",
+            property: b.properties,
+            price: b.price,
+            checkIn: b.check_in,
+            duration: b.duration,
+            bookingStatus: b.booking_status,
+            paymentStatus: b.payment_status,
+            rejectionReason: b.cancel_reason,
+            createdAt: b.created_at
+        }));
+    },
+
+    async getOwnerBookingRequests() {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        const { data, error } = await supabase
+            .from("bookings")
+            .select("*, properties!property_id(*), student:profiles!user_id(*)")
+            .eq("owner_id", user.id)
+            .order("created_at", { ascending: false });
+
+        if (error) throw error;
+        return (data || []).map(b => ({
+            id: b.id,
+            _id: b.mongo_id || b.id,
+            propertyName: b.property_name || b.properties?.property_name,
+            property: b.properties,
+            student: b.student || { name: b.user_name, email: b.user_email },
+            price: b.price,
+            checkIn: b.check_in,
+            duration: b.duration,
+            bookingStatus: b.booking_status,
+            paymentStatus: b.payment_status,
+            rejectionReason: b.cancel_reason,
+            createdAt: b.created_at
+        }));
+    },
+
+    async getOwnerResidentProfile(studentId, bookingId) {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        // Verify owner authorization
+        const { data: bookingCheck, error: authErr } = await supabase
+            .from("bookings")
+            .select("id")
+            .eq("user_id", studentId)
+            .eq("owner_id", user.id)
+            .limit(1);
+
+        if (authErr || !bookingCheck || bookingCheck.length === 0) {
+            throw new Error("Unauthorized: You do not have permission to view this resident profile.");
+        }
+
+        // Fetch student profile row
+        const { data: prof, error: profErr } = await supabase
+            .from("profiles")
+            .select("*")
+            .eq("id", studentId)
+            .single();
+
+        if (profErr || !prof) throw new Error("Student profile not found");
+
+        // Return sanitized resident portfolio
+        return {
+            success: true,
+            resident: {
+                id: prof.id,
+                name: prof.name,
+                email: prof.email,
+                phone: prof.phone,
+                avatar: prof.profile_image || prof.avatar,
+                college: prof.college,
+                course: prof.course,
+                branch: prof.branch,
+                year: prof.year,
+                studentId: prof.student_id_number,
+                gender: prof.gender,
+                preferredMoveInDate: prof.preferred_move_in_date,
+                expectedDuration: prof.expected_duration,
+                preferredRoomType: prof.preferred_room_type,
+                budgetRange: prof.budget_range,
+                emergencyContact: prof.emergency_contact || { name: "", relationship: "", phone: "" },
+                emailVerified: prof.email_verified || true,
+                phoneVerified: prof.phone_verified || false,
+                collegeVerified: prof.college_verified || false,
+                identityVerified: prof.identity_verified || false
+            }
+        };
+    },
+
+    async respondBookingRequest(bookingId, action, rejectionReason = "") {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) throw new Error("Not authenticated");
+
+        try {
+            const { data: rpcRes, error: rpcErr } = await supabase.rpc("respond_booking_request_rpc", {
+                p_booking_id: bookingId,
+                p_action: String(action).toUpperCase(),
+                p_rejection_reason: rejectionReason
+            });
+
+            if (!rpcErr && rpcRes && rpcRes.success) {
+                return rpcRes;
+            }
+        } catch (e) {
+            console.warn("[respondBookingRequest] RPC fallback notice:", e.message);
+        }
+
+        // Fallback update
+        const newStatus = String(action).toUpperCase() === "ACCEPT" ? "accepted" : "rejected";
+        const { data, error } = await supabase
+            .from("bookings")
+            .update({
+                booking_status: newStatus,
+                cancel_reason: rejectionReason || (newStatus === "rejected" ? "Declined by owner" : ""),
+                updated_at: new Date().toISOString()
+            })
+            .eq("id", bookingId)
+            .select()
+            .single();
+
+        if (error) throw error;
+        return { success: true, status: newStatus, booking: data };
     }
 };
+

@@ -1,16 +1,4 @@
 User-agent: *
 Allow: /
-Disallow: /pages/admin/
-Disallow: /pages/owner/
-Disallow: /pages/student/
-Disallow: /admin-login.html
-Disallow: /login.html
-Disallow: /register.html
-Disallow: /signup.html
-Disallow: /forgot-password.html
-Disallow: /dashboard.html
-Disallow: /payment.html
-Disallow: /success.html
 
 Sitemap: https://camporastudent.vercel.app/sitemap.xml
-

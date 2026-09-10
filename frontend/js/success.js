@@ -100,7 +100,10 @@ function renderBooking(booking) {
   const total = rent + deposit + bookingFee;
 
   const bookingIdEl = $("bookingId");
-  if (bookingIdEl) bookingIdEl.textContent = booking._id || booking.id || bookingId;
+  if (bookingIdEl) {
+    const rawId = String(booking._id || booking.id || bookingId).replace(/-/g, "").toUpperCase();
+    bookingIdEl.textContent = `CAM-${rawId.slice(0, 8)}`;
+  }
 
   const propNameEl = $("propertyName");
   if (propNameEl) propNameEl.textContent = propertyName;

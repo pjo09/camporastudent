@@ -222,9 +222,19 @@ export async function apiFetch(endpoint, opts = {}) {
   if (endpoint === "/student/profile" && method === "GET") {
     return await supabaseAPI.getStudentProfile();
   }
+  if (endpoint === "/student/profile-status" && method === "GET") {
+    return await supabaseAPI.getProfileStatus();
+  }
   if (endpoint === "/student/profile" && method === "PUT") {
     const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
     return await supabaseAPI.updateStudentProfile(payload);
+  }
+  if (endpoint === "/bookings" && method === "POST") {
+    const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
+    return await supabaseAPI.createBookingRequest(payload);
+  }
+  if (endpoint === "/bookings/my" || endpoint === "/student/bookings") {
+    return await supabaseAPI.getStudentBookingRequests();
   }
   if (endpoint === "/student/change-password" && method === "PUT") {
     const payload = opts.body ? (typeof opts.body === "string" ? JSON.parse(opts.body) : opts.body) : {};
