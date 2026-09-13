@@ -2,6 +2,7 @@
    CAMPORA ADMIN WORKSPACE - DESIGN SYSTEM
    Standardized Admin styling matching Student & Owner V3
    ===================================================== */
+@import "theme.css";
 
 :root {
   --admin-bg: #050816;

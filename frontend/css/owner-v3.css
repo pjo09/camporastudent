@@ -3,6 +3,7 @@
    Shared across all owner pages.
    Supports Dark (default) & Light theme modes.
 ===================================================== */
+@import "theme.css";
 
 :root, [data-theme="dark"] {
     --v3-primary: #2563eb;

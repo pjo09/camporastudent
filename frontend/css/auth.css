@@ -1,6 +1,7 @@
 /* =========================================================
    CAMPORA DEDICATED AUTH STYLESHEET (Scoped to .auth-page)
    ========================================================= */
+@import "theme.css";
 
 :root {
     --auth-bg: #050814;

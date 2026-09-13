@@ -1,6 +1,7 @@
 /* =====================================================
    CAMPORA PREMIUM DESIGN SYSTEM & BRANDING
    ===================================================== */
+@import "theme.css";
 
 :root {
     --campora-bg: #070F1E;

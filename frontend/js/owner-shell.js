@@ -254,6 +254,7 @@ export async function apiFetch(endpoint, opts = {}) {
   }
 
   const headers = { "Content-Type": "application/json", ...(opts.headers || {}) };
+  const token = getToken();
   if (token) headers.Authorization = `Bearer ${token}`;
 
   let res;
@@ -496,6 +497,7 @@ export function initShell(pageTitle = "Dashboard") {
   // Render owner info
   renderOwnerInfo();
 
+  const user = getUser();
   if (user && (user.accountStatus === "PENDING" || user.account_status === "PENDING")) {
     renderPendingBanner();
   }
@@ -533,6 +535,7 @@ function renderPendingBanner() {
 // =====================================================
 
 function renderOwnerInfo() {
+  const user = getUser();
   if (!user) return;
   const nameEl = $("ownerName");
   const avatarEl = $("ownerAvatar");
@@ -615,6 +618,6 @@ function setupShellListeners() {
 // EXPOSE for page-level use
 // =====================================================
 
-export { user, token, API_BASE, APP_BASE_URL, $, getTheme, setTheme, toggleTheme, applyTheme, initTheme };
+export { API_BASE, APP_BASE_URL, $, getTheme, setTheme, toggleTheme, applyTheme, initTheme };
 
 console.log("✅ Campora Owner Shell initialised");

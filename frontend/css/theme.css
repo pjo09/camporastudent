@@ -59,6 +59,16 @@
   --font-size-md: 15px;
   --font-size-lg: 18px;
   --font-size-xl: 24px;
+
+  /* Motion Tokens — Campora Premium Global Motion System */
+  --motion-fast: 150ms;
+  --motion-normal: 220ms;
+  --motion-slow: 350ms;
+
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-emphasized: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 /* =========================================================
@@ -111,16 +121,137 @@ a:focus:not(:focus-visible) { outline: none; }
 }
 
 /* =========================================================
-   GLASS CARD
+   CAMPORA GLOBAL MOTION SYSTEM — KEYFRAMES & UTILITIES
+========================================================= */
+
+@keyframes cpPageFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cpModalOpen {
+  from {
+    opacity: 0;
+    transform: scale(0.98) translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+@keyframes cpDropdownOpen {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cpToastIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes cpToastOut {
+  from {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  to {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes cpBellPulse {
+  0% { transform: rotate(0); }
+  15% { transform: rotate(12deg); }
+  30% { transform: rotate(-10deg); }
+  45% { transform: rotate(8deg); }
+  60% { transform: rotate(-6deg); }
+  75% { transform: rotate(4deg); }
+  100% { transform: rotate(0); }
+}
+
+@keyframes cpCheckmarkPop {
+  0% { transform: scale(0.8); opacity: 0; }
+  60% { transform: scale(1.1); opacity: 1; }
+  100% { transform: scale(1); opacity: 1; }
+}
+
+/* Page Entrance */
+.cp-animate-entry,
+main,
+.v3-content,
+.sv3-main-content,
+.admin-content,
+.dashboard-container,
+.auth-card,
+.hero-section {
+  animation: cpPageFadeIn var(--motion-slow) var(--ease-emphasized) both;
+}
+
+/* Staggered Content Entry */
+.stagger-container > *:nth-child(1), .sv3-grid > *:nth-child(1), .v3-grid > *:nth-child(1), .stats-grid > *:nth-child(1), .property-grid > *:nth-child(1), .quick-actions > *:nth-child(1) { animation-delay: 0ms; }
+.stagger-container > *:nth-child(2), .sv3-grid > *:nth-child(2), .v3-grid > *:nth-child(2), .stats-grid > *:nth-child(2), .property-grid > *:nth-child(2), .quick-actions > *:nth-child(2) { animation-delay: 40ms; }
+.stagger-container > *:nth-child(3), .sv3-grid > *:nth-child(3), .v3-grid > *:nth-child(3), .stats-grid > *:nth-child(3), .property-grid > *:nth-child(3), .quick-actions > *:nth-child(3) { animation-delay: 80ms; }
+.stagger-container > *:nth-child(4), .sv3-grid > *:nth-child(4), .v3-grid > *:nth-child(4), .stats-grid > *:nth-child(4), .property-grid > *:nth-child(4), .quick-actions > *:nth-child(4) { animation-delay: 120ms; }
+.stagger-container > *:nth-child(5), .sv3-grid > *:nth-child(5), .v3-grid > *:nth-child(5), .stats-grid > *:nth-child(5), .property-grid > *:nth-child(5), .quick-actions > *:nth-child(5) { animation-delay: 160ms; }
+.stagger-container > *:nth-child(6), .sv3-grid > *:nth-child(6), .v3-grid > *:nth-child(6), .stats-grid > *:nth-child(6), .property-grid > *:nth-child(6), .quick-actions > *:nth-child(6) { animation-delay: 200ms; }
+
+/* =========================================================
+   CARDS & PROPERTY IMAGES
 ========================================================= */
 
 .glass, .panel-card, .form-card, .stat-card, .property-card,
-.booking-card, .chart-card, .setting-card {
+.booking-card, .chart-card, .setting-card, .sv3-card, .v3-card, .admin-card {
   background: var(--glass);
   backdrop-filter: blur(20px);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
+  transition: transform var(--motion-normal) var(--ease-emphasized),
+              box-shadow var(--motion-normal) var(--ease-emphasized),
+              border-color var(--motion-normal) var(--ease-emphasized),
+              background-color var(--motion-normal) var(--ease-emphasized);
+}
+
+.property-card-img, .property-img, .sv3-card-img, .v3-card-img {
+  overflow: hidden;
+  border-radius: var(--radius-sm);
+}
+
+.property-card-img img, .property-img img, .sv3-card-img img, .v3-card-img img {
+  transition: transform var(--motion-slow) var(--ease-emphasized);
+}
+
+@media (hover: hover) {
+  .glass:hover, .panel-card:hover, .form-card:hover, .stat-card:hover,
+  .property-card:hover, .booking-card:hover, .chart-card:hover,
+  .setting-card:hover, .sv3-card:hover, .v3-card:hover, .admin-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .property-card:hover img, .property-img:hover img, .sv3-card:hover img, .v3-card:hover img {
+    transform: scale(1.025);
+  }
 }
 
 /* =========================================================
@@ -140,22 +271,47 @@ a:focus:not(:focus-visible) { outline: none; }
 .pagination-btn,
 .gallery-arrow,
 .share-btn,
-.save-btn {
+.save-btn,
+.sv3-btn,
+.v3-btn {
   font-family: var(--font);
   border: none;
   border-radius: var(--radius-sm);
   font-weight: 700;
   cursor: pointer;
-  transition: transform 0.25s ease, box-shadow 0.25s ease, background 0.25s ease, color 0.25s ease;
+  transition: transform var(--motion-fast) var(--ease-emphasized),
+              box-shadow var(--motion-fast) var(--ease-emphasized),
+              background-color var(--motion-fast) var(--ease-emphasized),
+              color var(--motion-fast) var(--ease-emphasized),
+              border-color var(--motion-fast) var(--ease-emphasized);
 }
 
 .primary-btn, .btn-primary, .admin-btn-primary, .book-btn, .pay-btn, .publish-btn {
   background: linear-gradient(135deg, var(--primary), var(--secondary));
   color: #fff;
 }
-.primary-btn:hover, .book-btn:hover, .pay-btn:hover, .btn-primary:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 24px var(--primary-glow);
+
+@media (hover: hover) {
+  .primary-btn:hover:not(:disabled), .book-btn:hover:not(:disabled), .pay-btn:hover:not(:disabled), .btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 8px 24px var(--primary-glow);
+  }
+
+  .secondary-btn:hover:not(:disabled), .btn-secondary:hover:not(:disabled), .btn-draft:hover:not(:disabled) {
+    background: rgba(255, 255, 255, 0.12);
+    transform: translateY(-1px);
+  }
+
+  .btn-danger:hover:not(:disabled), .delete-btn:hover:not(:disabled), .danger-btn:hover:not(:disabled) {
+    background: rgba(239, 68, 68, 0.2);
+    transform: translateY(-1px);
+  }
+}
+
+button:active:not(:disabled), .btn:active:not(:disabled),
+.primary-btn:active:not(:disabled), .secondary-btn:active:not(:disabled),
+.sv3-btn:active:not(:disabled), .v3-btn:active:not(:disabled) {
+  transform: scale(0.98);
 }
 
 .secondary-btn, .btn-secondary, .btn-draft, .wizard-btn-prev {
@@ -163,17 +319,10 @@ a:focus:not(:focus-visible) { outline: none; }
   color: var(--text);
   border: 1px solid var(--border);
 }
-.secondary-btn:hover {
-  background: rgba(255, 255, 255, 0.12);
-  transform: translateY(-2px);
-}
 
 .btn-danger, .delete-btn, .danger-btn, .btn-cancel {
   background: var(--danger-bg);
   color: var(--danger);
-}
-.btn-danger:hover, .delete-btn:hover, .danger-btn:hover {
-  background: rgba(239, 68, 68, 0.2);
 }
 
 .btn-success { background: var(--success-bg); color: var(--success); }
@@ -445,7 +594,7 @@ details.cp-faq p, details.sv3-faq p, details.v3-faq p {
   gap: 10px;
   pointer-events: none;
 }
-.toast {
+.toast, .v3-toast {
   padding: 16px 22px;
   border-radius: var(--radius-sm);
   background: var(--surface2);
@@ -459,6 +608,11 @@ details.cp-faq p, details.sv3-faq p, details.v3-faq p {
   box-shadow: var(--shadow-md);
   pointer-events: auto;
   max-width: 400px;
+  animation: cpToastIn var(--motion-normal) var(--ease-emphasized) both;
+  transition: opacity var(--motion-normal) var(--ease-emphasized), transform var(--motion-normal) var(--ease-emphasized);
+}
+.toast.toast-exiting, .toast.toast-leaving, .v3-toast.v3-toast-leaving {
+  animation: cpToastOut var(--motion-fast) var(--ease-emphasized) forwards !important;
 }
 .toast-success { border-color: rgba(34, 197, 94, 0.25); }
 .toast-success i { color: var(--success); }
@@ -468,26 +622,18 @@ details.cp-faq p, details.sv3-faq p, details.v3-faq p {
 .toast-info i { color: var(--info); }
 
 /* =========================================================
-   ERROR / EMPTY STATES
+   NOTIFICATION BELL & NAVIGATION ACTIVE STATES
 ========================================================= */
 
-.error-state, .empty-state, .cp-empty {
-  padding: 50px 24px;
-  border-radius: var(--radius-lg);
-  border: 2px dashed var(--border-strong);
-  background: var(--glass);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  max-width: 560px;
-  margin: 0 auto;
+.nav-item, .nav-link, .sv3-nav-item, .v3-nav-item, .sidebar-link {
+  transition: background-color var(--motion-fast) var(--ease-emphasized),
+              color var(--motion-fast) var(--ease-emphasized),
+              border-color var(--motion-fast) var(--ease-emphasized);
 }
-.error-state i, .empty-state i, .cp-empty i { font-size: 48px; color: var(--danger); margin-bottom: 16px; }
-.empty-state i, .cp-empty i { color: var(--muted); }
-.error-state h3, .empty-state h3, .cp-empty h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; color: var(--text); }
-.error-state p, .empty-state p, .cp-empty p { color: var(--muted); line-height: 1.6; font-size: 14px; margin-bottom: 20px; max-width: 400px; }
+
+.nav-bell.has-unread, .notification-bell.has-unread, .bell-icon.has-unread, .unread .fa-bell, .sv3-bell-btn.has-unread {
+  animation: cpBellPulse 1.2s var(--ease-emphasized) 1;
+}
 
 /* =========================================================
    MODALS
@@ -503,6 +649,7 @@ details.cp-faq p, details.sv3-faq p, details.v3-faq p {
   align-items: center;
   justify-content: center;
   padding: 20px;
+  transition: opacity var(--motion-fast) var(--ease-emphasized);
 }
 .modal-content, .cp-modal {
   background: var(--surface);
@@ -516,10 +663,11 @@ details.cp-faq p, details.sv3-faq p, details.v3-faq p {
   position: relative;
   box-shadow: var(--shadow-lg);
   color: var(--text);
+  animation: cpModalOpen var(--motion-normal) var(--ease-emphasized) both;
 }
 
 /* =========================================================
-   RESPONSIVE HELPERS
+   RESPONSIVE HELPERS & ACCESSIBILITY
 ========================================================= */
 
 @media (max-width: 1024px) {
@@ -528,5 +676,16 @@ details.cp-faq p, details.sv3-faq p, details.v3-faq p {
 @media (max-width: 600px) {
   .modal-content, .cp-modal { padding: 24px; }
 }
+
+/* Reduced Motion Support */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
 
 

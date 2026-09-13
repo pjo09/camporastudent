@@ -2,6 +2,7 @@
    CAMPORA STUDENT WORKSPACE - V3 PREMIUM THEME
    Independent namespace (sv3-*)
    ===================================================== */
+@import "theme.css";
 
 :root, [data-theme="dark"] {
   --sv3-bg: #070D19;
