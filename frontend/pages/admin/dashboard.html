@@ -11,102 +11,18 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.6.0/css/all.min.css" />
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.min.css" />
     <link rel="stylesheet" href="/css/theme.css" />
-    <link rel="stylesheet" href="/css/dashboard-v2.css" />
+    <link rel="stylesheet" href="/css/admin.css" />
     <link rel="icon" href="../../images/logo.png" type="image/png" />
     <style>
-        :root { --sidebar-width: 260px; }
-        .admin-badge { background:linear-gradient(135deg,#dc2626,#ef4444); color:#fff; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:700; margin-left:8px }
-        .admin-layout { margin-left:var(--sidebar-width); min-height:100vh; padding:24px }
-        .admin-sidebar { position:fixed; left:0; top:0; bottom:0; width:var(--sidebar-width); background:rgba(15,23,42,.95); backdrop-filter:blur(20px); border-right:1px solid rgba(255,255,255,.08); display:flex; flex-direction:column; z-index:100; padding:20px 0 }
-        .admin-logo { display:flex; align-items:center; gap:12px; padding:0 20px 28px; border-bottom:1px solid rgba(255,255,255,.06); margin-bottom:16px }
-        .admin-logo img { width:44px; height:44px; object-fit:contain }
-        .admin-logo h2 { font-size:22px; font-weight:800 }
-        .admin-logo span { font-size:12px; color:#94a3b8 }
-        .admin-nav { flex:1; display:flex; flex-direction:column; gap:4px; padding:0 12px; overflow-y:auto }
-        .admin-nav-item { display:flex; align-items:center; gap:14px; padding:13px 16px; border-radius:14px; color:#94a3b8; transition:.25s; cursor:pointer; border:none; background:none; width:100%; text-align:left; font-family:inherit; font-size:14px; font-weight:500 }
-        .admin-nav-item:hover { background:rgba(255,255,255,.06); color:#fff }
-        .admin-nav-item.active { background:linear-gradient(135deg,#2563eb22,#7c3aed22); color:#fff; font-weight:600 }
-        .admin-nav-item i { width:20px; text-align:center; font-size:16px }
-        .admin-nav-item .badge { margin-left:auto }
-        .admin-footer { padding:16px 20px 0; border-top:1px solid rgba(255,255,255,.06); margin:16px 12px 0 }
-
-        .admin-topbar { display:flex; justify-content:space-between; align-items:center; padding:16px 0; margin-bottom:24px; flex-wrap:wrap; gap:16px }
-        .admin-topbar h1 { font-size:28px; font-weight:800 }
-        .admin-topbar-right { display:flex; align-items:center; gap:14px }
-
-        .admin-stats-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(220px,1fr)); gap:18px; margin-bottom:32px }
-        .admin-stat-card { padding:22px; border-radius:18px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08); transition:.3s }
-        .admin-stat-card:hover { transform:translateY(-4px); background:rgba(255,255,255,.07) }
-        .admin-stat-icon { width:44px; height:44px; border-radius:12px; display:flex; align-items:center; justify-content:center; font-size:18px; margin-bottom:14px }
-        .admin-stat-title { font-size:13px; color:#94a3b8; margin-bottom:6px }
-        .admin-stat-value { font-size:28px; font-weight:800; margin-bottom:4px }
-        .admin-stat-sub { font-size:12px; color:#22c55e }
-
-        .admin-section { margin-bottom:32px }
-        .admin-section-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:18px; flex-wrap:wrap; gap:12px }
-        .admin-section-header h2 { font-size:22px; font-weight:700 }
-
-        .admin-table-wrap { overflow-x:auto; border-radius:18px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.04) }
-        .admin-table { width:100%; border-collapse:collapse; font-size:14px }
-        .admin-table th { padding:14px 18px; text-align:left; color:#94a3b8; font-weight:600; font-size:12px; text-transform:uppercase; letter-spacing:.5px; border-bottom:1px solid rgba(255,255,255,.06); background:rgba(255,255,255,.02) }
-        .admin-table td { padding:14px 18px; border-bottom:1px solid rgba(255,255,255,.04); vertical-align:middle }
-        .admin-table tr:last-child td { border-bottom:none }
-        .admin-table tr:hover td { background:rgba(255,255,255,.03) }
-
-        .admin-status { display:inline-flex; align-items:center; gap:6px; padding:4px 12px; border-radius:999px; font-size:12px; font-weight:600 }
-        .admin-status.active { background:rgba(34,197,94,.12); color:#22c55e }
-        .admin-status.pending { background:rgba(245,158,11,.12); color:#f59e0b }
-        .admin-status.suspended { background:rgba(239,68,68,.12); color:#ef4444 }
-        .admin-status.approved { background:rgba(34,197,94,.12); color:#22c55e }
-
-        .admin-btn { padding:8px 16px; border:none; border-radius:10px; cursor:pointer; font-weight:600; font-size:13px; transition:.2s; font-family:inherit }
-        .admin-btn-primary { background:linear-gradient(135deg,#2563eb,#3b82f6); color:#fff }
-        .admin-btn-danger { background:rgba(239,68,68,.15); color:#ef4444 }
-        .admin-btn-success { background:rgba(34,197,94,.15); color:#22c55e }
-        .admin-btn-warning { background:rgba(245,158,11,.15); color:#f59e0b }
-        .admin-btn-sm { padding:6px 12px; font-size:12px }
-        .admin-btn:hover { transform:translateY(-2px) }
-
-        .admin-charts { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-bottom:32px }
-        .chart-card { padding:24px; border-radius:18px; background:rgba(255,255,255,.04); border:1px solid rgba(255,255,255,.08) }
-        .chart-card h3 { font-size:16px; margin-bottom:16px; color:#94a3b8 }
-        .chart-card canvas { max-height:280px }
-
-        .admin-filter-bar { display:flex; gap:12px; flex-wrap:wrap; align-items:center; margin-bottom:18px }
-        .admin-filter-bar input, .admin-filter-bar select { padding:10px 14px; border-radius:12px; border:1px solid rgba(255,255,255,.08); background:rgba(255,255,255,.06); color:#fff; font-family:inherit; font-size:13px; outline:none }
-        .admin-filter-bar input:focus, .admin-filter-bar select:focus { border-color:#2563eb }
-
-        .admin-avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; background:linear-gradient(135deg,#2563eb,#7c3aed); color:#fff }
-        .admin-avatar-sm { width:28px; height:28px; font-size:11px }
-
         .admin-tab-content { display:none }
         .admin-tab-content.active { display:block }
-
+        .admin-avatar { width:36px; height:36px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:14px; background:linear-gradient(135deg,#2563eb,#7c3aed); color:#fff }
         .admin-pagination { display:flex; justify-content:center; align-items:center; gap:16px; padding:20px 0 }
         .admin-pagination button { width:36px; height:36px; border:none; border-radius:10px; background:rgba(255,255,255,.06); color:#fff; cursor:pointer; display:flex; align-items:center; justify-content:center; transition:.2s }
         .admin-pagination button:hover { background:rgba(37,99,235,.3) }
         .admin-pagination button:disabled { opacity:.3; cursor:default }
         .admin-pagination span { font-size:13px; color:#94a3b8 }
-
-        .admin-modal-overlay { position:fixed; inset:0; background:rgba(0,0,0,.6); backdrop-filter:blur(8px); z-index:5000; display:none; align-items:center; justify-content:center; padding:20px }
-        .admin-modal-overlay.active { display:flex }
-        .admin-modal { background:#0f172a; border:1px solid rgba(255,255,255,.08); border-radius:24px; padding:28px; width:100%; max-width:560px; max-height:80vh; overflow-y:auto; box-shadow:0 40px 80px rgba(0,0,0,.5) }
-        .admin-modal h3 { font-size:20px; margin-bottom:20px }
-        .admin-modal-close { float:right; width:36px; height:36px; border:none; border-radius:10px; background:rgba(255,255,255,.06); color:#fff; cursor:pointer }
-
         .action-group { display:flex; gap:6px; flex-wrap:wrap }
-
-        @media(max-width:1024px) {
-            .admin-sidebar { transform:translateX(-100%); transition:.3s }
-            .admin-sidebar.open { transform:translateX(0) }
-            .admin-layout { margin-left:0 }
-            .admin-charts { grid-template-columns:1fr }
-            .admin-stats-grid { grid-template-columns:repeat(2,1fr) }
-        }
-        @media(max-width:640px) {
-            .admin-stats-grid { grid-template-columns:1fr }
-            .admin-topbar h1 { font-size:22px }
-        }
     </style>
     <script src="/js/env.js"></script>
 <meta name="robots" content="noindex, nofollow">

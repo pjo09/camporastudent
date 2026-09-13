@@ -186,7 +186,7 @@ a:focus:not(:focus-visible) { outline: none; }
 }
 
 /* =========================================================
-   FORMS — shared component
+   FORMS — shared component & controls
 ========================================================= */
 
 .form-group input,
@@ -198,39 +198,53 @@ a:focus:not(:focus-visible) { outline: none; }
 .admin-filter-bar input,
 .admin-filter-bar select,
 .sort-select,
-.search-box input {
+.search-box input,
+.cp-input,
+.cp-select,
+.cp-textarea {
   width: 100%;
-  padding: 14px 16px;
+  padding: 12px 16px;
   border-radius: var(--radius-sm);
   border: 1px solid var(--border);
-  background: var(--surface2);
+  background: rgba(255, 255, 255, 0.05);
   color: var(--text);
   outline: none;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  font-size: 14px;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
 }
+
 .form-group select option,
 .input-group select option,
 .sort-select option,
-.admin-filter-bar select option {
+.admin-filter-bar select option,
+.cp-select option {
   background: var(--surface);
   color: var(--text);
 }
 
+.form-group input:focus-visible,
+.form-group select:focus-visible,
+.form-group textarea:focus-visible,
+.input-group input:focus-visible,
+.input-group select:focus-visible,
+.input-group textarea:focus-visible,
+.admin-filter-bar input:focus-visible,
+.admin-filter-bar select:focus-visible,
+.sort-select:focus-visible,
+.cp-input:focus-visible,
+.cp-select:focus-visible,
+.cp-textarea:focus-visible,
 .form-group input:focus,
 .form-group select:focus,
-.form-group textarea:focus,
-.input-group input:focus,
-.input-group select:focus,
-.input-group textarea:focus,
-.admin-filter-bar input:focus,
-.admin-filter-bar select:focus,
-.sort-select:focus {
+.form-group textarea:focus {
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--primary-soft);
+  background: rgba(255, 255, 255, 0.08);
 }
 
 .form-group label,
-.input-group label {
+.input-group label,
+.cp-label {
   display: block;
   font-size: var(--font-size-sm);
   font-weight: 600;
@@ -239,6 +253,83 @@ a:focus:not(:focus-visible) { outline: none; }
 }
 
 ::placeholder { color: var(--muted); }
+
+/* Disability / Loading states on inputs */
+input:disabled, select:disabled, textarea:disabled,
+.cp-input:disabled, .cp-select:disabled, .cp-textarea:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+/* =========================================================
+   ACCORDION & FAQ — shared component
+========================================================= */
+
+details.cp-faq, details.sv3-faq, details.v3-faq {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  padding: 14px 18px;
+  margin-bottom: 12px;
+  transition: all 0.25s ease;
+}
+
+details.cp-faq[open], details.sv3-faq[open], details.v3-faq[open] {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: var(--border-strong);
+}
+
+details.cp-faq summary, details.sv3-faq summary, details.v3-faq summary {
+  font-weight: 700;
+  font-size: 15px;
+  color: var(--text);
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  outline: none;
+}
+
+details.cp-faq summary::-webkit-details-marker,
+details.sv3-faq summary::-webkit-details-marker,
+details.v3-faq summary::-webkit-details-marker {
+  display: none;
+}
+
+details.cp-faq summary::after,
+details.sv3-faq summary::after,
+details.v3-faq summary::after {
+  content: '\f078';
+  font-family: 'Font Awesome 6 Free';
+  font-weight: 900;
+  font-size: 12px;
+  color: var(--muted);
+  transition: transform 0.25s ease, color 0.25s ease;
+}
+
+details.cp-faq[open] summary::after,
+details.sv3-faq[open] summary::after,
+details.v3-faq[open] summary::after {
+  transform: rotate(180deg);
+  color: var(--primary);
+}
+
+details.cp-faq summary:focus-visible,
+details.sv3-faq summary:focus-visible,
+details.v3-faq summary:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 4px;
+}
+
+details.cp-faq p, details.sv3-faq p, details.v3-faq p {
+  margin-top: 10px;
+  font-size: 14px;
+  color: var(--muted);
+  line-height: 1.6;
+}
 
 /* =========================================================
    GRIDS
@@ -261,18 +352,21 @@ a:focus:not(:focus-visible) { outline: none; }
    TABLES — shared component
 ========================================================= */
 
-.table-wrap, .admin-table-wrap {
+.table-wrap, .admin-table-wrap, .cp-table-wrap {
   overflow-x: auto;
   border-radius: var(--radius-lg);
   border: 1px solid var(--border);
   background: var(--glass);
+  width: 100%;
+  -webkit-overflow-scrolling: touch;
 }
-.table, .admin-table {
+.table, .admin-table, .cp-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 14px;
+  min-width: 650px;
 }
-.table th, .admin-table th {
+.table th, .admin-table th, .cp-table th {
   padding: 14px 18px;
   text-align: left;
   color: var(--muted);
@@ -285,21 +379,21 @@ a:focus:not(:focus-visible) { outline: none; }
   position: sticky;
   top: 0;
 }
-.table td, .admin-table td {
+.table td, .admin-table td, .cp-table td {
   padding: 14px 18px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.04);
   vertical-align: middle;
   color: var(--text-soft);
 }
-.table tr:nth-child(even) td, .admin-table tr:nth-child(even) td { background: rgba(255, 255, 255, 0.015); }
-.table tr:hover td, .admin-table tr:hover td { background: rgba(255, 255, 255, 0.03); }
-.table tr:last-child td, .admin-table tr:last-child td { border-bottom: none; }
+.table tr:nth-child(even) td, .admin-table tr:nth-child(even) td, .cp-table tr:nth-child(even) td { background: rgba(255, 255, 255, 0.015); }
+.table tr:hover td, .admin-table tr:hover td, .cp-table tr:hover td { background: rgba(255, 255, 255, 0.03); }
+.table tr:last-child td, .admin-table tr:last-child td, .cp-table tr:last-child td { border-bottom: none; }
 
 /* =========================================================
    STATUS / BADGE CHIPS
 ========================================================= */
 
-.badge-chip, .status-chip, .admin-status {
+.badge-chip, .status-chip, .admin-status, .cp-badge {
   display: inline-flex;
   align-items: center;
   gap: 6px;
@@ -308,19 +402,34 @@ a:focus:not(:focus-visible) { outline: none; }
   font-size: 12px;
   font-weight: 600;
 }
-.status-approved, .status-active, .status-paid, .badge-success { background: var(--success-bg); color: var(--success); }
-.status-pending, .badge-warning { background: var(--warning-bg); color: var(--warning); }
-.status-rejected, .status-suspended, .status-cancelled, .badge-danger { background: var(--danger-bg); color: var(--danger); }
+.status-approved, .status-active, .status-paid, .badge-success, .cp-badge-success { background: var(--success-bg); color: var(--success); }
+.status-pending, .badge-warning, .cp-badge-warning { background: var(--warning-bg); color: var(--warning); }
+.status-rejected, .status-suspended, .status-cancelled, .badge-danger, .cp-badge-danger { background: var(--danger-bg); color: var(--danger); }
+.status-info, .badge-info, .cp-badge-info { background: rgba(96, 165, 250, 0.15); color: #60A5FA; }
 
 /* =========================================================
    LOADING / SKELETON
 ========================================================= */
 
-.skeleton-pulse { animation: skeletonPulse 1.6s ease-in-out infinite; }
+.skeleton-pulse, .cp-skeleton { animation: skeletonPulse 1.6s ease-in-out infinite; }
 @keyframes skeletonPulse {
-  0%, 100% { opacity: 0.5; }
-  50% { opacity: 1; }
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.85; }
 }
+
+.cp-skeleton {
+  background: var(--glass);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  height: 260px;
+}
+.cp-skeleton-img { flex: 1; background: rgba(255, 255, 255, 0.06); border-radius: 12px; }
+.cp-skeleton-line { height: 16px; background: rgba(255, 255, 255, 0.06); border-radius: 6px; }
+.cp-skeleton-line.short { width: 60%; }
 
 /* =========================================================
    TOASTS
@@ -362,26 +471,32 @@ a:focus:not(:focus-visible) { outline: none; }
    ERROR / EMPTY STATES
 ========================================================= */
 
-.error-state, .empty-state {
-  padding: 60px 20px;
+.error-state, .empty-state, .cp-empty {
+  padding: 50px 24px;
   border-radius: var(--radius-lg);
   border: 2px dashed var(--border-strong);
   background: var(--glass);
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  max-width: 560px;
+  margin: 0 auto;
 }
-.error-state i, .empty-state i { font-size: 60px; color: var(--danger); margin-bottom: 16px; }
-.empty-state i { color: var(--muted); }
-.error-state h3, .empty-state h3 { font-size: 24px; margin-bottom: 10px; }
-.error-state p, .empty-state p { color: var(--text-soft); line-height: 1.8; }
+.error-state i, .empty-state i, .cp-empty i { font-size: 48px; color: var(--danger); margin-bottom: 16px; }
+.empty-state i, .cp-empty i { color: var(--muted); }
+.error-state h3, .empty-state h3, .cp-empty h3 { font-size: 20px; font-weight: 800; margin-bottom: 8px; color: var(--text); }
+.error-state p, .empty-state p, .cp-empty p { color: var(--muted); line-height: 1.6; font-size: 14px; margin-bottom: 20px; max-width: 400px; }
 
 /* =========================================================
    MODALS
 ========================================================= */
 
-.modal-overlay {
+.modal-overlay, .cp-modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(0, 0, 0, 0.65);
   backdrop-filter: blur(8px);
   z-index: 5000;
   display: flex;
@@ -389,7 +504,7 @@ a:focus:not(:focus-visible) { outline: none; }
   justify-content: center;
   padding: 20px;
 }
-.modal-content {
+.modal-content, .cp-modal {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--radius-lg);
@@ -408,9 +523,10 @@ a:focus:not(:focus-visible) { outline: none; }
 ========================================================= */
 
 @media (max-width: 1024px) {
-  .table thead, .admin-table thead { position: static; }
+  .table thead, .admin-table thead, .cp-table thead { position: static; }
 }
 @media (max-width: 600px) {
-  .modal-content { padding: 24px; }
+  .modal-content, .cp-modal { padding: 24px; }
 }
+
 
