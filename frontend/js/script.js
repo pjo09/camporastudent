@@ -72,19 +72,47 @@ const App = (() => {
 
 const Intro = (() => {
     let started = false;
+    let finished = false;
 
-    function init() {
-        if (started) return;
-        started = true;
+    const stages = [
+        { step: 1, text: "Checking your preferences...", progress: "25%" },
+        { step: 2, text: "Finding nearby stays...", progress: "50%" },
+        { step: 3, text: "Preparing your experience...", progress: "75%" },
+        { step: 4, text: "Almost there...", progress: "100%" }
+    ];
 
-        const intro = $("introScreen");
+    function setStage(index) {
+        const stage = stages[index];
+        if (!stage) return;
+
+        const textEl = $("introStepText");
         const loading = $("loadingBar");
 
-        if (!intro) return;
+        if (textEl) textEl.textContent = stage.text;
+        if (loading) loading.style.width = stage.progress;
 
-        if (loading) {
-            setTimeout(() => { loading.style.width = "100%"; }, 200);
-        }
+        const nodes = document.querySelectorAll(".journey-node");
+        nodes.forEach((node, idx) => {
+            if (idx + 1 === stage.step) {
+                node.classList.add("active");
+                node.classList.remove("completed");
+            } else if (idx + 1 < stage.step) {
+                node.classList.remove("active");
+                node.classList.add("completed");
+            } else {
+                node.classList.remove("active", "completed");
+            }
+        });
+    }
+
+    function complete() {
+        if (finished) return;
+        finished = true;
+
+        setStage(3);
+
+        const intro = $("introScreen");
+        if (!intro) return;
 
         setTimeout(() => {
             intro.classList.add("hide");
@@ -94,10 +122,24 @@ const Intro = (() => {
             if (!getToken()) {
                 AuthModal.open("login");
             }
-        }, 1800);
+        }, 300);
     }
 
-    return { init };
+    function init() {
+        if (started) return;
+        started = true;
+
+        const intro = $("introScreen");
+        if (!intro) return;
+
+        setStage(0);
+
+        setTimeout(() => setStage(1), 450);
+        setTimeout(() => setStage(2), 1000);
+        setTimeout(() => complete(), 1600);
+    }
+
+    return { init, complete };
 })();
 
 // =====================================================

@@ -65,18 +65,96 @@
 <body>
 
     <!-- ===================================================== -->
-    <!-- INTRO LOADING SCREEN (Refined 1.8s) -->
+    <!-- INTRO LOADING SCREEN (DISTINCTIVE CAMPORA INITIALIZATION) -->
     <!-- ===================================================== -->
-    <div id="introScreen">
-        <div class="intro-bg"></div>
-        <div class="intro-card">
-            <img class="intro-logo" src="images/logo.png" alt="Campora Logo">
-            <div class="intro-title">Campora</div>
-            <p class="intro-subtitle">India's Premium Student Accommodation Platform</p>
-            <div class="loading-wrapper">
-                <div id="loadingBar"></div>
+    <div id="introScreen" aria-label="Application Loading" role="status">
+        <div class="intro-bg">
+            <div class="intro-bg-glow"></div>
+            <div class="intro-bg-grid"></div>
+        </div>
+
+        <div class="intro-content">
+            <!-- Logo Section -->
+            <div class="intro-logo-wrapper">
+                <div class="logo-ring"></div>
+                <img class="intro-logo" src="images/logo.png" alt="Campora Logo">
             </div>
-            <div class="loading-text">Setting up your perfect home...</div>
+
+            <!-- Brand Header -->
+            <div class="intro-brand">
+                <h1 class="intro-title">Campora</h1>
+                <p class="intro-subtitle">Finding a place that feels like home.</p>
+            </div>
+
+            <!-- Journey Visual (Student -> Campus -> City -> Home) -->
+            <div class="intro-journey-visual">
+                <!-- SVG Connecting Route -->
+                <svg class="journey-svg" viewBox="0 0 490 100" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path class="route-track" d="M 45 50 C 105 20, 115 35, 175 35 C 235 35, 245 65, 305 65 C 365 65, 375 25, 435 50" stroke="rgba(255, 255, 255, 0.12)" stroke-width="2" stroke-dasharray="4 4"/>
+                    <path class="route-path" id="introRoutePath" d="M 45 50 C 105 20, 115 35, 175 35 C 235 35, 245 65, 305 65 C 365 65, 375 25, 435 50" stroke="url(#routeGradient)" stroke-width="2.5" stroke-linecap="round"/>
+                    <defs>
+                        <linearGradient id="routeGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#2563EB"/>
+                            <stop offset="50%" stop-color="#059669"/>
+                            <stop offset="100%" stop-color="#10B981"/>
+                        </linearGradient>
+                    </defs>
+                    <circle class="route-dot" r="4" fill="#10B981"/>
+                </svg>
+
+                <!-- Milestone Nodes -->
+                <div class="journey-nodes">
+                    <div class="journey-node step-node-1 active" data-step="1">
+                        <div class="node-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg>
+                        </div>
+                        <span class="node-label">Student</span>
+                    </div>
+
+                    <div class="journey-node step-node-2" data-step="2">
+                        <div class="node-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M3 10h18M5 10v11M9 10v11M15 10v11M19 10v11M12 3L2 10h20L12 3z"/></svg>
+                        </div>
+                        <span class="node-label">Campus</span>
+                    </div>
+
+                    <div class="journey-node step-node-3" data-step="3">
+                        <div class="node-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/></svg>
+                        </div>
+                        <span class="node-label">City</span>
+                    </div>
+
+                    <div class="journey-node step-node-4" data-step="4">
+                        <div class="node-icon">
+                            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                        </div>
+                        <span class="node-label">Home</span>
+                    </div>
+                </div>
+
+                <!-- Floating Neutral Property Badges -->
+                <div class="intro-badge float-badge-1">
+                    <i class="fa-solid fa-shield-check"></i>
+                    <span>Verified stays</span>
+                </div>
+                <div class="intro-badge float-badge-2">
+                    <i class="fa-solid fa-graduation-cap"></i>
+                    <span>Campus locations</span>
+                </div>
+                <div class="intro-badge float-badge-3">
+                    <i class="fa-solid fa-bed"></i>
+                    <span>Student accommodation</span>
+                </div>
+            </div>
+
+            <!-- Status & Progress Indicator -->
+            <div class="intro-status-block">
+                <div id="introStepText" class="intro-status-text">Checking your preferences...</div>
+                <div class="loading-wrapper">
+                    <div id="loadingBar"></div>
+                </div>
+            </div>
         </div>
     </div>
 
